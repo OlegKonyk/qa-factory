@@ -28,6 +28,9 @@ own suite check them in that order; readable test cases in the signoff format ar
 pull request; approved tests join the application's own suite where the per-application strategy
 rule says. The other steps are simplified but real. linkding first, isso second.
 
+`docs/plugin-notes.md` collects what runs teach about Oleg's separate plugins project; the factory
+does not depend on it.
+
 ## Next
 
 1. The first build session, from `docs/next-session.md`: the first path on linkding.

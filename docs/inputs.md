@@ -3,6 +3,20 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-08 · The plugins are a separate project, improved along the way, not a factory part
+
+> What about plugins? Have you established that we will be using the toolchain so it can be
+> improved as well? [...] No, no, no. What I mean by plugins is my other project, right? I want to
+> improve it along the way. It does not have to be used as part of the factory. We will be
+> building a factory where the factory can use some of that if needed, or take a version of it.
+
+How it was read: his Claude Code plugins (`~/dev/konyklabs/claude-plugins`: supervisor, signoff,
+py-testing, prod-readiness and the rest) are their own project. The factory does not depend on
+them. A step may use one, or copy a version of one, when that is the shortest route. What a
+factory session learns about a plugin (a gap, a fix, a skill that would have helped) is written
+down for him to carry into that project. Changed: item 10 of the delegated decisions is
+superseded; `docs/next-session.md` and `docs/status.md` follow.
+
 ## 2026-10-08 · Rapid mode: sessions merge their own pull requests, nothing waits for Oleg
 
 > No, it's the other way around. I want you to keep merging shit. Don't wait for me. This is

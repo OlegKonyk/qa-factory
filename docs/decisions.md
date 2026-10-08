@@ -3,6 +3,19 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-08 · The plugins project is separate; the factory may use or copy pieces; lessons flow back
+
+**Decided.** Oleg's Claude Code plugins (`~/dev/konyklabs/claude-plugins`) are a separate project
+that he improves along the way. The factory does not depend on them. A step may use a plugin, or
+take a copy of one into this repository, when that is the shortest route to a running path; the
+decision is made per step, at build time, and recorded in the step's artifact. Every factory
+session writes what it learned about the plugins into `docs/plugin-notes.md` (newest first: which
+plugin, what was missing or wrong, what would have helped), for him to carry into that project.
+
+**Supersedes** item 10 of the delegated decisions, where signoff and py-testing were "in the first
+path" and the supervisor agents were the simplified steps. They are now candidates, not parts.
+The Learn step of the factory stays as described there and is unchanged.
+
 ## 2026-10-08 · Rapid mode: a session merges its own pull request, nothing waits for Oleg
 
 **Decided.** A session merges its own pull request once `just check` is green and its output is in
