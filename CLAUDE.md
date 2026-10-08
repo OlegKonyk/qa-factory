@@ -2,10 +2,11 @@
 
 This repository builds the QA part of an AI software factory as working code. A ticket goes in,
 agents frame, plan, implement, verify, review and ship the change, and people approve at set
-gates. The factory runs on this machine, on Temporal. The first part built is QA: generate API
-and Playwright tests, prove they are not misleading, show a person something readable to approve,
-and add the approved tests to the regression suite where the test strategy says coverage belongs.
-`docs/brief.md` has the requirements. `docs/status.md` has where things stand.
+gates. The factory runs on this machine; Temporal is deferred until the loop runs
+(`docs/decisions.md`). The first part built is QA: generate API and Playwright tests, prove they
+are not misleading, show a person something readable to approve, and add the approved tests to the
+regression suite where the test strategy says coverage belongs. `docs/brief.md` has the
+requirements, `docs/decisions.md` the decisions, `docs/status.md` where things stand.
 
 **The output is software that runs.** It is not a recommendation, a comparison or a report.
 
