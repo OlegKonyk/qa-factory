@@ -3,6 +3,39 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-08 · Build decisions of the first path, made by delegation
+
+Made by the first build session under the delegation of the same day; each can be overturned by
+a later entry. What they settled, with the reason:
+
+1. **Run folders live in `.artifacts/runs/<ticket id>/` inside this repository, gitignored**, with
+   absolute paths in every record. One place to look, resumable from any working directory. The
+   evidence a person needs is copied to `docs/runs/<date>-<ticket id>/` for the pull request.
+2. **The answer file is consumed once.** When a re-run passes `answer.json` to the gated step, the
+   driver moves it to `steps/0N-<step>.answerK.json`. A stale answer never answers a later gate.
+3. **Models and caps, to be revisited on the numbers:** the test writer and the test-case writer
+   run on Opus (`claude-opus-5-5`) with caps of 5.00 and 2.00 USD; Frame and Plan on Sonnet with
+   0.50; Review on Opus with 1.00. Measured on the first run: 3.62, 1.28, 0.03, 0.07 and 0.58 USD.
+4. **The gate rules of Verify.** The revert check fails when any new test is a crash or a missing
+   name on the old code, or fails at head, or when no test proves behaviour; a test that passes on
+   both is allowed and reported as a regression guard. Mutation fails the run only when mutmut
+   could not run, when no mutant was checked, or when the generated tests kill no mutant on the
+   changed lines; scores are reported, not thresholded, until more runs show what a threshold
+   should be. The behaviour rule of the sorter counts an assertion anywhere in the traceback that
+   passes through the test file or a declared test-support file, so Playwright's `expect` and
+   the application's own assertion helpers count.
+5. **The writer may only add new files under the two test folders.** Anything else it touched is
+   reverted and the step fails. The plan's file names are advisory; the writer's placement is
+   fixed by the strategy rule (`test_<feature>_api.py`, `e2e_test_<feature>.py`).
+6. **Pieces copied from elsewhere:** the signoff plugin's `cases.py` (unchanged), the shape of the
+   old lab's pytest plugin for the failure sorter (rewritten, 159 lines), the mutmut recipe from
+   the lab's probe. Nothing else from the lab; its mutation wrapper, linter and sandbox were not
+   copied (rule 3).
+7. **The py-testing skills are not injected into the test writer's prompt.** They teach
+   pytest-playwright fixtures and a request-context client; linkding's tests must join its own
+   unittest-style suites, so the prompt points the writer at the application's helpers and says
+   its conventions win. Recorded for the plugins project in `docs/plugin-notes.md`.
+
 ## 2026-10-08 · The plugins are the toolchain for building the factory
 
 **Decided.** Sessions that build the factory use Oleg's plugins as their toolchain: `supervisor`

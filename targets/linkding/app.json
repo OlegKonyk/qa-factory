@@ -1,0 +1,22 @@
+{
+  "name": "linkding",
+  "repo": "~/Library/Caches/qa-factory/linkding/repo",
+  "worktrees": "~/Library/Caches/qa-factory/linkding/wt",
+  "python": "~/Library/Caches/qa-factory/linkding/repo/.venv/bin/python",
+  "source_package": "bookmarks",
+  "pytest_args": ["-p", "no:cacheprovider"],
+  "api_tests_dir": "bookmarks/tests",
+  "browser_tests_dir": "bookmarks/tests_e2e",
+  "browser_test_files": "e2e_test_*.py",
+  "test_support": ["bookmarks/tests/helpers.py", "bookmarks/tests_e2e/helpers.py"],
+  "exclude_copy": [".git", "node_modules", ".venv", "mutants", "__pycache__", ".pytest_cache"],
+  "mutmut": {
+    "pytest_add_cli_args": ["-p", "no:cacheprovider", "-o", "django_find_project=false"],
+    "pre_create_dirs": ["data/assets", "data/favicons", "data/previews"]
+  },
+  "suite": [
+    ["-n", "auto", "bookmarks/tests"],
+    ["-o", "python_files=e2e_test_*.py", "bookmarks/tests_e2e"]
+  ],
+  "strategy": "targets/linkding/strategy.md"
+}

@@ -1,50 +1,23 @@
-# The next session: build the first end-to-end path
+# The next session: close the first run, then the second ticket
 
 Paste this as the first message of the next session.
 
 ---
 
-Start in ~/dev/qa-factory. Read CLAUDE.md, then docs/status.md, docs/decisions.md and
-docs/reference/lab.md. Everything below is decided; do not reopen it.
+Start in ~/dev/qa-factory. Read CLAUDE.md, then docs/status.md and docs/decisions.md. The first
+path exists and runs (`docs/status.md`, "Done"); do not rebuild it.
 
-Build the first end-to-end path and run it on linkding. Rule 3: one working path before any
-supporting machinery. Rule 4: the session ends with the command and its output.
+1. If `.artifacts/runs/linkding-sort-by-modified/answer.json` exists, run
+   `uv run python -m factory run targets/linkding/tickets/sort-by-modified.json` and report what
+   Review and Ship did. If it does not exist, the gate is still Oleg's; leave it and go on.
+2. Write the second ticket from linkding commit 573b6f5 ("Filter bundles by reading or sharing
+   state", base is its parent) into `targets/linkding/tickets/`, run
+   `uv run python targets/linkding/fetch.py --ticket <that ticket> --prepare-e2e`, and run the
+   factory on it to the gate. Fix what breaks in the factory, not in the application. Record the
+   numbers (spend per step, time per check, mutation scores) in `docs/runs/`.
+3. Carry the second run's lessons into the prompts and checks, with a test for each change.
 
-The path, on a plain Python driver (no Temporal):
-
-1. Fetch linkding the way the old lab did (`targets/linkding/`, branch `feat/coverage-material`
-   in ~/dev/assay; copy the fetch script if it is the shortest route) and pick one real 2026
-   feature with the developers' own tests. Its description becomes the ticket.
-2. The driver: a loop over the seven steps, one run folder per ticket, one JSON record per step,
-   stop on `needs_person`, resume on re-run from the last finished step. The step contract is in
-   docs/decisions.md, item 1 of the delegated decisions; keep it that small.
-3. Frame, Plan, Review and Ship are one-prompt steps. Implement is the developers' real commit
-   applied as the change.
-4. Verify, built fully: Claude Code headless in a fresh session writes pytest API tests and
-   Playwright browser tests for the feature, placed by the per-application strategy rule; then
-   lint, the revert check with the failure sorter, mutmut 3.8 on the changed functions, and
-   linkding's own suite, in that order, each able to fail the run; then readable test cases, one
-   Markdown page per test, beside the tests; then the driver stops with a question for Oleg.
-5. In this first path the answer is a file in the run folder (decision 4's fallback): the driver
-   stops with a question file, Oleg writes the answer file, the re-run resumes, merges the tests
-   into linkding's test folders, and runs its suite green. The pull-request answer comes once
-   linkding is forked under his account; do not fork in this session.
-
-Copy from the old lab only when the step in front of you needs it: the mutation wrapper, the
-revert check and lint, the failure sorter, the headless runner, the feature descriptions. Read
-docs/reference/lab.md for where they are and which have failing tests. Never resume the lab's
-plans.
-
-Build with Oleg's plugins, as `CLAUDE.md` says: `/supervisor:triage` first, then
-`/supervisor:delegate` each slice (the driver, the step contract, each check) to a cheaper model
-with an evidence contract, `supervisor:reviewer` before accepting a slice, the `py-testing` skills
-for every test file, `/reviewing-diffs` before the pull request. The factory itself may use or
-copy a piece of a plugin when a step needs one; say so in the step's artifact. Whatever you learn
-about the plugins goes into `docs/plugin-notes.md`.
-
-Measure and record: the spend per step, the time per check, and the mutation score on the
-changed functions. Label every number measured or estimated.
-
-Branch `feat/first-path`, `just check` green, squash PR with the output in the body. Update
-docs/status.md last. Report to Oleg in plain English: what ran, what it showed, what is his to
-decide.
+Build with Oleg's plugins as `CLAUDE.md` says; the supervisor skills need him to arm them
+(`docs/plugin-notes.md`), so spawn its agents directly with written specs when he has not.
+Branch per change, `just check` green, squash PR with the output in the body, `docs/status.md`
+last, report in plain English.
