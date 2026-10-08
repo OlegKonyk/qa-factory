@@ -75,6 +75,16 @@ This repository is on a personal GitHub account. Private is not the same as the 
   a PR that changes this file or `hooks/`. Nothing waits for Oleg's yes: he reads the result and
   overturns what he dislikes (his words, 2026-10-08, `docs/inputs.md`).
 
+## Toolchain: Oleg's plugins build the factory
+
+Sessions that build this repository use his Claude Code plugins (`~/dev/konyklabs/claude-plugins`)
+as their toolchain, to spend fewer tokens and keep code quality: `supervisor` to triage a task,
+delegate implementation to cheaper models with an evidence contract, and review a slice before it
+is accepted; the `py-testing` skills for every test file; `reviewing-diffs` before a pull request.
+What a session learns about a plugin (a gap, a wrong step, a skill that would have helped) goes in
+`docs/plugin-notes.md` for him to carry into that project. The factory itself may use or copy a
+piece of a plugin when a step needs one (`docs/decisions.md`).
+
 ## The old lab
 
 `~/dev/assay` (GitHub `OlegKonyk/assay`, tag `lab-end-2026-10-08`) is read-only history. Read

@@ -3,6 +3,17 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-08 · The plugins are the toolchain for building the factory
+
+**Decided.** Sessions that build the factory use Oleg's plugins as their toolchain: `supervisor`
+(triage, delegation to cheaper models with evidence contracts, review before a slice is accepted),
+the `py-testing` skills for test code, `reviewing-diffs` before a pull request. Reason, his words:
+"so we can use tokens and have code quality." The plugins get improved along the way through
+`docs/plugin-notes.md`. The previous entry stands for the factory itself.
+
+**What it changes.** A toolchain section in `CLAUDE.md`; `docs/next-session.md` says to build
+with the plugins.
+
 ## 2026-10-08 · The plugins project is separate; the factory may use or copy pieces; lessons flow back
 
 **Decided.** Oleg's Claude Code plugins (`~/dev/konyklabs/claude-plugins`) are a separate project
