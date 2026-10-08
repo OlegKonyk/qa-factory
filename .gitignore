@@ -1,0 +1,19 @@
+# Local only: raw hand-offs, photos, anything that identifies the employer, session notes.
+.local/
+
+# Run output
+.artifacts/
+reports/
+test-results/
+playwright-report/
+
+# Tooling
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+.claude/settings.local.json
+.claude/worktrees/
