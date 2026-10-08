@@ -3,6 +3,20 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-08 · The plugins are the toolchain for building the factory
+
+> Hey, listen. We will be building a factory, right? That itself, I want to use those plugins
+> [to build it] so we can use tokens and have code quality.
+
+How it was read: the sessions that build the factory use his plugins as their toolchain: the
+supervisor plugin to triage work and delegate implementation to cheaper models with evidence
+contracts and to review a slice before it is accepted, the py-testing skills for test code, the
+review checklist before a pull request. That is how tokens are saved and code quality kept, and
+how the plugins get improved along the way (`docs/plugin-notes.md`). The previous entry stands
+for the factory itself: it may use or copy a piece when a step needs one. The earlier reading of
+"does not have to be used as part of the factory" as "do not use them" was wrong. Changed: a
+toolchain rule in `CLAUDE.md`; `docs/next-session.md`.
+
 ## 2026-10-08 · The plugins are a separate project, improved along the way, not a factory part
 
 > What about plugins? Have you established that we will be using the toolchain so it can be

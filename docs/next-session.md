@@ -35,10 +35,12 @@ revert check and lint, the failure sorter, the headless runner, the feature desc
 docs/reference/lab.md for where they are and which have failing tests. Never resume the lab's
 plans.
 
-Oleg's Claude Code plugins (`~/dev/konyklabs/claude-plugins`) are a separate project, not a
-factory dependency. Use one, or copy a version of one into this repository, only when it is the
-shortest route for the step in front of you, and say so in the step's artifact. Whatever you
-learn about them goes into `docs/plugin-notes.md`.
+Build with Oleg's plugins, as `CLAUDE.md` says: `/supervisor:triage` first, then
+`/supervisor:delegate` each slice (the driver, the step contract, each check) to a cheaper model
+with an evidence contract, `supervisor:reviewer` before accepting a slice, the `py-testing` skills
+for every test file, `/reviewing-diffs` before the pull request. The factory itself may use or
+copy a piece of a plugin when a step needs one; say so in the step's artifact. Whatever you learn
+about the plugins goes into `docs/plugin-notes.md`.
 
 Measure and record: the spend per step, the time per check, and the mutation score on the
 changed functions. Label every number measured or estimated.
