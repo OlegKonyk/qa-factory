@@ -36,8 +36,6 @@ rule says. The other steps are simplified but real. linkding first, isso second.
 
 ## Waiting on Oleg
 
-- His yes on `CLAUDE.md`: pull request 1 (the scaffold) and the Temporal line changed in the
-  planning pull request.
 - Whether the factory at work is built on Temporal. Decides the Temporal question later; blocks
   nothing now.
 - Whether the old lab's worktrees, and the four branches that exist only on this laptop, are kept

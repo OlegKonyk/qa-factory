@@ -71,8 +71,9 @@ This repository is on a personal GitHub account. Private is not the same as the 
 - No hosted CI; GitHub Actions is disabled on the repository. `just check` is the definition of
   green and grows with the code.
 - Branch per change (`<type>/<slug>`), never commit to `main`. Merge by squash PR once `just check`
-  is green and its output is in the PR body. A session may merge its own PR on that basis. A PR
-  that changes this file or `hooks/` waits for Oleg.
+  is green and its output is in the PR body. A session merges its own PR on that basis, including
+  a PR that changes this file or `hooks/`. Nothing waits for Oleg's yes: he reads the result and
+  overturns what he dislikes (his words, 2026-10-08, `docs/inputs.md`).
 
 ## The old lab
 

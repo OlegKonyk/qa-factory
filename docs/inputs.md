@@ -3,6 +3,18 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-08 · Rapid mode: sessions merge their own pull requests, nothing waits for Oleg
+
+> No, it's the other way around. I want you to keep merging shit. Don't wait for me. This is
+> experimental stuff. Don't create. This is rapid development mode. Okay, let's establish that and
+> be very clear. I don't want you to wait for me for nonsense, okay?
+
+How it was read: a session merges its own pull request once `just check` is green, including
+pull requests that change `CLAUDE.md` or `hooks/`. Nothing waits for his yes. He reads the result
+and overturns what he dislikes. "Don't create" is read as "don't create waits". Changed: the rapid
+mode rule in `CLAUDE.md`; pull requests 1 and 2 merged in this session; recorded in
+`docs/decisions.md`.
+
 ## 2026-10-08 · Temporal deferred; existing plugins as factory parts; a self-improving factory
 
 > Let me ask you this: what if we drop Temporal? Is it going to slow us down, or the other way

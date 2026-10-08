@@ -3,6 +3,18 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-08 · Rapid mode: a session merges its own pull request, nothing waits for Oleg
+
+**Decided.** A session merges its own pull request once `just check` is green and its output is in
+the body, including a pull request that changes `CLAUDE.md` or `hooks/`. No pull request waits for
+his yes. He reads the merged result and overturns what he dislikes with a later entry here.
+
+**Reasoning, his words.** "This is experimental stuff. This is rapid development mode. I don't
+want you to wait for me for nonsense."
+
+**What it changes.** The rapid mode rule in `CLAUDE.md`. Pull requests 1 and 2 are merged by this
+session. The "Waiting on Oleg" list in `docs/status.md` keeps only things he alone knows.
+
 ## 2026-10-08 · The planning questions, decided by delegation
 
 Oleg: "Please use your best judgment to answer these questions. When it comes to test
