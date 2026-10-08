@@ -1,0 +1,30 @@
+[project]
+name = "qa-factory"
+version = "0.1.0"
+description = "The QA part of an AI software factory: AI writes tests, deterministic tools check them."
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "ruff>=0.14",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider -q"
+markers = [
+    "linkding: needs the factory's own linkding clone; skipped when it is absent",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# A verbatim copy of the signoff plugin's linter (docs/plugin-notes.md); kept as upstream writes it.
+"factory/checks/cases.py" = ["UP"]
