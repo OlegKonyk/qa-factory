@@ -2,10 +2,11 @@
 
 This repository builds the QA part of an AI software factory as working code. A ticket goes in,
 agents frame, plan, implement, verify, review and ship the change, and people approve at set
-gates. The factory runs on this machine, on Temporal. The first part built is QA: generate API
-and Playwright tests, prove they are not misleading, show a person something readable to approve,
-and add the approved tests to the regression suite where the test strategy says coverage belongs.
-`docs/brief.md` has the requirements. `docs/status.md` has where things stand.
+gates. The factory runs on this machine; Temporal is deferred until the loop runs
+(`docs/decisions.md`). The first part built is QA: generate API and Playwright tests, prove they
+are not misleading, show a person something readable to approve, and add the approved tests to the
+regression suite where the test strategy says coverage belongs. `docs/brief.md` has the
+requirements, `docs/decisions.md` the decisions, `docs/status.md` where things stand.
 
 **The output is software that runs.** It is not a recommendation, a comparison or a report.
 
@@ -70,8 +71,9 @@ This repository is on a personal GitHub account. Private is not the same as the 
 - No hosted CI; GitHub Actions is disabled on the repository. `just check` is the definition of
   green and grows with the code.
 - Branch per change (`<type>/<slug>`), never commit to `main`. Merge by squash PR once `just check`
-  is green and its output is in the PR body. A session may merge its own PR on that basis. A PR
-  that changes this file or `hooks/` waits for Oleg.
+  is green and its output is in the PR body. A session merges its own PR on that basis, including
+  a PR that changes this file or `hooks/`. Nothing waits for Oleg's yes: he reads the result and
+  overturns what he dislikes (his words, 2026-10-08, `docs/inputs.md`).
 
 ## The old lab
 
