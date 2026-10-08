@@ -25,8 +25,10 @@ The path, on a plain Python driver (no Temporal):
    lint, the revert check with the failure sorter, mutmut 3.8 on the changed functions, and
    linkding's own suite, in that order, each able to fail the run; then readable test cases in
    the signoff format beside the tests; then the driver stops with a question for Oleg.
-5. Oleg approves on the pull request; the re-run resumes, merges the tests into linkding's test
-   folders, and runs its suite green.
+5. In this first path the answer is a file in the run folder (decision 4's fallback): the driver
+   stops with a question file, Oleg writes the answer file, the re-run resumes, merges the tests
+   into linkding's test folders, and runs its suite green. The pull-request answer comes once
+   linkding is forked under his account; do not fork in this session.
 
 Copy from the old lab only when the step in front of you needs it: the mutation wrapper, the
 revert check and lint, the failure sorter, the headless runner, the feature descriptions. Read
