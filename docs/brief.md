@@ -58,6 +58,7 @@ These came during the lab and still stand unless he says otherwise:
 - Users: engineers who stay in one repository, engineers who move across many (infrastructure), and
   QA engineers, who use the tooling too.
 
-## Open, for Oleg to decide
+## Decided
 
-`docs/status.md` lists them with what each one blocks.
+`docs/decisions.md`, dated, newest first. Temporal is deferred until the loop runs; the ten
+planning questions were decided on 2026-10-08. `docs/status.md` lists what is still open.
