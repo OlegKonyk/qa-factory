@@ -1,8 +1,14 @@
 # Exploration: observing the factory, Restate, the feature loop, the deployed environment
 
-Proposed 2026-10-10 in answer to Oleg's input of that day (`docs/inputs.md`). **Not decided:** the
-plan waits for his yes. The review surface is section 10 onward of
-https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
+Proposed 2026-10-10 in answer to Oleg's input of that day (`docs/inputs.md`). **Approved the same
+day** (`docs/decisions.md`): the three tracks run in order, track 1 first. The review surface is
+section 10 onward of https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
+
+| Track | State |
+|---|---|
+| 1 · The loop, measured | next: `docs/next-session.md` |
+| 2 · Watch it run | after track 1 |
+| 3 · The deployed environment | after track 2 |
 
 ## The answer to "does this sound like a plan"
 
@@ -103,8 +109,35 @@ Labels: **read** (primary page read on 2026-10-10), **docs** (product documentat
 
 ## Questions for Oleg
 
-1. Yes, no, or reorder the three tracks.
+1. ~~Yes, no, or reorder the three tracks.~~ Yes, as written (2026-10-10).
 2. What the factory at work runs on (Temporal, Restate, neither yet), and whether the colleague
-   meant Restate for it. Decides whether track 2 is a spike or the start of the orchestrator.
-3. Whether linkding's own Docker image on this laptop may stand for the deployed environment in
-   track 3.
+   meant Restate for it. Decides whether track 2 stays a spike or starts the orchestrator. Open.
+3. ~~Whether linkding's own Docker image may stand for the deployed environment.~~ Approved with
+   the plan (2026-10-10).
+
+## Notes for whoever runs the tracks
+
+Track 1, things the first run's code makes easy to get wrong:
+
+- **Blind means blind in every step before the join.** Frame and Plan run with the head worktree
+  as their working directory today (`factory/headless.py`, `one_prompt`), so they can read the
+  implementation. In blind mode Frame, Plan and the test writer must run in the base worktree, and
+  the writer's prompt must carry no source diff and none of the developers' tests.
+- **The writer cannot see its tests pass.** At the base commit the feature does not exist; its
+  tests should fail there for the missing behaviour, and lint must still pass. Passing is checked
+  only at the join, in the head worktree.
+- **Keep the first run parked.** Use a distinct ticket id (for example
+  `linkding-sort-by-modified-blind`); worktrees and run folders are per ticket id.
+- **Compare like with like.** Report blind beside the sequential run of 2026-10-08
+  (`docs/runs/2026-10-08-linkding-sort-by-modified/summary.json`): tests written, pass at head,
+  fail at base on an assertion, missing-name and crash counts, mutants killed on changed lines,
+  spend and time per stage.
+- **The second ticket** is linkding commit 573b6f5, "Filter bundles by reading or sharing state",
+  upstream pull request 1308; its base is the commit's parent. It touches a model, a migration,
+  the REST API, a form and templates, so its contract (field names, filter values, labels) has to
+  be stated in the ticket for a blind writer to have a chance.
+
+Track 2: the Restate facts above; raise the inactivity and abort timeouts to fit an 800 s step;
+measure resume after killing the service mid-step; screenshot what the UI shows for a run waiting
+at the gate. Track 3: the container must run a linkding release that contains the feature under
+test (1.47.0 contains 0490013); data goes in through the REST API with a token, never the database.

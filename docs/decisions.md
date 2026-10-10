@@ -3,6 +3,22 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-10 · The exploration plan is approved
+
+**Decided.** Oleg: "Yes, I want you to go with this plan." The three tracks of
+`docs/exploration.md` run in order, one session each: (1) the feature loop measured with
+acceptance tests written blind from the ticket, (2) the factory as a Restate workflow with its UI
+plus a run report of our own, (3) a feature's readable cases run against linkding started from its
+own Docker image on this laptop. Cap: about 25 USD of model spend in all (estimate). Each track
+ends with a command that runs on linkding and a measured number, or is reported as not done.
+
+**Read into it, overturnable.** Track 3's stand-in for the deployed environment (linkding's Docker
+image on this laptop) is approved with the plan. Track 2 is a spike behind a flag; the plain
+driver stays the default, because what the factory at work runs on is still unanswered.
+
+**What it changes.** `docs/next-session.md` kicks off track 1. Restate is assessed by name, which
+rule 2 allows; no other tool is scored.
+
 ## 2026-10-10 · One worktree pair per ticket, by delegation
 
 **Decided.** Each ticket gets its own base and head worktrees of the application, at

@@ -8,6 +8,17 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-10 · The exploration plan approved and persisted
+
+**Asked.** Go with the plan, persisted, so the context can be cleared before the kickoff.
+
+**Done.** The approval recorded (`docs/decisions.md`), `docs/exploration.md` marked approved with
+notes for whoever runs the tracks (blind mode has to keep Frame and Plan in the base worktree too;
+the first run stays parked under its own ticket id), `docs/next-session.md` rewritten as the
+kickoff of track 1, status and the architecture page updated.
+
+**Not done.** Track 1 has not started; it starts in a fresh session.
+
 ## 2026-10-10 · Use cases, a scan of published practice, Restate, the exploration plan
 
 **Asked.** A UI to observe the factory; how useful Restate is; how to organize QA for a small

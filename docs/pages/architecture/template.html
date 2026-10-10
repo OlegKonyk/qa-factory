@@ -162,7 +162,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
     <span class="chip person"><i></i>First run parked at your approval</span>
     <span class="chip pass"><i></i>100 factory tests green</span>
     <span class="chip ai"><i></i>One application so far: linkding 1.47.0</span>
-    <span class="chip person"><i></i>Exploration plan waiting for your yes</span>
+    <span class="chip pass"><i></i>Exploration plan approved: track 1 next</span>
   </div>
 </header>
 
@@ -497,7 +497,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="plan">
   <div class="col">
     <div class="eyebrow">14 · Exploration plan</div>
-    <h2>Yes, it is a plan, on one condition</h2>
+    <h2>Approved on 10 October: track 1 runs next</h2>
     <p class="answer">The old lab died doing exactly “explore for a while”. So each track ends with a command that runs on linkding and a measured number, inside a cap. A track that cannot show that is reported as not done, and nothing else gets scored.</p>
   </div>
   <div class="tracks">
@@ -528,12 +528,10 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
     <div class="eyebrow">15 · Yours to decide</div>
     <h2>Open now</h2>
     <ol class="decide">
-      <li><strong>The exploration plan.</strong> Yes, no, or reorder the three tracks. Recommendation: track 1 first, since it answers the question everyone asks with a number instead of a citation. The plan is one session per track, about 25 USD of model spend in all (estimate), then a decision page.</li>
       <li><strong>What the factory at work runs on.</strong> Temporal, Restate, or neither yet, and whether your colleague meant Restate for that factory. This decides whether track 2 is a spike or the start of the orchestrator.</li>
-      <li><strong>The deployed environment for track 3.</strong> Whether linkding's own Docker image on this laptop may stand for it. Pointing the factory at any work environment stays your call.</li>
       <li><strong>The first run's approval</strong>, still parked. Approve, and Review and Ship run for the first time on linkding. Decline with a note, and Verify starts over for about 5 USD and 13 minutes.</li>
     </ol>
-    <p class="note" style="margin-top:18px">Still open from before: whether the old lab's worktrees are kept. The record behind this page is in the repository: <code>docs/status.md</code>, <code>docs/log.md</code>, <code>docs/decisions.md</code>, <code>docs/architecture.md</code> and <code>docs/exploration.md</code>.</p>
+    <p class="note" style="margin-top:18px">Settled on 10 October: the exploration plan as written, track 1 first, with linkding's Docker image on this laptop standing for the deployed environment in track 3. Still open from before: whether the old lab's worktrees are kept. The record behind this page is in the repository: <code>docs/status.md</code>, <code>docs/log.md</code>, <code>docs/decisions.md</code>, <code>docs/architecture.md</code> and <code>docs/exploration.md</code>.</p>
   </div>
 </section>
 </div>

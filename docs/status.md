@@ -2,7 +2,10 @@
 
 Read this first. Update it last, in the same pull request as the work.
 
-**As of 2026-10-10, after the session that persisted the state.** What was tried, including what
+**As of 2026-10-10, the exploration plan is approved** (`docs/exploration.md`); the next session
+starts track 1 from `docs/next-session.md`.
+
+**Earlier on 2026-10-10, after the session that persisted the state.** What was tried, including what
 failed, is in `docs/log.md`. The architecture, drawn for review, is a published page
 (https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa); its tables are in `docs/architecture.md`.
 
@@ -66,9 +69,8 @@ the human gate; Oleg's answer file resumes it (below).
 
 ## Waiting on Oleg
 
-- **The exploration plan** (`docs/exploration.md`, sections 10 to 15 of the architecture page):
-  yes, no, or reorder its three tracks; what the factory at work runs on; whether linkding's
-  Docker image may stand for the deployed environment.
+- **What the factory at work runs on** (Temporal, Restate, neither yet), and whether his
+  colleague meant Restate for it. Decides whether exploration track 2 stays a spike.
 
 - **The gate of the first run.** Read
   `docs/runs/2026-10-08-linkding-sort-by-modified/question.md`, the two test files and the six
@@ -88,7 +90,9 @@ the human gate; Oleg's answer file resumes it (below).
 
 ## Next
 
-0. On Oleg's yes, the exploration tracks in `docs/exploration.md`, track 1 first.
+0. The approved exploration (`docs/exploration.md`): track 1, the feature loop measured, kicks
+   off from `docs/next-session.md`; then track 2 (Restate and a run report), then track 3 (the
+   deployed environment).
 
 1. Close the first run (the gate above), then run a second ticket end to end without a stop for
    anything but the gate: the "Filter bundles by reading or sharing state" commit (573b6f5) is

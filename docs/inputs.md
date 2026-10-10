@@ -3,6 +3,19 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-10 · Go with the exploration plan; persist it before the context is cleared
+
+> Yes, I want you to go with this plan persisted because I want to clear context before we kick
+> it off.
+
+How it was read: the plan in `docs/exploration.md` is approved as written: three tracks in the
+recommended order, track 1 first, one session each, about 25 USD of model spend in all
+(estimate). That includes track 3 as written, with linkding's own Docker image on this laptop
+standing for the deployed environment. He did not answer what the factory at work runs on, so
+track 2 runs as a spike behind a flag and that question stays open. Nothing starts in this
+session; the next session kicks off from `docs/next-session.md`. Changed: a decision entry, the
+exploration file marked approved, the kickoff prompt, status, the page.
+
 ## 2026-10-10 · A UI to observe the factory, Restate, the feature loop, and an exploration period
 
 > This is really, really interesting stuff. I will spend more time on it later today. Overall, I
