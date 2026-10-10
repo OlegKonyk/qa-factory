@@ -1,0 +1,53 @@
+{
+  "structured": {
+    "tests": [
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bookmarks_sort_modified_api.py",
+        "name": "test_list_bookmarks_sort_modified_asc_and_desc",
+        "covers": [
+          "AC1",
+          "AC2"
+        ],
+        "reason": "Create three bookmarks with added dates in one order and modified dates in a different order, so neither modified order equals the default added-desc order. Assert GET /api/bookmarks/?sort=modified_asc returns the titles oldest-modified first, and sort=modified_desc the exact reverse. Fails before the change because the unknown value falls back to added-desc."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bookmarks_sort_modified_api.py",
+        "name": "test_list_archived_bookmarks_sort_modified_asc_and_desc",
+        "covers": [
+          "AC4"
+        ],
+        "reason": "The archived endpoint /api/bookmarks/archived/ is separate from the main list. Use archived bookmarks with modified order differing from added order, plus one non-archived bookmark that must not appear. Assert both sort values on the archived endpoint order the results by date_modified."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bookmarks_sort_modified_api.py",
+        "name": "test_list_bookmarks_unknown_sort_falls_back_to_added_desc",
+        "covers": [
+          "AC5"
+        ],
+        "reason": "Request ?sort=bogus on fixtures whose added-desc order differs from the modified order. Assert HTTP 200 and added-newest-first order, so the new sort values did not change the fallback. Checked on the archived endpoint as well. This test passes before the change; it guards against regression."
+      },
+      {
+        "surface": "browser",
+        "file": "bookmarks/tests_e2e/e2e_test_sort_modified.py",
+        "name": "test_sort_dropdown_modified_options_reorder_list",
+        "covers": [
+          "AC3"
+        ],
+        "reason": "One user-visible path: open the bookmark list, open the sort dropdown, assert 'Modified \u2191' and 'Modified \u2193' are offered, select each one and assert the visible titles reorder by modification date. Fixtures have modified order different from added order. The dropdown is a rendered form control, so only a browser test can verify its labels and that selecting an option reloads the list."
+      }
+    ],
+    "placement_reason": "AC1, AC2, AC4 and AC5 concern the REST API sort parameter, which is deterministic and fast to check, so they go in a new API file bookmarks/tests/test_bookmarks_sort_modified_api.py using LinkdingApiTestCase and setup_bookmark with explicit added/modified dates. AC3 is the visible dropdown labels and the reload on selection, so it gets a single browser test in a new bookmarks/tests_e2e/e2e_test_sort_modified.py, in line with the one-or-two-browser-tests-per-feature rule. The archived page dropdown is not tested separately in the browser because it reuses the same form; the archived API is covered at API level. The tests do not touch existing test files and no unit tests are added, since those belong to the implementer."
+  },
+  "text": "{\"tests\":[{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bookmarks_sort_modified_api.py\",\"name\":\"test_list_bookmarks_sort_modified_asc_and_desc\",\"covers\":[\"AC1\",\"AC2\"],\"reason\":\"Create three bookmarks with added dates in one order and modified dates in a different order, so neither modified order equals the default added-desc order. Assert GET /api/bookmarks/?sort=modified_asc returns the titles oldest-modified first, and sort=modified_desc the exact reverse. Fails before the change because the unknown value falls back to added-desc.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bookmarks_sort_modified_api.py\",\"name\":\"test_list_archived_bookmarks_sort_modified_asc_and_desc\",\"covers\":[\"AC4\"],\"reason\":\"The archived endpoint /api/bookmarks/archived/ is separate from the main list. Use archived bookmarks with modified order differing from added order, plus one non-archived bookmark that must not appear. Assert both sort values on the archived endpoint order the results by date_modified.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bookmarks_sort_modified_api.py\",\"name\":\"test_list_bookmarks_unknown_sort_falls_back_to_added_desc\",\"covers\":[\"AC5\"],\"reason\":\"Request ?sort=bogus on fixtures whose added-desc order differs from the modified order. Assert HTTP 200 and added-newest-first order, so the new sort values did not change the fallback. Checked on the archived endpoint as well. This test passes before the change; it guards against regression.\"},{\"surface\":\"browser\",\"file\":\"bookmarks/tests_e2e/e2e_test_sort_modified.py\",\"name\":\"test_sort_dropdown_modified_options_reorder_list\",\"covers\":[\"AC3\"],\"reason\":\"One user-visible path: open the bookmark list, open the sort dropdown, assert 'Modified \u2191' and 'Modified \u2193' are offered, select each one and assert the visible titles reorder by modification date. Fixtures have modified order different from added order. The dropdown is a rendered form control, so only a browser test can verify its labels and that selecting an option reloads the list.\"}],\"placement_reason\":\"AC1, AC2, AC4 and AC5 concern the REST API sort parameter, which is deterministic and fast to check, so they go in a new API file bookmarks/tests/test_bookmarks_sort_modified_api.py using LinkdingApiTestCase and setup_bookmark with explicit added/modified dates. AC3 is the visible dropdown labels and the reload on selection, so it gets a single browser test in a new bookmarks/tests_e2e/e2e_test_sort_modified.py, in line with the one-or-two-browser-tests-per-feature rule. The archived page dropdown is not tested separately in the browser because it reuses the same form; the archived API is covered at API level. The tests do not touch existing test files and no unit tests are added, since those belong to the implementer.\"}",
+  "metrics": {
+    "cost_usd": 0.16979349999999999,
+    "model": "claude-sonnet-5-5",
+    "turns": 9,
+    "duration_ms": 13338,
+    "input_tokens": 8,
+    "output_tokens": 1947
+  }
+}

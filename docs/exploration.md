@@ -6,9 +6,81 @@ section 10 onward of https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
 
 | Track | State |
 |---|---|
-| 1 · The loop, measured | next: `docs/next-session.md` |
-| 2 · Watch it run | after track 1 |
+| 1 · The loop, measured | done 2026-10-10: results below |
+| 2 · Watch it run | next: `docs/next-session.md` |
 | 3 · The deployed environment | after track 2 |
+
+## Track 1 results, 2026-10-10
+
+**The question.** Can QA start as soon as the ticket is ready, in parallel with the
+implementation? **The answer from two tickets: yes, when the ticket states the public contract.**
+Tests written blind, from the ticket and the code before the change only, met the developers'
+real change with no contract mismatch on either ticket: every test passed with the change. On
+the sort ticket they were exactly as strong as tests written after the change; on the bundles
+ticket they killed every mutant on the changed lines. What went wrong was the factory's own
+checks, not the blind tests (below). All numbers are measured, from one run each; nothing is
+averaged. The commands and records are in `docs/runs/2026-10-10-*` and the side-by-side table in
+`docs/runs/2026-10-10-track-1-comparison.md` (`python -m factory summary <run folders>`).
+
+**The sort ticket** (linkding 0490013), the same ticket and models as the run of 2026-10-08:
+
+| | Written after the change (8 Oct) | Written blind (10 Oct) |
+|---|---|---|
+| Tests written | 6: 4 API, 2 browser | 4: 3 API, 1 browser |
+| Pass with the change | 6 | 4 |
+| Fail without it, on an assertion | 5 | 3 |
+| Pass on both (the unknown-sort fallback, a regression guard) | 1 | 1 |
+| Fail without it for a missing name, or crash | 0, 0 | 0, 0 |
+| Mutants killed on the changed lines | 10 of 10 | 10 of 10 |
+| Mutants killed in the whole function | 27 of 108 | 27 of 108 |
+| The developers' own tests, same function | 98 of 108 (with the generated) | 98 of 108 alone, 10 of 10 changed lines |
+| Test writer | 414 s, 3.62 USD, 39 turns | 304 s, 3.62 USD, 40 turns |
+| Verify | 800 s, 4.90 USD | 818 s, 4.63 USD (140 s of it the new developers-only mutation run) |
+| Model spend, whole ticket | 5.47 USD | 5.48 USD |
+| Repair rounds, stronger-model calls | none | none |
+| Shipped | `d1c4de7` | `737c758` on `qa/linkding-sort-by-modified-blind`, suite green |
+
+The blind writer's session was audited: 39 tool calls, none touching the hidden code or git.
+
+**The bundles ticket** (linkding 573b6f5, "Filter bundles by reading or sharing state"), blind only:
+
+| | Written blind |
+|---|---|
+| Tests written | 13: 9 through the REST API and the bookmark list, 2 through the bundle form, 2 browser |
+| Pass with the change | 13 |
+| Fail without it, on an assertion | 12 (after the revert-check fix; see below) |
+| Pass on both (a bundle with no state set matches everything, a regression guard) | 1 |
+| Fail without it for a missing name, or crash | 0, 0 |
+| Mutants killed on the changed lines of `_filter_bundle` | 16 of 16 (the developers' tests: 16 of 16) |
+| Mutants killed in the whole function | 64 of 82 (the developers' tests: 77 of 82) |
+| Test writer | 448 s, 4.08 USD, 25 turns; audit: 24 tool calls, none touching the hidden code or git |
+| What the escalation spent | a repair round, 317 s and 3.17 USD; one Fable 5.1 call, 1.10 USD |
+| Recheck of the same tests after the fix | 312 s, no model spend |
+| Model spend, whole ticket | 8.47 USD |
+| Shipped | no: the factory stopped at the ticket's 8 USD cap before writing the readable cases |
+
+**What went wrong, all in the factory, all fixed (pull request 14):**
+
+1. The revert check judged the blind tests on the old code with the developers' *new* test helper
+   file, which uses a name the change adds. All 13 tests failed while importing it and were counted
+   as "missing name". The repair writer found the cause and worked around it by copying the helpers
+   into its own files. The check now puts the test helpers back to their old version too; the same
+   round-1 tests, judged again with no writer call, gave the 12 and 1 above.
+2. The repair round was then failed for "touching application code": `package-lock.json`, which
+   the preparation's `npm install` had changed before any writer ran. Now only the writer's own
+   changes count.
+3. Fable 5.1 got the 0.75 USD left under the cap, ran out after 4 turns and gave no answer, which
+   counted as "cannot decide" and stopped the run for a person. A call now needs 1.50 USD left.
+4. The repair writer created a git worktree in the shared clone to test the old code. It may not
+   any more.
+
+**Limits of this answer.** Two tickets, one run each. Both tickets stated the public contract
+(parameter values, field names, labels) because they were written from the finished commits; a
+ticket written before the code may not, and then Plan has to fix the contract or the blind lane
+will hit mismatches. The blind writer worked in the same session order as before (Verify after
+Implement); blind means it saw nothing of the change, not that it ran at the same time. The
+sequential run of the bundles ticket was not done: track 1's cap was about 10 USD and the two
+blind runs spent 13.96 (4.27 of it the escalation running live).
 
 ## The answer to "does this sound like a plan"
 

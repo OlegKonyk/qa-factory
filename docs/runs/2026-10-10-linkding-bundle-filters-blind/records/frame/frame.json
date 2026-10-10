@@ -1,0 +1,63 @@
+{
+  "structured": {
+    "acceptance_criteria": [
+      {
+        "id": "AC1",
+        "text": "POST /api/bundles/ with filter_unread and filter_shared values returns/stores them, GET /api/bundles/<id>/ returns the same values, and a bundle created without them returns \"off\" for both.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC2",
+        "text": "PATCH /api/bundles/<id>/ with new filter_unread and/or filter_shared values changes them, and a subsequent GET returns the new values (the other field is untouched).",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC3",
+        "text": "For a bundle with filter_unread \"yes\", GET /api/bookmarks/?bundle=<id> returns only bookmarks with unread=true that match the bundle; \"no\" returns only unread=false; \"off\" returns both.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC4",
+        "text": "For a bundle with filter_shared \"yes\", GET /api/bookmarks/?bundle=<id> returns only bookmarks with shared=true that match the bundle; \"no\" only shared=false; \"off\" both.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC5",
+        "text": "A bundle with both new conditions plus search and tag conditions returns only bookmarks satisfying all of them at once (AND), via the API and the /bookmarks?bundle=<id> page.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC6",
+        "text": "The /bundles/new and /bundles/<id>/edit forms show a \"Reading State\" dropdown (All, Unread, Read) and a \"Sharing State\" dropdown (All, Shared, Unshared); saving persists the selection (edit form shows it preselected afterwards), the \"Found N bookmarks matching this bundle.\" preview follows the selection, and /bookmarks?bundle=<id> lists only matching bookmarks.",
+        "testable": true,
+        "surface": "browser"
+      }
+    ],
+    "ambiguities": [
+      "Invalid values (e.g. \"maybe\", empty string, null, wrong case) for filter_unread/filter_shared: 400 error expected? Not specified.",
+      "PUT semantics: if filter_* omitted on PUT, is it reset to \"off\" or left unchanged? Contract says \"default off when not given\" which is ambiguous for updates.",
+      "Interaction with the bookmark list's own unread/shared query filters (?unread=yes, ?shared=no) when a bundle is also selected: ANDed, presumably, but contradictory combos (bundle unread=yes + ?unread=no) are not defined.",
+      "Whether the bundle conditions also apply on /bookmarks/archived and /bookmarks/shared pages and feeds, which also accept ?bundle=, or only the endpoints named.",
+      "\"Shared\" bookmark semantics: the bookmark's own shared flag only, regardless of user profile sharing settings.",
+      "Bundle preview endpoint/form: whether the preview updates live on dropdown change or only on submit/reload; exact form field names/ids for the dropdowns not given.",
+      "Bundle list/index page or other places that display a bundle (e.g. sidebar) - whether the new conditions need display there; not mentioned.",
+      "Form validation/default when the new bundle form is first opened: assumed \"All\" preselected for both.",
+      "Whether existing bundles in the database (pre-migration) are guaranteed to read \"off\" - assumed via migration default, not testable end-to-end without a migration test."
+    ],
+    "summary": "Six acceptance criteria: four are API-only (bundle fields CRUD, unread and shared filtering on /api/bookmarks/?bundle=), one is the combination of conditions, and one is the browser form and list. All are testable. Main gaps are validation of invalid values, PUT omission semantics, interaction with the list's own unread/shared query filters, and whether archived/shared views and feeds are covered."
+  },
+  "text": "{\"acceptance_criteria\":[{\"id\":\"AC1\",\"text\":\"POST /api/bundles/ with filter_unread and filter_shared values returns/stores them, GET /api/bundles/<id>/ returns the same values, and a bundle created without them returns \\\"off\\\" for both.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC2\",\"text\":\"PATCH /api/bundles/<id>/ with new filter_unread and/or filter_shared values changes them, and a subsequent GET returns the new values (the other field is untouched).\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC3\",\"text\":\"For a bundle with filter_unread \\\"yes\\\", GET /api/bookmarks/?bundle=<id> returns only bookmarks with unread=true that match the bundle; \\\"no\\\" returns only unread=false; \\\"off\\\" returns both.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC4\",\"text\":\"For a bundle with filter_shared \\\"yes\\\", GET /api/bookmarks/?bundle=<id> returns only bookmarks with shared=true that match the bundle; \\\"no\\\" only shared=false; \\\"off\\\" both.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC5\",\"text\":\"A bundle with both new conditions plus search and tag conditions returns only bookmarks satisfying all of them at once (AND), via the API and the /bookmarks?bundle=<id> page.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC6\",\"text\":\"The /bundles/new and /bundles/<id>/edit forms show a \\\"Reading State\\\" dropdown (All, Unread, Read) and a \\\"Sharing State\\\" dropdown (All, Shared, Unshared); saving persists the selection (edit form shows it preselected afterwards), the \\\"Found N bookmarks matching this bundle.\\\" preview follows the selection, and /bookmarks?bundle=<id> lists only matching bookmarks.\",\"testable\":true,\"surface\":\"browser\"}],\"ambiguities\":[\"Invalid values (e.g. \\\"maybe\\\", empty string, null, wrong case) for filter_unread/filter_shared: 400 error expected? Not specified.\",\"PUT semantics: if filter_* omitted on PUT, is it reset to \\\"off\\\" or left unchanged? Contract says \\\"default off when not given\\\" which is ambiguous for updates.\",\"Interaction with the bookmark list's own unread/shared query filters (?unread=yes, ?shared=no) when a bundle is also selected: ANDed, presumably, but contradictory combos (bundle unread=yes + ?unread=no) are not defined.\",\"Whether the bundle conditions also apply on /bookmarks/archived and /bookmarks/shared pages and feeds, which also accept ?bundle=, or only the endpoints named.\",\"\\\"Shared\\\" bookmark semantics: the bookmark's own shared flag only, regardless of user profile sharing settings.\",\"Bundle preview endpoint/form: whether the preview updates live on dropdown change or only on submit/reload; exact form field names/ids for the dropdowns not given.\",\"Bundle list/index page or other places that display a bundle (e.g. sidebar) - whether the new conditions need display there; not mentioned.\",\"Form validation/default when the new bundle form is first opened: assumed \\\"All\\\" preselected for both.\",\"Whether existing bundles in the database (pre-migration) are guaranteed to read \\\"off\\\" - assumed via migration default, not testable end-to-end without a migration test.\"],\"summary\":\"Six acceptance criteria: four are API-only (bundle fields CRUD, unread and shared filtering on /api/bookmarks/?bundle=), one is the combination of conditions, and one is the browser form and list. All are testable. Main gaps are validation of invalid values, PUT omission semantics, interaction with the list's own unread/shared query filters, and whether archived/shared views and feeds are covered.\"}",
+  "metrics": {
+    "cost_usd": 0.0642965,
+    "model": "claude-sonnet-5-5",
+    "turns": 5,
+    "duration_ms": 13043,
+    "input_tokens": 6,
+    "output_tokens": 2066
+  }
+}

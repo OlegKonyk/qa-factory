@@ -1,0 +1,1 @@
+{"decision": "recheck", "round": 1, "by": "the track 1 session (Oleg not asked)", "note": "The stop was the factory's own defect: the revert check ran the old code with linkding's new test helpers, which use a name the change adds. Fixed in pull request 14; the round-1 blind tests are judged again unchanged."}

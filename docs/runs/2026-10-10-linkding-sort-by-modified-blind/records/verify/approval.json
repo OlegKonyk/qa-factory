@@ -1,0 +1,73 @@
+{
+ "approved": true,
+ "by": "factory",
+ "rule": "every Verify check passed",
+ "context": {
+  "tests": [
+   "bookmarks/tests/test_sort_by_modified_blind_api.py",
+   "bookmarks/tests_e2e/e2e_test_sort_by_modified_blind.py"
+  ],
+  "test_files_copy": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified-blind/verify/tests",
+  "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified-blind/verify/testcases",
+  "revert_check": {
+   "bookmarks/tests/test_sort_by_modified_blind_api.py::SortByModifiedApiTestCase::test_list_archived_bookmarks_sort_modified_asc_and_desc": "proves-behaviour",
+   "bookmarks/tests/test_sort_by_modified_blind_api.py::SortByModifiedApiTestCase::test_list_bookmarks_sort_modified_asc_and_desc": "proves-behaviour",
+   "bookmarks/tests/test_sort_by_modified_blind_api.py::SortByModifiedApiTestCase::test_list_bookmarks_unknown_sort_falls_back_to_added_desc": "passes-without-change",
+   "bookmarks/tests_e2e/e2e_test_sort_by_modified_blind.py::SortByModifiedE2ETestCase::test_sort_dropdown_modified_options_reorder_list": "proves-behaviour"
+  },
+  "mutation": {
+   "generated": {
+    "checked": 108,
+    "killed": 27,
+    "survived": 81,
+    "score": 0.25,
+    "on_changed_lines": {
+     "checked": 10,
+     "killed": 10,
+     "survived": 0,
+     "score": 1.0
+    }
+   },
+   "generated_and_developers": {
+    "checked": 108,
+    "killed": 98,
+    "survived": 10,
+    "score": 0.9074074074074074,
+    "on_changed_lines": {
+     "checked": 10,
+     "killed": 10,
+     "survived": 0,
+     "score": 1.0
+    }
+   },
+   "developers": {
+    "checked": 108,
+    "killed": 98,
+    "survived": 10,
+    "score": 0.9074074074074074,
+    "on_changed_lines": {
+     "checked": 10,
+     "killed": 10,
+     "survived": 0,
+     "score": 1.0
+    }
+   }
+  },
+  "suite": [
+   "============================ 1293 passed in 23.92s =============================",
+   "=================== 82 passed, 1 skipped in 68.42s (0:01:08) ==================="
+  ],
+  "cost_usd": 4.625,
+  "time_s": {
+   "write_tests": 304.4,
+   "lint": 0.1,
+   "revert": 12.4,
+   "mutation.generated": 25.5,
+   "mutation.generated_and_developers": 153.6,
+   "mutation.developers": 139.7,
+   "mutation": 318.8,
+   "suite": 94.0,
+   "test_cases": 87.7
+  }
+ }
+}

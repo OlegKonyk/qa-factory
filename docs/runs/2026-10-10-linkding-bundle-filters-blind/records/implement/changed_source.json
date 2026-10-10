@@ -1,0 +1,30 @@
+[
+ {
+  "path": "bookmarks/admin.py",
+  "status": "M"
+ },
+ {
+  "path": "bookmarks/api/serializers.py",
+  "status": "M"
+ },
+ {
+  "path": "bookmarks/forms.py",
+  "status": "M"
+ },
+ {
+  "path": "bookmarks/migrations/0054_bookmarkbundle_filter_shared_and_more.py",
+  "status": "A"
+ },
+ {
+  "path": "bookmarks/models.py",
+  "status": "M"
+ },
+ {
+  "path": "bookmarks/queries.py",
+  "status": "M"
+ },
+ {
+  "path": "bookmarks/templates/bundles/form.html",
+  "status": "M"
+ }
+]

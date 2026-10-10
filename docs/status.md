@@ -4,7 +4,13 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg
 
-Nothing. (Open decisions go here first, as a short numbered list he can answer in place.)
+1. Will tickets at work state the public contract (field names, values, labels, routes) before
+   coding starts? Track 1's blind tests met the change with no mismatch, but both tickets were
+   written from finished commits. If not, Plan has to fix the contract first.
+2. Let the bundles ticket spend about 1.5 USD more (estimate) to finish (readable cases, Review,
+   Ship)? It stopped at its 8 USD cap after its checks passed. Recommended: yes, as the first run
+   track 2 watches on Restate (raise `"caps"` in `targets/linkding/tickets/bundle-filters-blind.json`
+   and re-run; Verify resumes with the cases).
 
 ## Where things stand, 2026-10-10
 
@@ -12,17 +18,30 @@ Nothing. (Open decisions go here first, as a short numbered list he can answer i
   (51 s, 0.47 USD) and Ship committed the tests and cases as `d1c4de7` on
   `qa/linkding-sort-by-modified` in `~/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/head`;
   linkding's suite with them: 1294 passed, and 2 browser tests passed (32 s). All numbers measured.
-- **The factory no longer stops to ask when its checks pass** (`docs/decisions.md`). Verify
-  approves on its own and records `approval.json`; a ticket may set `"gate": "person"`. Next: a
-  fix round and a stronger model's advice before any person, then exploration track 1
-  (`docs/next-session.md`).
-- **The exploration plan is approved** (`docs/exploration.md`). Nothing at work runs a factory
-  yet, so track 2 is a real trial of running this one on Restate.
+- **Track 1 is done** (`docs/exploration.md`, "Track 1 results"). Tests written blind, from the
+  ticket and the code before the change, met the developers' real change on two linkding tickets
+  with no contract mismatch: 17 of 17 pass with the change, 15 fail without it on an assertion, 2
+  are regression guards, every mutant on the changed lines is killed. On the sort ticket they match
+  the tests written after the change number for number (27 of 108 and 10 of 10 mutants). Model
+  spend 13.96 USD against about 10 estimated, 4.27 of it the escalation running live. All measured.
+- **The factory asks stronger models before people** (pull requests 13 and 14): a repair round,
+  then Fable 5.1's decision; a recheck answer after a fix; caps per ticket. The bundles run used
+  all of it for real and found four defects in the factory's own checks, now fixed.
+- **Next: track 2**, the factory on Restate (`docs/next-session.md`). Nothing at work runs a
+  factory yet, so it is a real trial.
 - What was tried, including what failed, is in `docs/log.md`. The architecture, drawn for review,
   is https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa; its tables are in `docs/architecture.md`.
 
 ## Done
 
+- **Track 1** (2026-10-10, `docs/runs/2026-10-10-*`): the sort ticket blind, shipped as `737c758`
+  on `qa/linkding-sort-by-modified-blind` (902 s, 5.48 USD); the bundles ticket blind, written from
+  linkding 573b6f5 (`targets/linkding/tickets/bundle-filters*.json`), checks passed after a
+  recheck, stopped at its cap before the readable cases (8.47 USD). Pull request 14 fixed what the
+  bundles run found: the revert check now puts the test helpers back to their old version; the
+  writer is blamed only for its own changes; Fable needs 1.50 USD left to start; the writer may not
+  create worktrees or run npm; a `recheck` answer judges an earlier round's tests again. The run
+  summary counts the ticket's spend from `rounds.json`. 188 factory tests.
 - **Stronger models before people, and blind mode** (2026-10-10, `docs/log.md`): one repair round
   for the test writer, then `claude-fable-5-1` decides retry, the change is wrong, an environment
   problem, or cannot decide (the only one that asks a person); one fix round when Review requests
@@ -72,7 +91,9 @@ Nothing. (Open decisions go here first, as a short numbered list he can answer i
 
 ## What lives only on this machine
 
-- `.artifacts/runs/<ticket id>/`, the run folders: what a resume needs. Gitignored, so
+- `.artifacts/runs/<ticket id>/`, the run folders: what a resume needs. Three exist:
+  `linkding-sort-by-modified` and `linkding-sort-by-modified-blind` (finished),
+  `linkding-bundle-filters-blind` (stopped at its cap, resumable). Gitignored, so
   `git clean -fdx` deletes them. If one is lost, its run starts over (about 5 USD and 13 minutes
   for the first ticket, estimated from its run). The evidence is copied to `docs/runs/`.
 - `~/Library/Caches/qa-factory/linkding/`: the clone, its environment and one worktree pair per
@@ -81,13 +102,14 @@ Nothing. (Open decisions go here first, as a short numbered list he can answer i
 
 ## Next
 
-0. From `docs/next-session.md`: the fix round and the stronger model's advice in Verify, then
-   exploration track 1 (the feature loop measured); then track 2 (Restate and a run report), then
-   track 3 (the deployed environment, linkding's Docker image on this laptop).
+0. From `docs/next-session.md`: exploration track 2 (the factory on Restate, and a run report),
+   then track 3 (the deployed environment, linkding's Docker image on this laptop).
 
-1. Run a second ticket end to end: the "Filter bundles by reading or sharing state" commit (573b6f5) is
-   the natural second, since it touches a model, a migration, the API and a form.
-2. From what the run showed: the plan step proposes file names the writer must ignore (fixed by
+1. From track 1: the sequential run of the bundles ticket was not done (cap); the writer's
+   placement of form tests in the API file follows the strategy loosely; a Fable call that runs
+   out of budget still counts as "cannot decide" (it now cannot start below 1.50 USD, but can still
+   overshoot); the raw writer transcript stays local because it holds this machine's hook output.
+2. From the first run: the plan step proposes file names the writer must ignore (fixed by
    prompt, worth a schema); the review step's low findings (random titles in the API fixture)
    could feed back into the writer as a second round; Frame and Plan run before the change exists
    and read the code instead of a diff, which is right for a real ticket but confused the prompt.

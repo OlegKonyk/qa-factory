@@ -1,0 +1,94 @@
+{
+ "status": "fail",
+ "reason": "revert check: missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state",
+ "repairable": true,
+ "result": {
+  "status": "fail",
+  "reason": "missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state",
+  "tests": {
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   },
+   "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_OFF'"
+   }
+  },
+  "wall_s": {
+   "head": 8.54,
+   "reverted": 0.96
+  },
+  "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/revert/reverted"
+ }
+}

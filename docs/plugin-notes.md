@@ -4,6 +4,25 @@ What factory sessions learned about Oleg's Claude Code plugins (`~/dev/konyklabs
 for him to carry into that project. Newest first. One entry per observation: the plugin, what was
 missing or wrong, what would have helped, and the run that showed it.
 
+## 2026-10-10 · supervisor: the builders and reviewers in one workflow, reviewers given the builders' reports
+
+**Plugin:** supervisor. **Run:** the escalation and blind-mode build (pull request 13).
+
+Still dormant, so its agents were spawned directly, this time from one Claude Code workflow script:
+three `supervisor:implementer` builders in parallel on disjoint files, then
+`supervisor:senior-implementer` on the slice that depended on them, then one `supervisor:reviewer`
+per slice. Each reviewer's prompt carried the builder's structured report (files, pasted
+evidence, deviations), which closes the gap noted on 2026-10-08. The four reviewers' blocking
+findings were all real (a stale spend record, a Review re-run that could pass failing tests to
+Ship, stale test cases, an audit that flagged every run). Two things worth carrying over:
+
+- Parallel builders in one working tree see each other's half-finished files: two builders
+  reported whole-suite failures that belonged to the third. The spec said "paste it and do not fix
+  it", which worked; a delegate skill could say the same by default.
+- The senior implementer listed nine deviations from the spec, each with its reason, and three
+  gaps it saw outside the spec. Two of those gaps were the reviewer's blocking findings. A report
+  field for "gaps outside the spec" is worth making standard.
+
 ## 2026-10-08 · py-testing: the skills do not fit a suite that must join an application's own tests
 
 **Plugin:** py-testing (`testing-playwright-api`, `testing-playwright-browser`). **Run:** the first
