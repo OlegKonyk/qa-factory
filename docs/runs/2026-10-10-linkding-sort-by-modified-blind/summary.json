@@ -1,0 +1,185 @@
+{
+  "ticket": "linkding-sort-by-modified-blind",
+  "qa_mode": "blind",
+  "first_round": {
+    "round": 1,
+    "tests": 4,
+    "tests_api": 3,
+    "tests_browser": 1,
+    "pass_at_head": 4,
+    "fail_at_base_on_assertion": 3,
+    "pass_on_both": 1,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 108,
+        "killed": 27,
+        "score": 0.25,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 108,
+        "killed": 98,
+        "score": 0.9074074074074074,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      },
+      "developers": {
+        "checked": 108,
+        "killed": 98,
+        "score": 0.9074074074074074,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      }
+    }
+  },
+  "final_round": {
+    "round": 1,
+    "tests": 4,
+    "tests_api": 3,
+    "tests_browser": 1,
+    "pass_at_head": 4,
+    "fail_at_base_on_assertion": 3,
+    "pass_on_both": 1,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 108,
+        "killed": 27,
+        "score": 0.25,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 108,
+        "killed": 98,
+        "score": 0.9074074074074074,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      },
+      "developers": {
+        "checked": 108,
+        "killed": 98,
+        "score": 0.9074074074074074,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      }
+    }
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "kind": "write",
+      "failure": null
+    }
+  ],
+  "decisions": [],
+  "stages": {
+    "frame": {
+      "status": "pass",
+      "duration_s": 11.709,
+      "work_s": null,
+      "cost_usd": 0.134299,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "plan": {
+      "status": "pass",
+      "duration_s": 14.87,
+      "work_s": null,
+      "cost_usd": 0.16979349999999999,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "implement": {
+      "status": "pass",
+      "duration_s": 0.045,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "verify": {
+      "status": "pass",
+      "duration_s": 817.533,
+      "work_s": 817.4,
+      "cost_usd": 4.625,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "review": {
+      "status": "pass",
+      "duration_s": 57.725,
+      "work_s": null,
+      "cost_usd": 0.5534976,
+      "model": "claude-opus-5-5",
+      "earlier_runs": 0
+    },
+    "ship": {
+      "status": "pass",
+      "duration_s": 26.726,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    }
+  },
+  "verify_parts": {
+    "time_s": {
+      "write_tests": 304.4,
+      "lint": 0.1,
+      "revert": 12.4,
+      "mutation.generated": 25.5,
+      "mutation.generated_and_developers": 153.6,
+      "mutation.developers": 139.7,
+      "mutation": 318.8,
+      "suite": 94.0,
+      "test_cases": 87.7
+    },
+    "cost_usd": {
+      "write_tests": 3.619843,
+      "test_cases": 1.0051128
+    }
+  },
+  "spend_usd": 5.4826,
+  "ledger": {
+    "caps": {
+      "writer_rounds": 3,
+      "advice": 2,
+      "usd": 8.0
+    },
+    "spent_usd": 5.1785,
+    "writer_rounds_used": 0,
+    "advice_used": 0,
+    "calls": 3
+  },
+  "blind_audit": {
+    "tool_calls": 39,
+    "flagged": [],
+    "clean": true,
+    "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified-blind/verify/rounds/1/writer.jsonl"
+  }
+}

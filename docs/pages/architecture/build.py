@@ -61,8 +61,8 @@ def flow_svg():
     cx = [x + nw / 2 for x in xs]
     p.append(f'<path d="M{cx[4]} 96 C{cx[4]} 40, {cx[3]+10} 40, {cx[3]+10} 92" class="edge-dash" marker-end="url(#fahd)"/>')
     p.append(f'<path d="M{cx[6]} 96 C{cx[6]} -10, {cx[3]-10} -10, {cx[3]-10} 92" class="edge-dash" marker-end="url(#fahd)"/>')
-    p.append(label_bg((cx[4] + cx[3]) / 2 + 5, 52, "fail → fix (planned)"))
-    p.append(label_bg((cx[6] + cx[3]) / 2 + 20, 22, "findings → fix (planned)"))
+    p.append(label_bg((cx[4] + cx[3]) / 2 + 5, 52, "change wrong → stop (loop planned)"))
+    p.append(label_bg((cx[6] + cx[3]) / 2 + 20, 22, "findings → Implement (planned)"))
     for i, (name, subs, kind, hands, warn, letters) in enumerate(nodes):
         x = xs[i]; c = cx[i]
         p.append(box(x, y, nw, nh, kind))
@@ -132,7 +132,7 @@ def verify_svg():
             p.append(text(cx, y + bh + 40, "the ticket sets", "t-stop"))
             p.append(text(cx, y + bh + 55, "gate: person", "t-stop"))
     p.append(f'<line x1="{xs[0] + bw/2}" y1="242" x2="{xs[5] + bw/2}" y2="242" class="rail"/>')
-    p.append(text((xs[0] + xs[5] + bw) / 2, 268, "The run stops with a fail record and exit 1. Nothing loops back to the writer yet; a retry is a fresh run of Verify.", "t-railtext"))
+    p.append(text((xs[0] + xs[5] + bw) / 2, 268, "A failure gets one repair round, then Fable 5.1 decides: a guided round, a failure with its diagnosis, or a question to you.", "t-railtext"))
     p.append("</svg>")
     return "\n".join(p)
 

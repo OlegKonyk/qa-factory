@@ -1,0 +1,1786 @@
+{
+ "checks": {
+  "write_tests": {
+   "status": "pass",
+   "result": {
+    "files": [
+     "bookmarks/tests/test_bundle_filters_blind_api.py",
+     "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py"
+    ],
+    "rechecked_round": 1
+   }
+  },
+  "lint": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "findings": []
+   }
+  },
+  "revert": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "reason": "12 of 13 tests fail on an assertion without the change",
+    "tests": {
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "unexpectedly None"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "Items in the first set but not the second:\n'match unread unshared'\n'match read shared'\n'match read unshared'"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "Items in the first set but not the second:\n'match unshared one'\n'match unshared two'"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "Items in the first set but not the second:\n'match read one'\n'match read two'"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states": {
+      "at_head": "pass",
+      "reverted": "pass",
+      "verdict": "passes-without-change",
+      "message": ""
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "'filter_unread' not found in {'id': 1, 'name': 'Bundle with states', 'search': 'foo', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.470944Z', 'date_modified': '2026-10-10T20:51:08.470948Z'}"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "'filter_unread' not found in {'id': 1, 'name': 'Bundle without states', 'search': '', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.580847Z', 'date_modified': '2026-10-10T20:51:08.580851Z'}"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "'filter_unread' not found in {'id': 1, 'name': 'Existing bundle', 'search': 'foo', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.695308Z', 'date_modified': '2026-10-10T20:51:08.695312Z'}"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "'filter_unread' not found in {'id': 1, 'name': 'Updated bundle', 'search': 'bar', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.810830Z', 'date_modified': '2026-10-10T20:51:08.812239Z'}"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "0 != 1 : No single label 'Reading State' found"
+     },
+     "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "0 != 1 : No single label 'Reading State' found"
+     },
+     "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for get_by_label(\"Reading State\", exact=True)\n\nAria snapshot:\n- banner:\n  - link \"Application logo LINKDING\":\n    - /url: /\n    - img \"Application logo\""
+     },
+     "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for get_by_label(\"Reading State\", exact=True)\n\nAria snapshot:\n- banner:\n  - link \"Application logo LINKDING\":\n    - /url: /\n    - img \"Application logo\""
+     }
+    },
+    "wall_s": {
+     "head": 8.5,
+     "reverted": 14.45
+    },
+    "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/revert/reverted"
+   }
+  },
+  "mutation": {
+   "status": "pass",
+   "result": {
+    "globs": [
+     "bookmarks.queries.x__filter_bundle__mutmut_*"
+    ],
+    "only_mutate": [
+     "bookmarks/queries.py"
+    ],
+    "changed_lines": {
+     "bookmarks/queries.py": [
+      214,
+      215,
+      216,
+      217,
+      218,
+      219,
+      220,
+      221,
+      222,
+      223
+     ]
+    },
+    "runs": {
+     "generated": {
+      "status": "pass",
+      "reason": "mutmut ran",
+      "wall_s": 14.39,
+      "returncode": 0,
+      "generated": 444,
+      "checked": 82,
+      "killed": 64,
+      "survived": 18,
+      "no_tests": 0,
+      "timeout": 0,
+      "other": 0,
+      "score": 0.7804878048780488,
+      "on_changed_lines": {
+       "checked": 16,
+       "killed": 16,
+       "survived": 0,
+       "score": 1.0
+      },
+      "mutants": {
+       "bookmarks.queries.x__filter_bundle__mutmut_1": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_2": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_3": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_4": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_5": {
+        "status": "killed",
+        "line": 180,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_6": {
+        "status": "survived",
+        "line": 183,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_7": {
+        "status": "survived",
+        "line": 182,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_8": {
+        "status": "killed",
+        "line": 181,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_9": {
+        "status": "killed",
+        "line": 181,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_10": {
+        "status": "killed",
+        "line": 182,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_11": {
+        "status": "killed",
+        "line": 183,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_12": {
+        "status": "killed",
+        "line": 184,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_13": {
+        "status": "killed",
+        "line": 186,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_14": {
+        "status": "killed",
+        "line": 186,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_15": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_16": {
+        "status": "survived",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_17": {
+        "status": "survived",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_18": {
+        "status": "survived",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_19": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_20": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_21": {
+        "status": "survived",
+        "line": 190,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_22": {
+        "status": "survived",
+        "line": 190,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_23": {
+        "status": "killed",
+        "line": 191,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_24": {
+        "status": "survived",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_25": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_26": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_27": {
+        "status": "killed",
+        "line": 195,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_28": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_29": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_30": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_31": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_32": {
+        "status": "survived",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_33": {
+        "status": "survived",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_34": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_35": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_36": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_37": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_38": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_39": {
+        "status": "survived",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_40": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_41": {
+        "status": "survived",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_42": {
+        "status": "survived",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_43": {
+        "status": "killed",
+        "line": 202,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_44": {
+        "status": "killed",
+        "line": 202,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_45": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_46": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_47": {
+        "status": "survived",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_48": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_49": {
+        "status": "survived",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_50": {
+        "status": "survived",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_51": {
+        "status": "killed",
+        "line": 206,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_52": {
+        "status": "killed",
+        "line": 206,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_53": {
+        "status": "killed",
+        "line": 207,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_54": {
+        "status": "survived",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_55": {
+        "status": "survived",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_56": {
+        "status": "killed",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_57": {
+        "status": "killed",
+        "line": 210,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_58": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_59": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_60": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_61": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_62": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_63": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_64": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_65": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_66": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_67": {
+        "status": "killed",
+        "line": 214,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_68": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_69": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_70": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_71": {
+        "status": "killed",
+        "line": 216,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_72": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_73": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_74": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_75": {
+        "status": "killed",
+        "line": 219,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_76": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_77": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_78": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_79": {
+        "status": "killed",
+        "line": 221,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_80": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_81": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_82": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       }
+      },
+      "stdout_tail": [
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_58",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_59",
+       "\ud83d\ude41 bookmarks.queries.x__filter_bundle__mutmut_6",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_60",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_61",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_62",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_63",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_64",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_65",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_66",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_67",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_68",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_69",
+       "\ud83d\ude41 bookmarks.queries.x__filter_bundle__mutmut_7",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_70",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_71",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_72",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_73",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_74",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_75",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_76",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_77",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_78",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_79",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_8",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_80",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_81",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_82",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_9",
+       ""
+      ],
+      "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/mutation/generated/mutation",
+      "test_files": [
+       "bookmarks/tests/test_bundle_filters_blind_api.py"
+      ]
+     },
+     "generated_and_developers": {
+      "status": "pass",
+      "reason": "mutmut ran",
+      "wall_s": 81.71,
+      "returncode": 0,
+      "generated": 444,
+      "checked": 82,
+      "killed": 77,
+      "survived": 5,
+      "no_tests": 0,
+      "timeout": 0,
+      "other": 0,
+      "score": 0.9390243902439024,
+      "on_changed_lines": {
+       "checked": 16,
+       "killed": 16,
+       "survived": 0,
+       "score": 1.0
+      },
+      "mutants": {
+       "bookmarks.queries.x__filter_bundle__mutmut_1": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_2": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_3": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_4": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_5": {
+        "status": "killed",
+        "line": 180,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_6": {
+        "status": "killed",
+        "line": 183,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_7": {
+        "status": "killed",
+        "line": 182,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_8": {
+        "status": "killed",
+        "line": 181,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_9": {
+        "status": "killed",
+        "line": 181,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_10": {
+        "status": "killed",
+        "line": 182,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_11": {
+        "status": "killed",
+        "line": 183,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_12": {
+        "status": "killed",
+        "line": 184,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_13": {
+        "status": "killed",
+        "line": 186,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_14": {
+        "status": "killed",
+        "line": 186,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_15": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_16": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_17": {
+        "status": "survived",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_18": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_19": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_20": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_21": {
+        "status": "survived",
+        "line": 190,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_22": {
+        "status": "survived",
+        "line": 190,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_23": {
+        "status": "killed",
+        "line": 191,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_24": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_25": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_26": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_27": {
+        "status": "killed",
+        "line": 195,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_28": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_29": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_30": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_31": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_32": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_33": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_34": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_35": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_36": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_37": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_38": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_39": {
+        "status": "survived",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_40": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_41": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_42": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_43": {
+        "status": "killed",
+        "line": 202,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_44": {
+        "status": "killed",
+        "line": 202,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_45": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_46": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_47": {
+        "status": "survived",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_48": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_49": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_50": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_51": {
+        "status": "killed",
+        "line": 206,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_52": {
+        "status": "killed",
+        "line": 206,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_53": {
+        "status": "killed",
+        "line": 207,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_54": {
+        "status": "killed",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_55": {
+        "status": "killed",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_56": {
+        "status": "killed",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_57": {
+        "status": "killed",
+        "line": 210,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_58": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_59": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_60": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_61": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_62": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_63": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_64": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_65": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_66": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_67": {
+        "status": "killed",
+        "line": 214,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_68": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_69": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_70": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_71": {
+        "status": "killed",
+        "line": 216,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_72": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_73": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_74": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_75": {
+        "status": "killed",
+        "line": 219,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_76": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_77": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_78": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_79": {
+        "status": "killed",
+        "line": 221,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_80": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_81": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_82": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       }
+      },
+      "stdout_tail": [
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_58",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_59",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_6",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_60",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_61",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_62",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_63",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_64",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_65",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_66",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_67",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_68",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_69",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_7",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_70",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_71",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_72",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_73",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_74",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_75",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_76",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_77",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_78",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_79",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_8",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_80",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_81",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_82",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_9",
+       ""
+      ],
+      "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/mutation/generated_and_developers/mutation",
+      "test_files": [
+       "bookmarks/tests/test_bundle_filters_blind_api.py",
+       "bookmarks/tests/helpers.py",
+       "bookmarks/tests/test_bundles_api.py",
+       "bookmarks/tests/test_bundles_edit_view.py",
+       "bookmarks/tests/test_bundles_new_view.py",
+       "bookmarks/tests/test_bundles_preview_view.py",
+       "bookmarks/tests/test_queries.py"
+      ]
+     },
+     "developers": {
+      "status": "pass",
+      "reason": "mutmut ran",
+      "wall_s": 79.52,
+      "returncode": 0,
+      "generated": 444,
+      "checked": 82,
+      "killed": 77,
+      "survived": 5,
+      "no_tests": 0,
+      "timeout": 0,
+      "other": 0,
+      "score": 0.9390243902439024,
+      "on_changed_lines": {
+       "checked": 16,
+       "killed": 16,
+       "survived": 0,
+       "score": 1.0
+      },
+      "mutants": {
+       "bookmarks.queries.x__filter_bundle__mutmut_1": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_2": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_3": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_4": {
+        "status": "killed",
+        "line": 178,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_5": {
+        "status": "killed",
+        "line": 180,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_6": {
+        "status": "killed",
+        "line": 183,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_7": {
+        "status": "killed",
+        "line": 182,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_8": {
+        "status": "killed",
+        "line": 181,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_9": {
+        "status": "killed",
+        "line": 181,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_10": {
+        "status": "killed",
+        "line": 182,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_11": {
+        "status": "killed",
+        "line": 183,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_12": {
+        "status": "killed",
+        "line": 184,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_13": {
+        "status": "killed",
+        "line": 186,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_14": {
+        "status": "killed",
+        "line": 186,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_15": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_16": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_17": {
+        "status": "survived",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_18": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_19": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_20": {
+        "status": "killed",
+        "line": 189,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_21": {
+        "status": "survived",
+        "line": 190,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_22": {
+        "status": "survived",
+        "line": 190,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_23": {
+        "status": "killed",
+        "line": 191,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_24": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_25": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_26": {
+        "status": "killed",
+        "line": 193,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_27": {
+        "status": "killed",
+        "line": 195,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_28": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_29": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_30": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_31": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_32": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_33": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_34": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_35": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_36": {
+        "status": "killed",
+        "line": 196,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_37": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_38": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_39": {
+        "status": "survived",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_40": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_41": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_42": {
+        "status": "killed",
+        "line": 200,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_43": {
+        "status": "killed",
+        "line": 202,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_44": {
+        "status": "killed",
+        "line": 202,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_45": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_46": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_47": {
+        "status": "survived",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_48": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_49": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_50": {
+        "status": "killed",
+        "line": 205,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_51": {
+        "status": "killed",
+        "line": 206,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_52": {
+        "status": "killed",
+        "line": 206,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_53": {
+        "status": "killed",
+        "line": 207,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_54": {
+        "status": "killed",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_55": {
+        "status": "killed",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_56": {
+        "status": "killed",
+        "line": 209,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_57": {
+        "status": "killed",
+        "line": 210,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_58": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_59": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_60": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_61": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_62": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_63": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_64": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_65": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_66": {
+        "status": "killed",
+        "line": 211,
+        "changed_line": false
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_67": {
+        "status": "killed",
+        "line": 214,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_68": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_69": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_70": {
+        "status": "killed",
+        "line": 215,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_71": {
+        "status": "killed",
+        "line": 216,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_72": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_73": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_74": {
+        "status": "killed",
+        "line": 217,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_75": {
+        "status": "killed",
+        "line": 219,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_76": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_77": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_78": {
+        "status": "killed",
+        "line": 220,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_79": {
+        "status": "killed",
+        "line": 221,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_80": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_81": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       },
+       "bookmarks.queries.x__filter_bundle__mutmut_82": {
+        "status": "killed",
+        "line": 222,
+        "changed_line": true
+       }
+      },
+      "stdout_tail": [
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_58",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_59",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_6",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_60",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_61",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_62",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_63",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_64",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_65",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_66",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_67",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_68",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_69",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_7",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_70",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_71",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_72",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_73",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_74",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_75",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_76",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_77",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_78",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_79",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_8",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_80",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_81",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_82",
+       "\ud83c\udf89 bookmarks.queries.x__filter_bundle__mutmut_9",
+       ""
+      ],
+      "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/mutation/developers/mutation",
+      "test_files": [
+       "bookmarks/tests/helpers.py",
+       "bookmarks/tests/test_bundles_api.py",
+       "bookmarks/tests/test_bundles_edit_view.py",
+       "bookmarks/tests/test_bundles_new_view.py",
+       "bookmarks/tests/test_bundles_preview_view.py",
+       "bookmarks/tests/test_queries.py"
+      ]
+     }
+    }
+   }
+  },
+  "suite": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "runs": [
+     {
+      "args": [
+       "/Users/oleg/Library/Caches/qa-factory/linkding/repo/.venv/bin/python",
+       "-m",
+       "pytest",
+       "-p",
+       "no:cacheprovider",
+       "-n",
+       "auto",
+       "bookmarks/tests"
+      ],
+      "returncode": 0,
+      "summary": "============================ 1286 passed in 23.98s =============================",
+      "wall_s": 24.65,
+      "tail": [
+       "",
+       "........................................................................ [  5%]",
+       "........................................................................ [ 11%]",
+       "........................................................................ [ 16%]",
+       "........................................................................ [ 22%]",
+       "........................................................................ [ 27%]",
+       "........................................................................ [ 33%]",
+       "........................................................................ [ 39%]",
+       "........................................................................ [ 44%]",
+       "........................................................................ [ 50%]",
+       "........................................................................ [ 55%]",
+       "........................................................................ [ 61%]",
+       "........................................................................ [ 67%]",
+       "........................................................................ [ 72%]",
+       "........................................................................ [ 78%]",
+       "........................................................................ [ 83%]",
+       "........................................................................ [ 89%]",
+       "........................................................................ [ 95%]",
+       "..............................................................           [100%]",
+       "============================ 1286 passed in 23.98s ============================="
+      ]
+     },
+     {
+      "args": [
+       "/Users/oleg/Library/Caches/qa-factory/linkding/repo/.venv/bin/python",
+       "-m",
+       "pytest",
+       "-p",
+       "no:cacheprovider",
+       "-o",
+       "python_files=e2e_test_*.py",
+       "bookmarks/tests_e2e"
+      ],
+      "returncode": 0,
+      "summary": "=================== 83 passed, 1 skipped in 71.63s (0:01:11) ===================",
+      "wall_s": 72.15,
+      "tail": [
+       "",
+       "bookmarks/tests_e2e/e2e_test_a11y_navigation_focus.py ..                 [  2%]",
+       "bookmarks/tests_e2e/e2e_test_bookmark_details_modal.py ........          [ 11%]",
+       "bookmarks/tests_e2e/e2e_test_bookmark_item.py s                          [ 13%]",
+       "bookmarks/tests_e2e/e2e_test_bookmark_page_bulk_edit.py ...........      [ 26%]",
+       "bookmarks/tests_e2e/e2e_test_bookmark_page_partial_updates.py .......... [ 38%]",
+       "......                                                                   [ 45%]",
+       "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py ..                  [ 47%]",
+       "bookmarks/tests_e2e/e2e_test_bundle_preview.py .                         [ 48%]",
+       "bookmarks/tests_e2e/e2e_test_collapse_side_panel.py ..                   [ 51%]",
+       "bookmarks/tests_e2e/e2e_test_dropdown.py ......                          [ 58%]",
+       "bookmarks/tests_e2e/e2e_test_edit_bookmark_form.py ....                  [ 63%]",
+       "bookmarks/tests_e2e/e2e_test_filter_drawer.py ..                         [ 65%]",
+       "bookmarks/tests_e2e/e2e_test_global_shortcuts.py ..                      [ 67%]",
+       "bookmarks/tests_e2e/e2e_test_new_bookmark_form.py ............           [ 82%]",
+       "bookmarks/tests_e2e/e2e_test_settings_general.py ....                    [ 86%]",
+       "bookmarks/tests_e2e/e2e_test_settings_integrations.py ..                 [ 89%]",
+       "bookmarks/tests_e2e/e2e_test_tag_management.py .........                 [100%]",
+       "",
+       "=================== 83 passed, 1 skipped in 71.63s (0:01:11) ==================="
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "timings": {
+  "write_tests.r3": 0.0,
+  "lint.r3": 0.1,
+  "revert.r3": 23.2,
+  "mutation.generated": 19.9,
+  "mutation.generated_and_developers": 87.1,
+  "mutation.developers": 84.9,
+  "mutation.r3": 191.9,
+  "suite.r3": 96.8
+ },
+ "costs": {},
+ "artifacts": {
+  "tests_manifest": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/tests_manifest.json",
+  "tests_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/tests",
+  "verify_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/report.json",
+  "escalation": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/escalation-1.json"
+ },
+ "metrics": {
+  "cost_usd": 0,
+  "time_s": {
+   "write_tests.r3": 0.0,
+   "lint.r3": 0.1,
+   "revert.r3": 23.2,
+   "mutation.generated": 19.9,
+   "mutation.generated_and_developers": 87.1,
+   "mutation.developers": 84.9,
+   "mutation.r3": 191.9,
+   "suite.r3": 96.8
+  },
+  "costs": {},
+  "rounds": 1,
+  "ticket_spent_usd": 8.3463,
+  "mutation_score.generated": 0.7804878048780488,
+  "mutation_score_changed_lines.generated": 1.0,
+  "mutation_score.generated_and_developers": 0.9390243902439024,
+  "mutation_score_changed_lines.generated_and_developers": 1.0,
+  "mutation_score.developers": 0.9390243902439024,
+  "mutation_score_changed_lines.developers": 1.0
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "kind": "write",
+   "checks": {
+    "write_tests": {
+     "status": "pass",
+     "s": 448.2
+    },
+    "lint": {
+     "status": "pass",
+     "s": 0.1
+    },
+    "revert": {
+     "status": "fail",
+     "s": 9.6
+    }
+   },
+   "failure": {
+    "check": "revert",
+    "reason": "revert check: missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state",
+    "repairable": true,
+    "report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/rounds/1/revert.json"
+   }
+  },
+  {
+   "round": 2,
+   "kind": "repair",
+   "checks": {
+    "write_tests": {
+     "status": "fail",
+     "s": 316.9
+    }
+   },
+   "failure": {
+    "check": "write_tests",
+    "reason": "test writer touched application code (reverted): ['package-lock.json']",
+    "repairable": false,
+    "report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/rounds/2/write_tests.json"
+   }
+  },
+  {
+   "round": 3,
+   "kind": "recheck",
+   "checks": {
+    "write_tests": {
+     "status": "pass",
+     "s": 0.0
+    },
+    "lint": {
+     "status": "pass",
+     "s": 0.1
+    },
+    "revert": {
+     "status": "pass",
+     "s": 23.2
+    },
+    "mutation": {
+     "status": "pass",
+     "s": 191.9
+    },
+    "suite": {
+     "status": "pass",
+     "s": 96.8
+    }
+   },
+   "failure": null
+  }
+ ],
+ "history": [
+  {
+   "round": 1,
+   "kind": "write",
+   "failure": "revert check: missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state"
+  },
+  {
+   "round": 2,
+   "kind": "repair",
+   "failure": "test writer touched application code (reverted): ['package-lock.json']"
+  },
+  {
+   "round": 3,
+   "kind": "recheck",
+   "failure": null
+  }
+ ],
+ "advice": [
+  "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/escalation-1.json"
+ ],
+ "ledger": {
+  "caps": {
+   "writer_rounds": 3,
+   "advice": 2,
+   "usd": 8.0
+  },
+  "spent_usd": 8.3463,
+  "writer_rounds_used": 1,
+  "advice_used": 1,
+  "calls": 3
+ },
+ "blind": true,
+ "blind_audit": {
+  "tool_calls": 24,
+  "flagged": [],
+  "clean": true,
+  "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/rounds/1/writer.jsonl"
+ },
+ "gate_kind": null,
+ "last_failure": null,
+ "status": "fail"
+}

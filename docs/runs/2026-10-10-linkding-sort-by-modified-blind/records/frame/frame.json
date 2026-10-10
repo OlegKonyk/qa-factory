@@ -1,0 +1,56 @@
+{
+  "structured": {
+    "acceptance_criteria": [
+      {
+        "id": "AC1",
+        "text": "With bookmarks having distinct date_modified values, GET /api/bookmarks/?sort=modified_asc returns the user's bookmarks in ascending date_modified order (oldest-modified first).",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC2",
+        "text": "GET /api/bookmarks/?sort=modified_desc returns the same bookmarks in descending date_modified order (most recently modified first).",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC3",
+        "text": "The bookmark list page's sort dropdown contains options labelled 'Modified \u2191' and 'Modified \u2193', and selecting each one reloads the list ordered by modification date ascending/descending respectively.",
+        "testable": true,
+        "surface": "browser"
+      },
+      {
+        "id": "AC4",
+        "text": "The archived bookmarks list page (dropdown and sort query parameter) and GET /api/bookmarks/archived/?sort=modified_asc|modified_desc return archived bookmarks ordered by date_modified ascending/descending.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC5",
+        "text": "A request with an unrecognised sort value (e.g. sort=bogus) returns bookmarks in the default order, added date descending (newest first), and does not error.",
+        "testable": true,
+        "surface": "api"
+      }
+    ],
+    "ambiguities": [
+      "Ordering of bookmarks with equal date_modified is unspecified (tie-breaker, e.g. by id or added date).",
+      "Whether editing a bookmark (title, tags, notes, archive/unarchive, read/unread, metadata refresh) updates date_modified is not stated; tests need to know what counts as a modification to produce a changing order.",
+      "The ticket says 'including the archived bookmarks list' but the archived page also has a dropdown; whether it is the same dropdown and whether the dropdown option values are exactly modified_asc/modified_desc is assumed.",
+      "Whether the chosen sort persists in the user's profile / bookmark search preferences (as existing sort options do) is not mentioned.",
+      "Whether shared bookmarks views (/bookmarks/shared) and the bulk/other list endpoints also need the option is not stated.",
+      "Existing sort dropdown labels use 'Added \u2191/\u2193' and 'Title \u2191/\u2193'; option order within the dropdown is unspecified.",
+      "Behaviour of an unknown sort value on the page vs. API: the form uses a ChoiceField, so an invalid value may be rejected/ignored differently in the UI than in the API; 'falls back to default' is specified only generally.",
+      "Interaction of the new sort with search/tag filters and pagination is not stated."
+    ],
+    "summary": "The ticket adds modified_asc and modified_desc sort values to the bookmark list dropdown and the REST API, including archived bookmarks, with unknown values still falling back to added-descending. All five criteria are testable via API or browser. Main gaps are tie-breaking, what actions update date_modified, and persistence of the choice in user preferences."
+  },
+  "text": "{\"acceptance_criteria\":[{\"id\":\"AC1\",\"text\":\"With bookmarks having distinct date_modified values, GET /api/bookmarks/?sort=modified_asc returns the user's bookmarks in ascending date_modified order (oldest-modified first).\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC2\",\"text\":\"GET /api/bookmarks/?sort=modified_desc returns the same bookmarks in descending date_modified order (most recently modified first).\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC3\",\"text\":\"The bookmark list page's sort dropdown contains options labelled 'Modified \u2191' and 'Modified \u2193', and selecting each one reloads the list ordered by modification date ascending/descending respectively.\",\"testable\":true,\"surface\":\"browser\"},{\"id\":\"AC4\",\"text\":\"The archived bookmarks list page (dropdown and sort query parameter) and GET /api/bookmarks/archived/?sort=modified_asc|modified_desc return archived bookmarks ordered by date_modified ascending/descending.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC5\",\"text\":\"A request with an unrecognised sort value (e.g. sort=bogus) returns bookmarks in the default order, added date descending (newest first), and does not error.\",\"testable\":true,\"surface\":\"api\"}],\"ambiguities\":[\"Ordering of bookmarks with equal date_modified is unspecified (tie-breaker, e.g. by id or added date).\",\"Whether editing a bookmark (title, tags, notes, archive/unarchive, read/unread, metadata refresh) updates date_modified is not stated; tests need to know what counts as a modification to produce a changing order.\",\"The ticket says 'including the archived bookmarks list' but the archived page also has a dropdown; whether it is the same dropdown and whether the dropdown option values are exactly modified_asc/modified_desc is assumed.\",\"Whether the chosen sort persists in the user's profile / bookmark search preferences (as existing sort options do) is not mentioned.\",\"Whether shared bookmarks views (/bookmarks/shared) and the bulk/other list endpoints also need the option is not stated.\",\"Existing sort dropdown labels use 'Added \u2191/\u2193' and 'Title \u2191/\u2193'; option order within the dropdown is unspecified.\",\"Behaviour of an unknown sort value on the page vs. API: the form uses a ChoiceField, so an invalid value may be rejected/ignored differently in the UI than in the API; 'falls back to default' is specified only generally.\",\"Interaction of the new sort with search/tag filters and pagination is not stated.\"],\"summary\":\"The ticket adds modified_asc and modified_desc sort values to the bookmark list dropdown and the REST API, including archived bookmarks, with unknown values still falling back to added-descending. All five criteria are testable via API or browser. Main gaps are tie-breaking, what actions update date_modified, and persistence of the choice in user preferences.\"}",
+  "metrics": {
+    "cost_usd": 0.134299,
+    "model": "claude-sonnet-5-5",
+    "turns": 3,
+    "duration_ms": 10165,
+    "input_tokens": 4,
+    "output_tokens": 1308
+  }
+}

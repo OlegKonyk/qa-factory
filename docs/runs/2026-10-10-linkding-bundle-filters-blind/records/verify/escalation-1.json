@@ -1,0 +1,40 @@
+{
+ "decision": "cannot_decide",
+ "why": "the stronger model gave no usable answer: ",
+ "guidance": "",
+ "diagnosis": "",
+ "allowed": [
+  "retry",
+  "change_is_wrong",
+  "environment",
+  "cannot_decide"
+ ],
+ "failure": {
+  "check": "write_tests",
+  "reason": "test writer touched application code (reverted): ['package-lock.json']",
+  "repairable": false,
+  "report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/rounds/2/write_tests.json"
+ },
+ "history": [
+  {
+   "round": 1,
+   "kind": "write",
+   "failure": "revert check: missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state"
+  },
+  {
+   "round": 2,
+   "kind": "repair",
+   "failure": "test writer touched application code (reverted): ['package-lock.json']"
+  }
+ ],
+ "metrics": {
+  "cost_usd": 1.09672025,
+  "model": "claude-fable-5-1",
+  "turns": 4,
+  "duration_ms": 30016,
+  "input_tokens": 2,
+  "output_tokens": 373
+ },
+ "is_error": true,
+ "model": "claude-fable-5-1"
+}

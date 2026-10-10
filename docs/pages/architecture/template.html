@@ -160,9 +160,9 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
   <p class="lede">A ticket goes in. Claude Code writes the API and browser tests, deterministic tools check that each test is not misleading, you approve a readable version, and the approved tests join the application's own suite. This page shows how it is built today and where it is fixed to one laptop, one ticket and one application, so we can place your use cases on it.</p>
   <div class="chips">
     <span class="chip pass"><i></i>First ticket shipped: its tests are in linkding's suite</span>
-    <span class="chip pass"><i></i>102 factory tests green</span>
+    <span class="chip pass"><i></i>188 factory tests green</span>
     <span class="chip ai"><i></i>One application so far: linkding 1.47.0</span>
-    <span class="chip pass"><i></i>Exploration plan approved: track 1 next</span>
+    <span class="chip pass"><i></i>Track 1 done: tests written blind, measured on two tickets</span>
   </div>
 </header>
 
@@ -192,7 +192,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
   </div>
   <figure>
     <div class="scroll">{{FLOW}}</div>
-    <figcaption>Two things the picture must not hide. Implement is the developers' real commit, not an agent. A failure in Verify stops the run; the fix round and the stronger-model advice that replace a person there are the next thing built, and the loop back to Implement is not built. Since 10 October the factory approves its own work when every check passes; a ticket can still ask for a person. The first ticket ran all six steps that day.</figcaption>
+    <figcaption>Two things the picture must not hide. Implement is the developers' real commit, not an agent. Since 10 October a failure in Verify gets one repair round and then Fable 5.1's decision (section 2), and Review's findings get one fix round inside Review; the loops back to Implement are still not built, so "the change is wrong" ends the run with a diagnosis. Since 10 October the factory approves its own work when every check passes; a ticket can still ask for a person. The first ticket ran all six steps that day.</figcaption>
   </figure>
 </section>
 
@@ -344,7 +344,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <tr><td><span class="tag">A</span></td><td>Ticket source</td><td>A JSON file written by hand from an upstream pull request</td><td><code>targets/&lt;app&gt;/tickets/</code></td><td>Tickets written with ticket skills (brief)</td></tr>
         <tr><td><span class="tag">B</span></td><td>Application recipe</td><td>linkding only: where it lives, its Python, its test folders, its suite commands, its strategy rule</td><td><code>targets/linkding/app.json</code>, <code>strategy.md</code>, <code>fetch.py</code></td><td>isso second; a greenfield app once the loop runs</td></tr>
         <tr><td><span class="tag">C</span></td><td>Test surfaces</td><td>API tests through Django's test client and Playwright browser tests in Python, inside the app's own test classes</td><td><code>factory/prompts/write_tests.md</code>, the strategy rule</td><td>Mostly API, one or two browser tests per feature</td></tr>
-        <tr><td><span class="tag">D</span></td><td>Checks</td><td>Lint, revert, mutation, suite, cases, in that order; each is a function that returns a report or stops the run</td><td><code>CHECKS</code> in <code>factory/steps/verify.py</code>, <code>factory/checks/</code></td><td>Flaky quarantine and test selection when a run needs them</td></tr>
+        <tr><td><span class="tag">D</span></td><td>Checks</td><td>Lint, revert, mutation, suite, cases, in that order; a failure gets one repair round, then Fable 5.1's decision</td><td><code>ATTEMPT_CHECKS</code> in <code>factory/steps/verify.py</code>, <code>factory/checks/</code>, <code>factory/escalate.py</code></td><td>Flaky quarantine and test selection when a run needs them</td></tr>
         <tr><td><span class="tag">E</span></td><td>Gate channel</td><td><code>question.md</code> out, <code>answer.json</code> in, one approver</td><td><code>factory/driver.py</code></td><td>Approval on a pull request once the app is forked</td></tr>
         <tr><td><span class="tag">F</span></td><td>Destination</td><td>A commit on <code>qa/&lt;ticket&gt;</code> in the local worktree, then the full suite</td><td><code>factory/steps/ship.py</code></td><td>A pull request to the app's repository</td></tr>
         <tr><td><span class="tag">G</span></td><td>Change source</td><td>The developers' real commit</td><td><code>factory/steps/implement.py</code></td><td>An agent writes the change test-first, after the loop runs</td></tr>
@@ -369,8 +369,8 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <tr><td>Time per ticket</td><td>Writer 414 s, mutation 159 s, cases 116 s, suite 93 s.</td><td>The whole suite runs every time; mutation runs twice.</td><td>Test selection by impact when a run shows the suite is slow.</td></tr>
         <tr><td>Disk</td><td>Per ticket: head worktree 61 MB (47 MB of it node_modules), base 6 MB, run folder 48 MB. Per app: environment 294 MB. Shared: browsers 1.1 GB.</td><td>node_modules and the two app copies in each run folder grow with every ticket.</td><td>Open.</td></tr>
         <tr><td>Applications</td><td>One. A new one needs a recipe, a strategy rule, a fetch script and tickets.</td><td>The checks assume Python: ruff, pytest, mutmut, and a pytest plugin that reads Python tracebacks.</td><td>isso second, then a greenfield app.</td></tr>
-        <tr><td>People</td><td>Nobody, when every check passes. A ticket can ask for a person by rule.</td><td>A failing check still stops the run until the stronger-model advice is built.</td><td>Stronger models before people (10 Oct).</td></tr>
-        <tr><td>Retries</td><td>None. A Verify failure or a review finding stops the run.</td><td>Each retry is a full fresh Verify, about 5 USD and 13 min (estimate from the first run).</td><td>The brief's capped loop back to Implement. Not built.</td></tr>
+        <tr><td>People</td><td>Nobody, when every check passes. A ticket can ask for a person by rule.</td><td>Only when Fable 5.1 cannot decide about a check that still fails after a repair round.</td><td>Stronger models before people (10 Oct), built the same day.</td></tr>
+        <tr><td>Retries</td><td>One repair round, one guided round, one Review fix round; caps per ticket (3 writer rounds, 2 Fable calls, 15 USD by default).</td><td>A repair round costs about 3 USD (measured once: 3.17); a Fable call about 1 USD.</td><td>The loop back to Implement waits for an agent-written Implement.</td></tr>
         <tr><td>Machines</td><td>This laptop.</td><td>Run folders and caches are local; a resume needs the run folder.</td><td>Local first is a constraint of the brief.</td></tr>
       </tbody>
     </table>
@@ -478,8 +478,35 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
   </div>
   <figure>
     <div class="scroll">{{LOOP}}</div>
-    <figcaption>Why not the same session: tests written with the code share its blind spots. Our own run shows it. The developers' tests for this feature, written with the code, fail on the old code only because a name is missing. The factory's tests, written after it from the ticket, fail because the order is wrong. The blind lane removes the code from view entirely. Its risk is a contract mismatch, a test calling <code>sort=modified_ascending</code> when the code chose <code>modified_asc</code>; Plan fixing the contract first is the guard, and the experiment in section 14 measures how often it still happens.</figcaption>
+    <figcaption>Why not the same session: tests written with the code share its blind spots. Our own run shows it. The developers' tests for this feature, written with the code, fail on the old code only because a name is missing. The factory's tests, written after it from the ticket, fail because the order is wrong. The blind lane removes the code from view entirely. Its risk is a contract mismatch, a test calling <code>sort=modified_ascending</code> when the code chose <code>modified_asc</code>; Plan fixing the contract first is the guard. Track 1 measured it on two tickets: no mismatch (below).</figcaption>
   </figure>
+  <div class="col" style="margin-top:22px">
+    <h3>Measured on 10 October: the acceptance lane, written blind</h3>
+    <p>Track 1 ran the factory's new blind mode. The test writer works in the code before the change, with the ticket and the strategy rule only; every other copy of the code and git are hidden from its session, and its tool calls are audited. Its tests then meet the developers' real commit and every check runs unchanged.</p>
+    <p class="answer">Yes, QA can start when the ticket is ready, if the ticket states the public contract. On both tickets every blind test passed with the real change: no contract mismatch. On the sort ticket the blind tests were exactly as strong as tests written after the change; on the bundles ticket they killed every mutant on the changed lines.</p>
+  </div>
+  <div class="tbl" style="margin-top:14px">
+    <table>
+      <thead><tr><th></th><th>Sort, after the change (8 Oct)</th><th>Sort, blind</th><th>Bundles, blind</th></tr></thead>
+      <tbody>
+        <tr><td>Tests written (API + browser)</td><td class="num">4 + 2</td><td class="num">3 + 1</td><td class="num">11 + 2</td></tr>
+        <tr><td>Pass with the change</td><td class="num">6 of 6</td><td class="num">4 of 4</td><td class="num">13 of 13</td></tr>
+        <tr><td>Fail without it, on an assertion</td><td class="num">5</td><td class="num">3</td><td class="num">12</td></tr>
+        <tr><td>Pass on both: regression guard</td><td class="num">1</td><td class="num">1</td><td class="num">1</td></tr>
+        <tr><td>Missing name or crash</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+        <tr><td>Mutants killed, changed lines</td><td class="num">10 of 10</td><td class="num">10 of 10</td><td class="num">16 of 16</td></tr>
+        <tr><td>Mutants killed, whole function</td><td class="num">27 of 108</td><td class="num">27 of 108</td><td class="num">64 of 82</td></tr>
+        <tr><td>The developers' tests, whole function</td><td class="num">98 of 108, with the generated</td><td class="num">98 of 108</td><td class="num">77 of 82</td></tr>
+        <tr><td>Test writer</td><td class="num">414 s · 3.62 USD</td><td class="num">304 s · 3.62 USD</td><td class="num">448 s · 4.08 USD</td></tr>
+        <tr><td>Model spend, whole ticket</td><td class="num">5.47 USD</td><td class="num">5.48 USD</td><td class="num">8.47 USD</td></tr>
+        <tr><td>Shipped</td><td>yes, <code>d1c4de7</code></td><td>yes, <code>737c758</code></td><td>no: stopped at its 8 USD cap before the readable cases</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col" style="margin-top:14px">
+    <p>The bundles run went wrong in the factory, not in the tests. The revert check judged the blind tests on the old code with the developers' new test helper file, which uses a name the change adds, so all 13 failed on import. The repair round found the cause and was then failed for a <code>package-lock.json</code> change the preparation had made; Fable 5.1 ran out of budget and the run stopped for a person. All four defects are fixed (pull request 14), and the same round-1 tests, checked again with no writer call, gave the numbers above. That cost 4.27 USD of repair round and Fable call, and is why track 1 spent 13.96 USD against its estimate of about 10.</p>
+    <p class="note">Limits: two tickets, one run each. Both tickets stated the contract because they were written from finished commits; a ticket written before the code may not, and then Plan must fix the contract first. Blind means the writer saw nothing of the change, not that it ran at the same time as Implement.</p>
+  </div>
   <div class="col" style="margin-top:22px">
     <h3>What makes a repository agent-friendly for this loop</h3>
     <p>Drawn from the sources and from what the first run needed. Item 5 is the one linkding fails today.</p>
@@ -499,15 +526,15 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="plan">
   <div class="col">
     <div class="eyebrow">14 · Exploration plan</div>
-    <h2>Approved on 10 October: track 1 runs next</h2>
+    <h2>Track 1 done on 10 October; track 2 runs next</h2>
     <p class="answer">The old lab died doing exactly “explore for a while”. So each track ends with a command that runs on linkding and a measured number, inside a cap. A track that cannot show that is reported as not done, and nothing else gets scored.</p>
   </div>
   <div class="tracks">
     <div class="card">
-      <div class="eyebrow">Track 1 · UC3</div>
+      <div class="eyebrow">Track 1 · UC3 · done</div>
       <h3>The loop, measured</h3>
-      <p>Write acceptance tests blind, from the ticket and the old code only, then join them to the developers' commit. Run the revert check and mutmut on them. Do it for the sort ticket and for a second one, “Filter bundles by reading or sharing state” (commit 573b6f5).</p>
-      <dl class="dl"><dt>Produces</dt><dd>A blind mode in Verify, and its numbers beside today's run.</dd><dt>Answers</dt><dd>Can QA start when the ticket is ready.</dd><dt>Cap</dt><dd>One session, about 10 USD (estimate)</dd></dl>
+      <p>Blind mode built and run on the sort ticket and on “Filter bundles by reading or sharing state” (commit 573b6f5). Every blind test passed with the real change; 15 of 17 fail without it on an assertion, 2 are regression guards; every mutant on the changed lines killed. Section 13 has the table.</p>
+      <dl class="dl"><dt>Produced</dt><dd>Blind mode, the repair round and Fable 5.1's decisions in Verify, a run summary command, and four factory defects found and fixed.</dd><dt>Answered</dt><dd>Yes, when the ticket states the public contract.</dd><dt>Spent</dt><dd>13.96 USD of model calls, measured, against about 10 estimated</dd></dl>
     </div>
     <div class="card">
       <div class="eyebrow">Track 2 · UC1</div>
@@ -528,8 +555,12 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="decide">
   <div class="col">
     <div class="eyebrow">15 · Yours to decide</div>
-    <h2>Nothing is waiting on you</h2>
-    <p>Settled on 10 October: the first run is approved and shipped; the factory approves its own work when every check passes and will ask a stronger model before a person; nothing at work runs a factory yet, so the orchestrator is ours to choose from track 2; the old lab is kept and salvaged piece by piece; track 3 runs linkding from its Docker image on this laptop.</p>
+    <h2>Two questions from track 1</h2>
+    <ol class="decide">
+      <li>Will tickets at work state the public contract (field names, values, labels, routes) before coding starts? If not, Plan has to fix it first, or the blind lane will meet mismatches the two tickets here did not have.</li>
+      <li>Run the bundles ticket again from a fresh blind writer, as the run track 2 watches on Restate? About 5.5 USD (estimate): a Verify stopped at its cap cannot resume yet, and the new run would be a second blind sample of the same ticket. Recommended: yes.</li>
+    </ol>
+    <p style="margin-top:14px">Settled on 10 October: the first run is approved and shipped; the factory approves its own work when every check passes and will ask a stronger model before a person; nothing at work runs a factory yet, so the orchestrator is ours to choose from track 2; the old lab is kept and salvaged piece by piece; track 3 runs linkding from its Docker image on this laptop.</p>
     <p class="note" style="margin-top:18px">The record behind this page is in the repository: <code>docs/status.md</code>, <code>docs/log.md</code>, <code>docs/decisions.md</code>, <code>docs/architecture.md</code>, <code>docs/exploration.md</code>, and what was salvaged from the lab in <code>docs/reference/lab.md</code>.</p>
   </div>
 </section>

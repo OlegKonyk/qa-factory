@@ -193,7 +193,14 @@ def summarize(run_dir) -> dict:
     first, final = numbers(rounds[0]), numbers(rounds[-1])
     if len(rounds) == 1:
         final = first
-    costs = [s["cost_usd"] for s in stages.values() if s["cost_usd"] is not None]
+    # Verify and Review record every model call in the ticket's rounds.json, across re-runs; a step
+    # record holds only its last run (a Verify resumed on an answer records no spend). Use the ledger
+    # for those two steps when there is one.
+    ledger = _ledger(run)
+    in_ledger = ("verify", "review") if ledger else ()
+    costs = [s["cost_usd"] for n, s in stages.items() if s["cost_usd"] is not None and n not in in_ledger]
+    if ledger:
+        costs.append(ledger.get("spent_usd") or 0.0)
     return {
         "ticket": ticket.get("id") or run.name,
         "qa_mode": ticket.get("qa_mode") or "sequential",
@@ -204,7 +211,7 @@ def summarize(run_dir) -> dict:
         "stages": stages,
         "verify_parts": _verify_parts(records.get("verify")),
         "spend_usd": round(sum(costs), 4),
-        "ledger": _ledger(run),
+        "ledger": ledger,
         "blind_audit": report.get("blind_audit"),
     }
 

@@ -106,7 +106,7 @@ def test_two_rounds(tmp_path):
     assert s["stages"]["frame"]["model"] == "sonnet"
     assert s["stages"]["verify"]["earlier_runs"] == 1
     assert "plan" not in s["stages"]
-    assert s["spend_usd"] == 2.5
+    assert s["spend_usd"] == 3.5  # frame's 0.5 plus the ledger's 3.0, not verify's last record
     assert s["ledger"]["writer_rounds_used"] == 1 and s["ledger"]["advice_used"] == 1
     assert s["blind_audit"] == {"leaks": 0}
 
@@ -159,3 +159,8 @@ def test_a_path_that_is_not_a_run_folder_is_refused(tmp_path):
     assert summary.main([str(tmp_path / "nope")], out=buf) == 2
     assert "not a run folder" in buf.getvalue()
     assert not (tmp_path / "nope").exists()
+
+
+def test_without_a_ledger_the_spend_is_the_step_records(tmp_path):
+    s = summary.summarize(make_run(tmp_path, two_rounds=False))
+    assert s["ledger"] is None and s["spend_usd"] == 2.5

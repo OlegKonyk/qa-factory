@@ -13,7 +13,7 @@ everything lives, and the first run's numbers. This file keeps the two tables th
 | A | Ticket source | A JSON file written by hand from an upstream pull request | `targets/<app>/tickets/` | Tickets written with ticket skills (brief) |
 | B | Application recipe | linkding only: location, Python, test folders, suite commands, strategy rule | `targets/linkding/app.json`, `strategy.md`, `fetch.py` | isso second; a greenfield app once the loop runs |
 | C | Test surfaces | API tests through Django's test client and Playwright browser tests in Python, inside the app's own test classes | `factory/prompts/write_tests.md`, the strategy rule | Mostly API, one or two browser tests per feature |
-| D | Checks | Lint, revert, mutation, suite, cases, in that order; each returns a report or stops the run | `CHECKS` in `factory/steps/verify.py`, `factory/checks/` | Flaky quarantine and test selection when a run needs them |
+| D | Checks | Lint, revert, mutation, suite, cases, in that order; a failure gets one repair round, then Fable 5.1's decision | `ATTEMPT_CHECKS` and `FINAL_CHECKS` in `factory/steps/verify.py`, `factory/checks/`, `factory/escalate.py` | Flaky quarantine and test selection when a run needs them |
 | E | Gate channel | `question.md` out, `answer.json` in, one approver | `factory/driver.py` | Approval on a pull request once the app is forked |
 | F | Destination | A commit on `qa/<ticket>` in the local worktree, then the full suite | `factory/steps/ship.py` | A pull request to the app's repository |
 | G | Change source | The developers' real commit | `factory/steps/implement.py` | An agent writes the change test-first, after the loop runs |
@@ -31,8 +31,8 @@ estimated.
 | Time per ticket | Writer 414 s, mutation 159 s, cases 116 s, suite 93 s | The whole suite runs every time; mutation runs twice | Test selection by impact when a run shows the suite is slow |
 | Disk | Per ticket: head worktree 61 MB (47 MB node_modules), base 6 MB, run folder 48 MB; per app: environment 294 MB; shared: browsers 1.1 GB | node_modules and the two app copies per run folder grow with every ticket | Open |
 | Applications | One; a new one needs a recipe, a strategy rule, a fetch script and tickets | The checks assume Python: ruff, pytest, mutmut, a pytest plugin reading Python tracebacks | isso second, then a greenfield app |
-| People | One approver, by file, on this laptop | No notification, no record of who answered beyond the file | Approval on pull requests once the app is forked |
-| Retries | None; a Verify failure or a review finding stops the run | Each retry is a fresh Verify, about 5 USD and 13 min (estimated from the first run) | The brief's capped loop back to Implement; not built |
+| People | Nobody when every check passes; a person only when Fable 5.1 cannot decide about a check that still fails, or a ticket asks by rule | No notification, no record of who answered beyond the file | Stronger models before people (10 Oct), built the same day |
+| Retries | One repair round, one guided round, one Review fix round; caps per ticket in `rounds.json` (3 writer rounds, 2 Fable calls, 15 USD by default) | A repair round cost 3.17 USD once (measured); a Fable call about 1 USD | The loop back to Implement waits for an agent-written Implement |
 | Machines | This laptop | Run folders and caches are local; a resume needs the run folder | Local first is a constraint of the brief |
 
 ## Use cases

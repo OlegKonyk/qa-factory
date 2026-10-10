@@ -8,6 +8,48 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-10 · Track 1: the feature loop measured, and what it found in the factory
+
+**Asked.** Track 1 of `docs/exploration.md`: can QA start as soon as the ticket is ready? Tests
+written blind, joined to the developers' commit, checked by the factory's existing checks.
+
+**Ran, in order** (all numbers measured; the records are in `docs/runs/2026-10-10-*`):
+
+1. *Two tickets.* `sort-by-modified-blind.json` (the first run's ticket, a new id, its provenance
+   moved out of the description into `source`, which blind prompts never see) and
+   `bundle-filters.json` / `bundle-filters-blind.json`, written from linkding 573b6f5 with its
+   public contract stated: the two fields, their three values, the labels, the routes. Worktrees
+   by `fetch.py --ticket <t> --prepare-e2e`.
+2. *The sort ticket blind,* first `--until plan` (Frame 12 s 0.13 USD, Plan 15 s 0.17 USD, both
+   in the base worktree), then to the end: the writer 304 s 3.62 USD, 4 tests, its 39 tool calls
+   audited clean; 3 fail without the change on an assertion, 1 passes on both; 27 of 108 and 10 of
+   10 mutants, the same as the run of 2026-10-08; suite green; Review approved, Ship `737c758`.
+   902 s, 5.48 USD.
+3. *The bundles ticket blind:* the writer 448 s 4.08 USD, 13 tests, all passing with the change,
+   all counted "missing name" on the old code. Repair round (317 s, 3.17 USD): the writer found the
+   cause, the developers' new `bookmarks/tests/helpers.py` uses `BookmarkBundle.FILTER_STATE_OFF`,
+   and worked around it by copying the helpers into its files; it also created and removed a git
+   worktree to test the old code; then the round was failed for `package-lock.json`, which the
+   preparation's `npm install` had changed. Fable 5.1 got the 0.75 USD left under the 8 USD cap,
+   stopped after 4 turns at 1.10 USD with no answer, and the run stopped for a person.
+4. *The fix* (pull request 14, reviewed by a `supervisor:reviewer`, whose blocking finding was
+   also fixed: a recheck could have taken a round the writer's own checks rejected): the four
+   defects, and a `recheck` answer.
+5. *The recheck:* a first attempt ran on the old branch with no answer file (the rebase was
+   refused by an uncommitted file; nothing changed). Then the session answered `recheck` for round
+   1, saying Oleg was not asked; round 3 judged the unchanged round-1 tests: 12 fail without the
+   change on an assertion, 1 passes on both, no missing name, no crash; 16 of 16 mutants on the
+   changed lines, 64 of 82 in `_filter_bundle` (the developers' tests 77 of 82); suite green. The
+   step then stopped at the 8 USD cap before the readable cases, as designed. 312 s, no spend.
+
+**Found along the way.** `--max-budget-usd` is checked between turns, so a call overshoots by up
+to one turn (0.75 asked, 1.10 spent). The raw stream-json transcript of a headless session holds
+this machine's hook output, so only the tool calls are copied into `docs/runs/`. The summary had
+counted only the last Verify record's spend; it now reads the ticket's `rounds.json`.
+
+**Not done.** The sequential run of the bundles ticket (the cap). The bundles ticket's readable
+cases, Review and Ship (its cap; question 2 in `docs/status.md`).
+
 ## 2026-10-10 · Stronger models before people, and blind mode, built
 
 **Asked.** `docs/next-session.md`: first the fix round and the stronger model's advice in Verify,

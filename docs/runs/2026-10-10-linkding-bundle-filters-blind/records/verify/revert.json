@@ -1,0 +1,92 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "pass",
+  "reason": "12 of 13 tests fail on an assertion without the change",
+  "tests": {
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "unexpectedly None"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Items in the first set but not the second:\n'match unread unshared'\n'match read shared'\n'match read unshared'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Items in the first set but not the second:\n'match unshared one'\n'match unshared two'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Items in the first set but not the second:\n'match read one'\n'match read two'"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states": {
+    "at_head": "pass",
+    "reverted": "pass",
+    "verdict": "passes-without-change",
+    "message": ""
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "'filter_unread' not found in {'id': 1, 'name': 'Bundle with states', 'search': 'foo', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.470944Z', 'date_modified': '2026-10-10T20:51:08.470948Z'}"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "'filter_unread' not found in {'id': 1, 'name': 'Bundle without states', 'search': '', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.580847Z', 'date_modified': '2026-10-10T20:51:08.580851Z'}"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "'filter_unread' not found in {'id': 1, 'name': 'Existing bundle', 'search': 'foo', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.695308Z', 'date_modified': '2026-10-10T20:51:08.695312Z'}"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "'filter_unread' not found in {'id': 1, 'name': 'Updated bundle', 'search': 'bar', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-10T20:51:08.810830Z', 'date_modified': '2026-10-10T20:51:08.812239Z'}"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "0 != 1 : No single label 'Reading State' found"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "0 != 1 : No single label 'Reading State' found"
+   },
+   "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for get_by_label(\"Reading State\", exact=True)\n\nAria snapshot:\n- banner:\n  - link \"Application logo LINKDING\":\n    - /url: /\n    - img \"Application logo\""
+   },
+   "bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for get_by_label(\"Reading State\", exact=True)\n\nAria snapshot:\n- banner:\n  - link \"Application logo LINKDING\":\n    - /url: /\n    - img \"Application logo\""
+   }
+  },
+  "wall_s": {
+   "head": 8.5,
+   "reverted": 14.45
+  },
+  "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/revert/reverted"
+ }
+}

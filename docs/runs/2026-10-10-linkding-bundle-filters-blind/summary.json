@@ -1,0 +1,146 @@
+{
+  "ticket": "linkding-bundle-filters-blind",
+  "qa_mode": "blind",
+  "first_round": {
+    "round": 1,
+    "tests": 13,
+    "tests_api": 11,
+    "tests_browser": 2,
+    "pass_at_head": 13,
+    "fail_at_base_on_assertion": 0,
+    "pass_on_both": 0,
+    "missing_name": 13,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {}
+  },
+  "final_round": {
+    "round": 3,
+    "tests": 13,
+    "tests_api": 11,
+    "tests_browser": 2,
+    "pass_at_head": 13,
+    "fail_at_base_on_assertion": 12,
+    "pass_on_both": 1,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 82,
+        "killed": 64,
+        "score": 0.7804878048780488,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 82,
+        "killed": 77,
+        "score": 0.9390243902439024,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      },
+      "developers": {
+        "checked": 82,
+        "killed": 77,
+        "score": 0.9390243902439024,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      }
+    }
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "kind": "write",
+      "failure": "revert: revert check: missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmark_list_page_bundle_applies_unread_and_shared_conditions; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_combines_states_with_search_and_tags; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_shared_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_filter_unread_yes_no_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_bookmarks_api_bundle_without_states_matches_all_states; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_and_get_bundle_returns_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_create_bundle_without_states_defaults_to_off; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_patch_bundle_changes_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateApiTestCase::test_put_bundle_sets_filter_unread_and_filter_shared; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_edit_bundle_form_stores_reading_and_sharing_state; missing-name: bookmarks/tests/test_bundle_filters_blind_api.py::BundleFilterStateFormTestCase::test_new_bundle_form_shows_and_stores_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state; missing-name: bookmarks/tests_e2e/e2e_test_bundle_filters_blind.py::BundleFilterStateE2ETestCase::test_edit_bundle_reading_and_sharing_state"
+    },
+    {
+      "round": 2,
+      "kind": "repair",
+      "failure": "write_tests: test writer touched application code (reverted): ['package-lock.json']"
+    },
+    {
+      "round": 3,
+      "kind": "recheck",
+      "failure": null
+    }
+  ],
+  "decisions": [
+    "cannot_decide"
+  ],
+  "stages": {
+    "frame": {
+      "status": "pass",
+      "duration_s": 14.767,
+      "work_s": null,
+      "cost_usd": 0.0642965,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "plan": {
+      "status": "pass",
+      "duration_s": 12.675,
+      "work_s": null,
+      "cost_usd": 0.062294300000000004,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "implement": {
+      "status": "pass",
+      "duration_s": 0.051,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "verify": {
+      "status": "fail",
+      "duration_s": 312.082,
+      "work_s": 120.1,
+      "cost_usd": 0,
+      "model": null,
+      "earlier_runs": 0
+    }
+  },
+  "verify_parts": {
+    "time_s": {
+      "write_tests.r3": 0.0,
+      "lint.r3": 0.1,
+      "revert.r3": 23.2,
+      "mutation.generated": 19.9,
+      "mutation.generated_and_developers": 87.1,
+      "mutation.developers": 84.9,
+      "mutation.r3": 191.9,
+      "suite.r3": 96.8
+    },
+    "cost_usd": {}
+  },
+  "spend_usd": 8.4729,
+  "ledger": {
+    "caps": {
+      "writer_rounds": 3,
+      "advice": 2,
+      "usd": 8.0
+    },
+    "spent_usd": 8.3463,
+    "writer_rounds_used": 1,
+    "advice_used": 1,
+    "calls": 3
+  },
+  "blind_audit": {
+    "tool_calls": 24,
+    "flagged": [],
+    "clean": true,
+    "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind/verify/rounds/1/writer.jsonl"
+  }
+}

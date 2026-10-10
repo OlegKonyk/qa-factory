@@ -3,6 +3,13 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-10 · A check-in during the runs
+
+> While I'm here, just wanted to check if everything is going well and if you need any help from me.
+
+How it was read: a check-in, no new direction. Answered with the state of the runs and that
+nothing was needed from him; the cost of a sequential bundles run was named as not fitting the cap.
+
 ## 2026-10-10 · Kickoff: stronger models before people, then track 1
 
 The prompt of `docs/next-session.md`, pasted unchanged as the session's first message.

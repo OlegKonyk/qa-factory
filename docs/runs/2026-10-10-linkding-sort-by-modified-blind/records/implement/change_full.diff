@@ -1,0 +1,116 @@
+diff --git a/bookmarks/forms.py b/bookmarks/forms.py
+index 8510615..d599fb9 100644
+--- a/bookmarks/forms.py
++++ b/bookmarks/forms.py
+@@ -249,6 +249,8 @@ class BookmarkSearchForm(forms.Form):
+     SORT_CHOICES = [
+         (BookmarkSearch.SORT_ADDED_ASC, "Added ↑"),
+         (BookmarkSearch.SORT_ADDED_DESC, "Added ↓"),
++        (BookmarkSearch.SORT_MODIFIED_ASC, "Modified ↑"),
++        (BookmarkSearch.SORT_MODIFIED_DESC, "Modified ↓"),
+         (BookmarkSearch.SORT_TITLE_ASC, "Title ↑"),
+         (BookmarkSearch.SORT_TITLE_DESC, "Title ↓"),
+     ]
+diff --git a/bookmarks/models.py b/bookmarks/models.py
+index 2d8c58f..bd45335 100644
+--- a/bookmarks/models.py
++++ b/bookmarks/models.py
+@@ -224,6 +224,8 @@ class BookmarkBundle(models.Model):
+ class BookmarkSearch:
+     SORT_ADDED_ASC = "added_asc"
+     SORT_ADDED_DESC = "added_desc"
++    SORT_MODIFIED_ASC = "modified_asc"
++    SORT_MODIFIED_DESC = "modified_desc"
+     SORT_TITLE_ASC = "title_asc"
+     SORT_TITLE_DESC = "title_desc"
+ 
+diff --git a/bookmarks/queries.py b/bookmarks/queries.py
+index 5fa70dc..da45271 100644
+--- a/bookmarks/queries.py
++++ b/bookmarks/queries.py
+@@ -298,6 +298,10 @@ def _base_bookmarks_query(
+             query_set = query_set.order_by(order_field).reverse()
+     elif search.sort == BookmarkSearch.SORT_ADDED_ASC:
+         query_set = query_set.order_by("date_added")
++    elif search.sort == BookmarkSearch.SORT_MODIFIED_ASC:
++        query_set = query_set.order_by("date_modified")
++    elif search.sort == BookmarkSearch.SORT_MODIFIED_DESC:
++        query_set = query_set.order_by("-date_modified")
+     else:
+         # Sort by date added, descending by default
+         query_set = query_set.order_by("-date_added")
+diff --git a/bookmarks/tests/test_queries.py b/bookmarks/tests/test_queries.py
+index 477c38a..de706d1 100644
+--- a/bookmarks/tests/test_queries.py
++++ b/bookmarks/tests/test_queries.py
+@@ -1164,6 +1164,70 @@ class QueriesBasicTestCase(TestCase, BookmarkFactoryMixin):
+         query = queries.query_bookmarks(self.user, self.profile, search)
+         self.assertEqual(list(query), sorted_bookmarks)
+ 
++    def test_sort_by_date_modified_asc(self):
++        search = BookmarkSearch(sort=BookmarkSearch.SORT_MODIFIED_ASC)
++
++        bookmarks = [
++            self.setup_bookmark(
++                modified=timezone.datetime(2022, 5, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2020, 7, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2023, 4, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2021, 2, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2022, 3, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2020, 1, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2021, 6, 1, tzinfo=datetime.UTC)
++            ),
++        ]
++        sorted_bookmarks = sorted(bookmarks, key=lambda b: b.date_modified)
++
++        query = queries.query_bookmarks(self.user, self.profile, search)
++        self.assertEqual(list(query), sorted_bookmarks)
++
++    def test_sort_by_date_modified_desc(self):
++        search = BookmarkSearch(sort=BookmarkSearch.SORT_MODIFIED_DESC)
++
++        bookmarks = [
++            self.setup_bookmark(
++                modified=timezone.datetime(2021, 6, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2023, 4, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2020, 1, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2022, 3, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2021, 2, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2020, 7, 1, tzinfo=datetime.UTC)
++            ),
++            self.setup_bookmark(
++                modified=timezone.datetime(2022, 5, 1, tzinfo=datetime.UTC)
++            ),
++        ]
++        sorted_bookmarks = sorted(
++            bookmarks, key=lambda b: b.date_modified, reverse=True
++        )
++
++        query = queries.query_bookmarks(self.user, self.profile, search)
++        self.assertEqual(list(query), sorted_bookmarks)
++
+     def setup_title_sort_data(self):
+         # lots of combinations to test effective title logic
+         bookmarks = [
