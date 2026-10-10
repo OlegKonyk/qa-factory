@@ -8,6 +8,20 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-10 · The architecture page
+
+**Asked.** Visuals and a page to take in the current architecture and setup, then discuss the use
+cases he has in mind and how to support them at scale (`docs/inputs.md`).
+
+**Done.** A published page with four diagrams (the flow, inside Verify, the revert check, where
+everything lives), two charts of the first run (time per stage, spend per call), a stop-and-resume
+table, the extension points A to H and the "where it is fixed today" table, built by
+`docs/pages/architecture/build.py`. One look in headless Chromium (Playwright 1.62.0, light,
+dark and phone width) found two crowded labels and charts too small side by side; fixed once,
+then published. The two tables are kept as text in `docs/architecture.md`.
+
+**Not done.** No use case is on the page yet; they are his to name.
+
 ## 2026-10-10 · Persisting the state
 
 **Asked.** Make sure the current state is persisted, so a session can sit with Oleg and explain

@@ -3,7 +3,8 @@
 Read this first. Update it last, in the same pull request as the work.
 
 **As of 2026-10-10, after the session that persisted the state.** What was tried, including what
-failed, is in `docs/log.md`.
+failed, is in `docs/log.md`. The architecture, drawn for review, is a published page
+(https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa); its tables are in `docs/architecture.md`.
 
 **2026-10-08, after the first build session.** The first end-to-end path exists as running
 code and has run on linkding: a plain Python driver, six steps, one run folder per ticket, resume
@@ -82,6 +83,9 @@ the human gate; Oleg's answer file resumes it (below).
 - Whether the old lab's worktrees and laptop-only branches are kept (`docs/reference/lab.md`).
 
 ## Next
+
+0. Oleg names the use cases he has in mind; each is placed on the architecture page and in
+   `docs/architecture.md` before anything is built for it.
 
 1. Close the first run (the gate above), then run a second ticket end to end without a stop for
    anything but the gate: the "Filter bundles by reading or sharing state" commit (573b6f5) is
