@@ -8,6 +8,26 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-10 · His answers: the first ticket ships, and the factory stops asking
+
+**Asked.** He approved the first run and objected to being asked: approving passing work is not
+his job, the factory should ask stronger models before people, nothing at work runs a factory yet
+(learning to run one is the point), keep and salvage the lab, and of course Docker on this laptop.
+
+**Done.**
+- The first run resumed on his answer: Verify passed on it, Review approved (three low findings,
+  51 s, 0.47 USD), Ship committed `d1c4de7` on `qa/linkding-sort-by-modified` and ran linkding's
+  suite green (1294 passed, 2 browser passed, 32 s). The first time Review and Ship ran as steps.
+- Verify now approves on its own when every check passes (`approval.json`, by: factory); a ticket
+  may set `"gate": "person"`. Two tests. 102 factory tests.
+- Decisions recorded; `CLAUDE.md` says never to ask him to approve passing work or confirm an
+  obvious default; `docs/reference/lab.md` lists what the factory has taken from the lab and what
+  is next to take.
+- `docs/next-session.md` now starts with the fix round and the stronger model's advice, then
+  track 1.
+
+**Not done.** The fix round and the stronger-model advice are specified, not built.
+
 ## 2026-10-10 · The exploration plan approved and persisted
 
 **Asked.** Go with the plan, persisted, so the context can be cleared before the kickoff.

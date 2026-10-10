@@ -2,17 +2,24 @@
 
 Read this first. Update it last, in the same pull request as the work.
 
-**As of 2026-10-10, the exploration plan is approved** (`docs/exploration.md`); the next session
-starts track 1 from `docs/next-session.md`.
+## Waiting on Oleg
 
-**Earlier on 2026-10-10, after the session that persisted the state.** What was tried, including what
-failed, is in `docs/log.md`. The architecture, drawn for review, is a published page
-(https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa); its tables are in `docs/architecture.md`.
+Nothing. (Open decisions go here first, as a short numbered list he can answer in place.)
 
-**2026-10-08, after the first build session.** The first end-to-end path exists as running
-code and has run on linkding: a plain Python driver, six steps, one run folder per ticket, resume
-from the last finished step, and the QA step built fully. The run on the real ticket is parked at
-the human gate; Oleg's answer file resumes it (below).
+## Where things stand, 2026-10-10
+
+- **The first ticket is finished.** On Oleg's approval, Review approved with three low findings
+  (51 s, 0.47 USD) and Ship committed the tests and cases as `d1c4de7` on
+  `qa/linkding-sort-by-modified` in `~/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/head`;
+  linkding's suite with them: 1294 passed, and 2 browser tests passed (32 s). All numbers measured.
+- **The factory no longer stops to ask when its checks pass** (`docs/decisions.md`). Verify
+  approves on its own and records `approval.json`; a ticket may set `"gate": "person"`. Next: a
+  fix round and a stronger model's advice before any person, then exploration track 1
+  (`docs/next-session.md`).
+- **The exploration plan is approved** (`docs/exploration.md`). Nothing at work runs a factory
+  yet, so track 2 is a real trial of running this one on Restate.
+- What was tried, including what failed, is in `docs/log.md`. The architecture, drawn for review,
+  is https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa; its tables are in `docs/architecture.md`.
 
 ## Done
 
@@ -54,9 +61,7 @@ the human gate; Oleg's answer file resumes it (below).
   - Review, run by hand on the same artifacts (not yet as a driver step, since the gate is still
     open): approve, two low findings, 53 s, 0.58 USD (Opus).
   - Total model spend of the recorded run: 5.58 USD. Wall time of the run through Verify: 13.5 min.
-  - **Not yet run on linkding as driver steps: Review and Ship.** Both sit behind the gate. Review
-    ran by hand on the artifacts (above) and will run again as a step after the approval; Ship has
-    run only against a fixture repository in its tests (`tests/test_ship.py`).
+  - Review and Ship ran as steps on 2026-10-10 after the approval (top of this file).
 
 ## What lives only on this machine
 
@@ -67,35 +72,13 @@ the human gate; Oleg's answer file resumes it (below).
   ticket. `targets/linkding/fetch.py --ticket <ticket> [--prepare-e2e]` rebuilds them; Review and
   Ship put the generated tests back from the run folder.
 
-## Waiting on Oleg
-
-- **What the factory at work runs on** (Temporal, Restate, neither yet), and whether his
-  colleague meant Restate for it. Decides whether exploration track 2 stays a spike.
-
-- **The gate of the first run.** Read
-  `docs/runs/2026-10-08-linkding-sort-by-modified/question.md`, the two test files and the six
-  cases beside it. To approve, write `.artifacts/runs/linkding-sort-by-modified/answer.json` with
-  `{"approved": true, "by": "Oleg", "note": ""}` (or `false` with a note) and run
-  `uv run python -m factory run targets/linkding/tickets/sort-by-modified.json`. The run then
-  passes Verify, runs Review, and Ship commits the tests and cases on branch
-  `qa/linkding-sort-by-modified` in
-  `~/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/head` and runs the
-  suite. The pull-request form of the answer comes once linkding is forked under his account.
-  Review's two low findings are worth reading first: the API fixture leaves bookmark titles
-  random, and the fallback test proves no new behaviour. A decline (`"approved": false` with a
-  note) re-runs Verify from the test writer: about 5 USD and 13 minutes for a fresh draft. There
-  is no "fix these findings and re-check" round yet (Next, item 2).
-- Whether the factory at work is built on Temporal (decides the Temporal question later).
-- Whether the old lab's worktrees and laptop-only branches are kept (`docs/reference/lab.md`).
-
 ## Next
 
-0. The approved exploration (`docs/exploration.md`): track 1, the feature loop measured, kicks
-   off from `docs/next-session.md`; then track 2 (Restate and a run report), then track 3 (the
-   deployed environment).
+0. From `docs/next-session.md`: the fix round and the stronger model's advice in Verify, then
+   exploration track 1 (the feature loop measured); then track 2 (Restate and a run report), then
+   track 3 (the deployed environment, linkding's Docker image on this laptop).
 
-1. Close the first run (the gate above), then run a second ticket end to end without a stop for
-   anything but the gate: the "Filter bundles by reading or sharing state" commit (573b6f5) is
+1. Run a second ticket end to end: the "Filter bundles by reading or sharing state" commit (573b6f5) is
    the natural second, since it touches a model, a migration, the API and a form.
 2. From what the run showed: the plan step proposes file names the writer must ignore (fixed by
    prompt, worth a schema); the review step's low findings (random titles in the API fixture)

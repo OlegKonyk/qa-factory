@@ -22,7 +22,7 @@ beyond Restate, which he named.
 | Track | Use case | Work | Produces | Cap |
 |---|---|---|---|---|
 | 1 · The loop, measured | UC3 | Acceptance tests written blind, from the ticket and the base code only, joined to the developers' commit; revert check and mutmut on them; the sort ticket and "Filter bundles by reading or sharing state" (573b6f5) | A blind mode in Verify, and its numbers beside the sequential run | One session, about 10 USD (estimate) |
-| 2 · Watch it run | UC1 | The six steps as one Restate workflow per ticket, the gate as a promise, the UI at `localhost:9070`; the plain driver stays the default; a run report from the run folder for the QA evidence | A run he can watch; the timeouts and resume-after-kill, measured | One session |
+| 2 · Watch it run | UC1 | The six steps as one Restate workflow per ticket, a person-gate (when one is configured) as a promise, the UI at `localhost:9070`; a real trial of running the factory on Restate, with the plain driver kept until it proves out; a run report from the run folder for the QA evidence | A run he can watch; the timeouts and resume-after-kill, measured | One session |
 | 3 · The deployed environment | UC2 | linkding from its own Docker image on this laptop as the deployed app; a feature's readable cases as a thin suite with a base URL and data through the REST API, run against the container | The same cases passing on a deployed app; the checklist below, tested | One session |
 
 Recommended order: track 1 first. It answers the question everyone asks with a number. In all,
@@ -88,8 +88,8 @@ docs.restate.dev pages on installation, service configuration, durable steps (Py
   report of our own is still needed.
 
 Verdict: useful for watching runs and for waits that last days; the same kind of piece as
-Temporal, which is deferred (`docs/decisions.md`). The fact that decides both is what the factory
-at work runs.
+Temporal, which is deferred (`docs/decisions.md`). Nothing at work runs a factory yet, so the
+choice is ours, made from running track 2.
 
 ## Sources, one claim each
 
@@ -110,8 +110,8 @@ Labels: **read** (primary page read on 2026-10-10), **docs** (product documentat
 ## Questions for Oleg
 
 1. ~~Yes, no, or reorder the three tracks.~~ Yes, as written (2026-10-10).
-2. What the factory at work runs on (Temporal, Restate, neither yet), and whether the colleague
-   meant Restate for it. Decides whether track 2 stays a spike or starts the orchestrator. Open.
+2. ~~What the factory at work runs on.~~ Nothing yet; working out how to run a factory is part
+   of this project (2026-10-10). Track 2 is a real trial of running the factory on Restate.
 3. ~~Whether linkding's own Docker image may stand for the deployed environment.~~ Approved with
    the plan (2026-10-10).
 
@@ -126,7 +126,7 @@ Track 1, things the first run's code makes easy to get wrong:
 - **The writer cannot see its tests pass.** At the base commit the feature does not exist; its
   tests should fail there for the missing behaviour, and lint must still pass. Passing is checked
   only at the join, in the head worktree.
-- **Keep the first run parked.** Use a distinct ticket id (for example
+- **Leave the first run as it is.** It is finished and shipped. Use a distinct ticket id (for example
   `linkding-sort-by-modified-blind`); worktrees and run folders are per ticket id.
 - **Compare like with like.** Report blind beside the sequential run of 2026-10-08
   (`docs/runs/2026-10-08-linkding-sort-by-modified/summary.json`): tests written, pass at head,

@@ -529,6 +529,25 @@ def run(inp):
         "cost_usd": metrics["cost_usd"],
         "time_s": metrics["time_s"],
     }
+    # The factory does not stop for a person when every check passed (Oleg, 2026-10-10). The
+    # approval is recorded as the factory's own; a ticket or app that sets "gate": "person" still
+    # stops here, for a risk rule that wants a human.
+    gate_mode = ticket.get("gate") or app.get("gate") or "auto"
+    if gate_mode == "auto":
+        approval_path = os.path.join(out, "approval.json")
+        _dump(
+            approval_path,
+            {"approved": True, "by": "factory", "rule": "every Verify check passed", "context": context},
+        )
+        ctx["artifacts_out"]["approval"] = approval_path
+        _dump(report_path, report)
+        return {
+            "status": "pass",
+            "artifacts": dict(ctx["artifacts_out"]),
+            "reason": f"every check passed; approved by the factory ({len(ctx['files'])} test files)",
+            "gate": None,
+            "metrics": metrics,
+        }
     return {
         "status": "needs_person",
         "artifacts": dict(ctx["artifacts_out"]),

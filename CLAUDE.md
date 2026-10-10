@@ -55,6 +55,9 @@ stated as skipped. Nothing is called working until it has run here.
   `docs/log.md` (what was tried, what failed and why), `docs/decisions.md` (what was decided).
   Nothing a later session needs stays only in a conversation or a scratch folder. When he asks to
   sit together, explain from those and end with the choices that are his.
+- Never ask him to approve work that passed its checks, or to confirm an obvious default. Decide,
+  record it, and say so. What is left for him goes at the end of a message as a short numbered
+  list he can answer in place.
 
 ## Boundary: not negotiable
 
