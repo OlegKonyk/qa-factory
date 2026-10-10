@@ -3,6 +3,43 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-10 · How Verify escalates, and what blind mode hides, by delegation
+
+Made by the session that built them, under his decision of the same day ("stronger models before
+people"); each can be overturned by a later entry.
+
+1. **The order inside Verify.** A failure of lint, the revert check or mutation that the tests
+   caused gets one repair round: a fresh writer session with the findings, then the checks again
+   from lint. Anything still failing, and any failure the tests did not cause (the writer's own
+   error, the application's suite, mutmut not running), goes to the stronger model
+   (`claude-fable-5-1`, headless, read-only, its own budget of 3 USD per call). It answers
+   `retry` (one guided writer round with its guidance), `change_is_wrong`, `environment` or
+   `cannot_decide`. Its answer is kept as `verify/escalation-<k>.json` in the run folder.
+2. **"Fail back to Implement" is a failure with the stronger model's diagnosis**, not a loop. In
+   this path Implement is the developers' real commit; nothing can redo it. When the factory
+   writes the change itself, this becomes the loop back.
+3. **Only `cannot_decide` stops for a person.** The answer to that question is a file:
+   `{"decision": "retry", "guidance": "..."}` runs one more guided round; any other decision fails
+   the step with the person's note. A question can never approve failing work.
+4. **The Review fix round runs inside the Review step.** On `request_changes`, the writer gets the
+   findings for one round, Verify's checks and the test cases run again, and Review runs once
+   more. The driver did not change.
+5. **Caps per ticket, kept in `<run folder>/rounds.json`** so that a re-run does not reset them:
+   3 extra writer rounds (repair, guided, review fix), 2 stronger-model calls, 15 USD of model
+   spend in Verify and Review. A ticket or the application may set its own (`"caps"`). The spend
+   cap is hard: every call's `--max-budget-usd` is what is left, and no call starts below
+   0.50 USD. The two blind tickets of track 1 set 8 USD.
+6. **Blind mode** (`"qa_mode": "blind"`): Frame, Plan and the first test writer run in the base
+   worktree; their prompts carry no diff, none of the developers' tests and no `base`, `head` or
+   `source` field of the ticket; their sessions are denied reading the application's clone, this
+   ticket's head worktree, every other ticket's worktrees and the factory's own repository, and
+   denied git. The writer's session is saved as a transcript and audited for any call that named
+   a hidden path or ran git. After the join, a repair round runs in the head worktree with the
+   findings but still no diff: the join is the point where QA meets the code, and the repair is
+   the factory's normal escalation, not part of the blind measurement.
+7. **A third mutation set, the developers' tests alone,** as the baseline for a ticket that has no
+   sequential run to compare with. It costs mutmut time, not model spend.
+
 ## 2026-10-10 · The factory does not stop to ask when its checks pass; stronger models before people
 
 **Decided, his words:** "Of course I approve the first run's test. Why do I have to approve this

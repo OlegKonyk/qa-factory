@@ -3,6 +3,23 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-10 · Kickoff: stronger models before people, then track 1
+
+The prompt of `docs/next-session.md`, pasted unchanged as the session's first message.
+
+How it was read:
+
+- Build first, inside Verify: one repair round for the test writer when lint, the revert check
+  or mutation fails; then a stronger model (`claude-fable-5-1`, headless, read-only) decides
+  retry, the change is wrong, an environment problem, or cannot decide; only the last stops for
+  a person. One fix round when Review requests changes. Rounds and spend capped per ticket.
+- Then track 1: a blind mode, the sort ticket run blind under a new id, a second ticket from
+  linkding commit 573b6f5 run blind, the sequential run of it only if the cap allows.
+- Judgement calls made by the session, recorded in `docs/decisions.md`: "fail back to Implement"
+  is a terminal failure with the stronger model's diagnosis, because Implement is the developers'
+  real commit and cannot be redone; the Review fix round runs inside the Review step; after the
+  join, a repair round in blind mode runs in the head worktree with the findings but no diff.
+
 ## 2026-10-10 · Stop asking: approve, nothing at work yet, stronger models instead of questions, salvage the lab, Docker
 
 > Of course I approve the first run's test. Why wouldn't I approve this? Why do I have to approve

@@ -81,6 +81,13 @@ def test_prompts_have_every_placeholder_the_step_fills():
         "python": "f",
     }
     assert "test_sort" not in verify._prompt("write_tests", values)
+    blind_values = {k: v for k, v in values.items() if k not in ("diff", "dev_tests_diff")}
+    blind_prompt = verify._prompt("write_tests_blind", blind_values)
+    assert "before the change" in blind_prompt and "{" not in blind_prompt.replace("{}", "")
+    repair_values = {k: v for k, v in blind_values.items() if k != "plan_json"}
+    repair_values.update(change_section="CHANGE", files="F", findings="FINDINGS", guidance="G")
+    repair = verify._prompt("write_tests_repair", repair_values)
+    assert "FINDINGS" in repair and "CHANGE" in repair and "{" not in repair.replace("{}", "")
     cases = verify._prompt(
         "test_cases", {"ticket_json": "{}", "tests_listing": "- x", "area": "bookmarks", "out_dir": "/o"}
     )
@@ -102,9 +109,11 @@ def _fake_checks(monkeypatch):
         },
         "mutation": lambda ctx: {"skipped": "no function changed"},
         "suite": lambda ctx: {"status": "pass", "runs": [{"summary": "1 passed"}]},
-        "test_cases": lambda ctx: {"files": ["demo/TC-demo-001.md"]},
     }
-    monkeypatch.setattr(verify, "CHECKS", [("write_tests", write_tests)] + list(results.items()))
+    monkeypatch.setattr(verify, "ATTEMPT_CHECKS", [("write_tests", write_tests)] + list(results.items()))
+    monkeypatch.setattr(
+        verify, "FINAL_CHECKS", [("test_cases", lambda ctx: {"files": ["demo/TC-demo-001.md"]})]
+    )
 
 
 def _inp(tmp_path, ticket_extra=None):

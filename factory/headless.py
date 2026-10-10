@@ -30,6 +30,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from factory import blind
+
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 FACTORY_ROOT = Path(__file__).resolve().parent.parent
 
@@ -80,13 +82,15 @@ def build_argv(
     settings_path: str | None = None,
     add_dirs: Sequence[str] = (),
     binary: str = "claude",
+    stream: bool = False,
 ) -> list[str]:
     argv = [
         binary,
         "-p",
         prompt,
         "--output-format",
-        "json",
+        "stream-json" if stream else "json",
+        *(["--verbose"] if stream else []),
         "--model",
         model,
         "--max-budget-usd",
@@ -128,6 +132,18 @@ def parse_output(stdout: str) -> dict:
         if isinstance(obj, dict):
             return obj
     return {}
+
+
+def parse_stream(stdout: str) -> dict:
+    """The last stream-json line that is the session's result; else whatever parse_output finds."""
+    for line in reversed(stdout.splitlines()):
+        try:
+            obj = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(obj, dict) and obj.get("type") == "result":
+            return obj
+    return parse_output(stdout)
 
 
 def result_from(raw: dict, requested_model: str, returncode: int = 0, stderr: str = "") -> Result:
@@ -180,6 +196,7 @@ def call(
     timeout_s: int = 1800,
     binary: str = "claude",
     runner: Callable[..., Any] = subprocess.run,
+    transcript_path: str | Path | None = None,
 ) -> Result:
     settings_file = None
     try:
@@ -188,7 +205,16 @@ def call(
             with os.fdopen(fd, "w") as f:
                 json.dump(settings, f)
         argv = build_argv(
-            prompt, model, budget_usd, tools, allowed_tools, schema, settings_file, add_dirs, binary
+            prompt,
+            model,
+            budget_usd,
+            tools,
+            allowed_tools,
+            schema,
+            settings_file,
+            add_dirs,
+            binary,
+            stream=transcript_path is not None,
         )
         try:
             proc = runner(
@@ -209,7 +235,12 @@ def call(
     finally:
         if settings_file:
             Path(settings_file).unlink(missing_ok=True)
-    raw = parse_output(proc.stdout or "")
+    if transcript_path is not None:
+        Path(transcript_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(transcript_path).write_text(proc.stdout or "")
+        raw = parse_stream(proc.stdout or "")
+    else:
+        raw = parse_output(proc.stdout or "")
     return result_from(raw, model, proc.returncode, proc.stderr or "")
 
 
@@ -227,25 +258,33 @@ def one_prompt(
     allowed_tools: str,
     extra: dict | None = None,
     runner: Callable[..., Any] = subprocess.run,
+    cwd: str | None = None,
+    allow_blind: bool = True,
 ) -> dict:
     """Fill factory/prompts/<name>.md, make one call, write <run_dir>/<name>/<name>.json."""
     repo = inp["repo"]
     artifacts = inp.get("artifacts") or {}
+    is_blind = allow_blind and blind.is_blind(inp["ticket"])
+    ticket = blind.public_ticket(inp["ticket"]) if is_blind else inp["ticket"]
     values = {
-        "ticket_json": json.dumps(inp["ticket"], indent=2),
-        "diff": _read(artifacts.get("change_diff")),
+        "ticket_json": json.dumps(ticket, indent=2),
+        "diff": "" if is_blind else _read(artifacts.get("change_diff")),
+        "where": blind.WHERE_BLIND if is_blind else blind.WHERE_SEQUENTIAL,
         "strategy": _read(str(FACTORY_ROOT / Path(repo["app"]["strategy"]).expanduser())),
     }
     values.update(extra or {})
     prompt = (PROMPTS_DIR / f"{name}.md").read_text().format_map(values)
+    if cwd is None:
+        cwd = repo["base_tree"] if is_blind else repo["head_tree"]
     res = call(
         prompt,
-        cwd=repo["head_tree"],
+        cwd=cwd,
         model=model,
         budget_usd=budget_usd,
         tools=tools,
         allowed_tools=allowed_tools,
         schema=schema,
+        settings=blind.settings(blind.hidden_paths(repo, FACTORY_ROOT)) if is_blind else None,
         runner=runner,
     )
     metrics = res.metrics()

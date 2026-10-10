@@ -23,6 +23,13 @@ Nothing. (Open decisions go here first, as a short numbered list he can answer i
 
 ## Done
 
+- **Stronger models before people, and blind mode** (2026-10-10, `docs/log.md`): one repair round
+  for the test writer, then `claude-fable-5-1` decides retry, the change is wrong, an environment
+  problem, or cannot decide (the only one that asks a person); one fix round when Review requests
+  changes; caps per ticket in `<run folder>/rounds.json` (3 writer rounds, 2 stronger-model calls,
+  15 USD by default). `"qa_mode": "blind"` runs Frame, Plan and the first writer in the base
+  worktree with every other copy of the code hidden. `python -m factory summary` prints a run's
+  numbers. 172 factory tests.
 - The repository, the planning session and the decisions (previous entry; `docs/decisions.md`).
 - **The factory, first path** (`factory/`, pull request 6, 2026-10-08):
   - `python -m factory run <ticket.json>`: the driver over frame, plan, implement, verify, review,
