@@ -1,32 +1,39 @@
 """The Verify step: the QA step, built fully.
 
-In order, each able to stop the run:
+One round, each check able to stop it:
 1. A fresh headless Claude Code session writes the API tests and the browser tests for the change,
-   placed by the application's strategy rule (`factory/prompts/write_tests.md`).
+   placed by the application's strategy rule (`factory/prompts/write_tests.md`). In blind mode
+   (`"qa_mode": "blind"`) it writes them in the base worktree, without the change, and the files
+   are moved into the head worktree (`factory/prompts/write_tests_blind.md`).
 2. Lint: the application's ruff rules plus the no-assertion check (`factory/checks/lint.py`).
 3. The revert check: every new test passes at head and fails for a behavioural reason on the
    code before the change (`factory/checks/revert.py`).
-4. mutmut 3.8 on the functions the change touched, with the generated API tests alone and with
-   the developers' tests added (`factory/checks/mutants.py`).
+4. mutmut 3.8 on the functions the change touched, with the generated API tests alone, with the
+   developers' tests added, and with the developers' tests alone (`factory/checks/mutants.py`).
 5. The application's own suite, new tests in place (`factory/checks/suite.py`).
-6. A second headless session writes one readable test case per test in the signoff skeleton;
-   `factory/checks/cases.py` (a copy of the signoff plugin's linter) checks them.
-Then the step stops with a question for Oleg. On re-run with an answer file in the run folder,
-the step passes or fails on his answer without redoing the checks.
+A failure the writer can fix (lint, revert, mutation) gets one repair round in a fresh session
+(`factory/prompts/write_tests_repair.md`). A failure that remains goes to a stronger model
+(`factory/escalate.py`), which asks for one guided round, fails the step with its diagnosis, or
+stops for a person. Rounds and spend are capped per ticket (`factory/rounds.py`).
+Then a second headless session writes one readable test case per test in the signoff skeleton;
+`factory/checks/cases.py` (a copy of the signoff plugin's linter) checks them, and the factory
+approves the tests itself unless the ticket or app asks for a person.
 
-Every check writes its own JSON under `<run>/verify/`; `report.json` gathers timings, costs and
-the artifacts the next steps need.
+Every check writes its own JSON under `<run>/verify/rounds/<n>/` and the latest round's under
+`<run>/verify/`; `report.json` gathers rounds, timings, costs and the artifacts the next steps need.
 """
 
 import ast
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
 
-from factory import headless
+from factory import blind, escalate, headless, rounds
 from factory.checks import lint, mutants, revert, suite
+from factory.steps.ship import restore_tests
 
 WRITER_MODEL = os.environ.get("QA_FACTORY_WRITER_MODEL", "claude-opus-5-5")
 WRITER_BUDGET_USD = float(os.environ.get("QA_FACTORY_WRITER_BUDGET", "5.00"))
@@ -47,10 +54,21 @@ WRITER_SETTINGS = {
 }
 FACTORY_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CASES_LINTER = os.path.join(FACTORY_ROOT, "factory", "checks", "cases.py")
+RUNNER = subprocess.run  # every model call goes through this, so tests replace it (git does not)
+FINDINGS_MAX = 8000
+BLIND_CHANGE_SECTION = (
+    "## The change\n\nThe change is in this tree. Its diff is not given: work from the findings, the "
+    "ticket and the code."
+)
+RULE_VERIFY = "every Verify check passed"
+RULE_REVIEW_FIX = "every check passed after the review's fix round"
 
 
 class CheckFailed(Exception):
-    pass
+    def __init__(self, message, repairable: bool = False, report=None):
+        super().__init__(message)
+        self.repairable = repairable
+        self.report = report
 
 
 def _field(inp, name):
@@ -73,6 +91,14 @@ def _read(path, default=""):
             return f.read()
     except OSError:
         return default
+
+
+def _load(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, ValueError, TypeError):
+        return None
 
 
 def _dump(path, data):
@@ -114,51 +140,37 @@ def _test_ids(tree, relpath):
     return ids
 
 
-# ------------------------------------------------------------------ the checks
-def write_tests(ctx):
-    app, head_tree, out = ctx["app"], ctx["head_tree"], ctx["out"]
-    slug = ctx["slug"]
-    api_file = f"test_{slug}_api.py"
-    browser_file = app["browser_test_files"].replace("*", slug)
-    base, head = ctx["repo"]["base"], ctx["repo"]["head"]
+def _cost_key(ctx):
+    return "write_tests" if ctx["kind"] == "write" else f"{ctx['kind']}.r{ctx['round']}"
 
-    # Drop whatever an earlier round left in the test folders; keep everything else as it is.
-    _git(head_tree, "clean", "-fdq", "--", app["api_tests_dir"], app["browser_tests_dir"])
-    _git(head_tree, "checkout", "--", app["api_tests_dir"], app["browser_tests_dir"])
 
-    values = {
-        "ticket_json": json.dumps(ctx["ticket"], indent=1),
-        "strategy": _read(os.path.join(FACTORY_ROOT, app["strategy"])),
-        "diff": _read(ctx["artifacts"].get("change_diff", "")),
-        "dev_tests_diff": _git(
-            head_tree, "diff", base, head, "--", app["api_tests_dir"], app["browser_tests_dir"]
-        ),
-        "plan_json": _structured_of(ctx["artifacts"]["plan"]) if "plan" in ctx["artifacts"] else "(no plan)",
-        "api_tests_dir": app["api_tests_dir"],
-        "browser_tests_dir": app["browser_tests_dir"],
-        "api_test_file": api_file,
-        "browser_test_file": browser_file,
-        "browser_glob": app["browser_test_files"],
-        "python": app["python"],
-    }
-    schema = {
-        "type": "object",
-        "properties": {"files": {"type": "array", "items": {"type": "string"}}, "notes": {"type": "string"}},
-        "required": ["files", "notes"],
-    }
-    result = headless.call(
-        _prompt("write_tests", values),
-        cwd=head_tree,
-        model=WRITER_MODEL,
-        budget_usd=WRITER_BUDGET_USD,
-        tools=WRITER_TOOLS,
-        allowed_tools=WRITER_TOOLS,
-        schema=schema,
-        settings=WRITER_SETTINGS,
+def _record(ctx, key, ledger_kind, metrics):
+    """Keep one model call's metrics in ctx["costs"] and in the ticket's ledger."""
+    metrics = metrics or {}
+    ctx["costs"][key] = metrics
+    ctx["ledger"].add(
+        "verify",
+        ledger_kind,
+        float(metrics.get("cost_usd") or 0.0),
+        metrics.get("model") or "",
+        round((metrics.get("duration_ms") or 0) / 1000, 1),
+        round=ctx.get("round"),
     )
-    ctx["costs"]["write_tests"] = result.metrics()
 
-    status_lines = _git(head_tree, "status", "--porcelain", "--untracked-files=all").splitlines()
+
+# ------------------------------------------------------------------ the checks
+def _clean_tests(tree, app):
+    """Drop whatever an earlier round left in the test folders; keep everything else as it is."""
+    dirs = [app["api_tests_dir"], app["browser_tests_dir"]]
+    _git(tree, "clean", "-fdq", "--", *dirs)
+    tracked = [d for d in dirs if _git(tree, "ls-files", "--", d).strip()]  # checkout fails on others
+    if tracked:
+        _git(tree, "checkout", "--", *tracked)
+
+
+def _sort_status(tree, app):
+    """Undo what the writer may not do in `tree`; return (touched source, modified tests, new tests)."""
+    status_lines = _git(tree, "status", "--porcelain", "--untracked-files=all").splitlines()
     touched_source, modified_tests, new_tests = [], [], []
     for line in status_lines:
         code, path = line[:2], line[3:]
@@ -169,46 +181,144 @@ def write_tests(ctx):
         else:
             modified_tests.append(path)
     for path in touched_source:  # undo, then fail: the writer may only add tests
-        if (
-            os.path.exists(os.path.join(head_tree, path))
-            and not _git(head_tree, "ls-files", "--", path).strip()
-        ):
-            os.remove(os.path.join(head_tree, path))
+        if os.path.exists(os.path.join(tree, path)) and not _git(tree, "ls-files", "--", path).strip():
+            os.remove(os.path.join(tree, path))
         else:
-            _git(head_tree, "checkout", "--", path)
+            _git(tree, "checkout", "--", path)
     for path in modified_tests:
-        _git(head_tree, "checkout", "--", path)
+        _git(tree, "checkout", "--", path)
+    return touched_source, modified_tests, new_tests
 
+
+def _writer_prompt(ctx):
+    app, head_tree = ctx["app"], ctx["head_tree"]
+    values = {
+        "strategy": _read(os.path.join(FACTORY_ROOT, app["strategy"])),
+        "api_tests_dir": app["api_tests_dir"],
+        "browser_tests_dir": app["browser_tests_dir"],
+        "api_test_file": f"test_{ctx['slug']}_api.py",
+        "browser_test_file": app["browser_test_files"].replace("*", ctx["slug"]),
+        "browser_glob": app["browser_test_files"],
+        "python": app["python"],
+    }
+    ticket = blind.public_ticket(ctx["ticket"]) if ctx["blind"] else ctx["ticket"]
+    diff = _read(ctx["artifacts"].get("change_diff", ""))
+    plan = _structured_of(ctx["artifacts"]["plan"]) if "plan" in ctx["artifacts"] else "(no plan)"
+    if ctx["mode"] == "repair":
+        change = (
+            BLIND_CHANGE_SECTION
+            if ctx["blind"]
+            else f"## The change (source files only)\n\n```diff\n{diff}\n```"
+        )
+        values.update(
+            ticket_json=json.dumps(ticket, indent=1),
+            change_section=change,
+            files="\n".join(ctx["files"]) or "(none)",
+            findings=ctx["findings"] or "(none)",
+            guidance=ctx["guidance"] or "(none)",
+        )
+        return _prompt("write_tests_repair", values)
+    if ctx["blind"]:
+        values.update(ticket_json=json.dumps(ticket, indent=1), plan_json=plan)
+        return _prompt("write_tests_blind", values)
+    base, head = ctx["repo"]["base"], ctx["repo"]["head"]
+    values.update(
+        ticket_json=json.dumps(ticket, indent=1),
+        diff=diff,
+        dev_tests_diff=_git(
+            head_tree, "diff", base, head, "--", app["api_tests_dir"], app["browser_tests_dir"]
+        ),
+        plan_json=plan,
+    )
+    return _prompt("write_tests", values)
+
+
+def write_tests(ctx):
+    app, head_tree, base_tree, out = ctx["app"], ctx["head_tree"], ctx["base_tree"], ctx["out"]
+    round_dir = os.path.join(out, "rounds", str(ctx["round"]))
+    fresh = ctx["mode"] == "fresh"
+    blind_fresh = fresh and ctx["blind"]
+
+    if fresh:
+        _clean_tests(head_tree, app)
+    if blind_fresh:
+        _clean_tests(base_tree, app)
+    cwd, settings, transcript, hidden = head_tree, WRITER_SETTINGS, None, []
+    if blind_fresh:
+        hidden = blind.hidden_paths(ctx["repo"], FACTORY_ROOT)
+        cwd, settings = base_tree, blind.settings(hidden, base=WRITER_SETTINGS)
+        transcript = os.path.join(round_dir, "writer.jsonl")
+    schema = {
+        "type": "object",
+        "properties": {"files": {"type": "array", "items": {"type": "string"}}, "notes": {"type": "string"}},
+        "required": ["files", "notes"],
+    }
+    result = headless.call(
+        _writer_prompt(ctx),
+        cwd=cwd,
+        model=WRITER_MODEL,
+        budget_usd=ctx["ledger"].budget_for(WRITER_BUDGET_USD),
+        tools=WRITER_TOOLS,
+        allowed_tools=WRITER_TOOLS,
+        schema=schema,
+        settings=settings,
+        transcript_path=transcript,
+        runner=RUNNER,
+    )
+    ctx["costs"][_cost_key(ctx)] = result.metrics()  # _attempt puts it in the ledger
+
+    touched_source, modified_tests, new_tests = _sort_status(cwd, app)
+    clashes = []
+    if blind_fresh:  # move the new files into the change's tree and leave the base tree as it was
+        for path in new_tests:
+            target = os.path.join(head_tree, path)
+            if os.path.exists(target):  # the change has a file of that name: never overwrite it
+                clashes.append(path)
+                continue
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            shutil.copy2(os.path.join(base_tree, path), target)
+        new_tests = [p for p in new_tests if p not in clashes]
+        _clean_tests(base_tree, app)
+
+    structured = result.structured if isinstance(result.structured, dict) else {}
     manifest = {
         "files": sorted(new_tests),
-        "notes": (result.structured or {}).get("notes", "") if isinstance(result.structured, dict) else "",
-        "writer_listed": (result.structured or {}).get("files")
-        if isinstance(result.structured, dict)
-        else None,
+        "notes": structured.get("notes", ""),
+        "writer_listed": structured.get("files") if structured else None,
         "is_error": result.is_error,
         "result_text": (result.text or "")[-2000:],
         "metrics": result.metrics(),
         "touched_source": touched_source,
         "modified_existing_tests": modified_tests,
+        "round": ctx["round"],
+        "kind": ctx["kind"],
+        "cwd": cwd,
     }
+    if blind_fresh:
+        manifest["blind_clashes"] = clashes
+        manifest["blind_audit"] = blind.audit(transcript, hidden, allowed=[app["python"]])
     tests_dir = os.path.join(out, "tests")
-    for path in new_tests:
-        dest = os.path.join(tests_dir, path)
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
-        with open(os.path.join(head_tree, path)) as src, open(dest, "w") as dst:
-            dst.write(src.read())
+    shutil.rmtree(tests_dir, ignore_errors=True)
+    for dest_root in (tests_dir, os.path.join(round_dir, "tests")):
+        for path in new_tests:
+            dest = os.path.join(dest_root, path)
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            shutil.copy2(os.path.join(head_tree, path), dest)
     manifest_path = os.path.join(out, "tests_manifest.json")
     _dump(manifest_path, manifest)
+    _dump(os.path.join(round_dir, "tests_manifest.json"), manifest)
     ctx["artifacts_out"]["tests_manifest"] = manifest_path
     ctx["artifacts_out"]["tests_dir"] = tests_dir
     ctx["files"] = sorted(new_tests)
 
     if result.is_error:
-        raise CheckFailed(f"test writer ended with an error: {(result.text or '')[:300]}")
+        raise CheckFailed(f"test writer ended with an error: {(result.text or result.stderr or '')[:300]}")
     if touched_source:
         raise CheckFailed(f"test writer touched application code (reverted): {touched_source}")
     if modified_tests:
         raise CheckFailed(f"test writer modified existing tests (reverted): {modified_tests}")
+    if clashes:
+        raise CheckFailed(f"the blind test writer's files exist in the change (not copied): {clashes}")
     if not new_tests:
         raise CheckFailed("test writer wrote no new test file under the test folders")
     api = [p for p in new_tests if p.startswith(app["api_tests_dir"] + "/")]
@@ -223,7 +333,7 @@ def run_lint(ctx):
     )
     if report["status"] != "pass":
         rows = "; ".join(f"{f['file']}:{f['line']} {f['rule']}" for f in report["findings"][:10])
-        raise CheckFailed(f"lint: {rows}")
+        raise CheckFailed(f"lint: {rows}", repairable=True, report=report)
     return report
 
 
@@ -244,7 +354,10 @@ def run_revert(ctx):
         app["exclude_copy"],
     )
     if report["status"] != "pass":
-        raise CheckFailed(f"revert check: {report['reason']}")
+        # With no test result (pytest ended without one, or timed out) there is nothing to repair.
+        raise CheckFailed(
+            f"revert check: {report['reason']}", repairable=bool(report["tests"]), report=report
+        )
     return report
 
 
@@ -284,7 +397,12 @@ def run_mutation(ctx):
         "generated": api_files,
         "generated_and_developers": api_files + [p for p in dev_api if p not in api_files],
     }
+    if dev_api:
+        sets["developers"] = dev_api
     for name, files in sets.items():
+        if name == "developers" and "developers_mutation" in ctx:  # the developers' tests do not change
+            report["runs"][name] = ctx["developers_mutation"]
+            continue
         t0 = time.time()
         report["runs"][name] = mutants.run(
             head_tree,
@@ -301,15 +419,23 @@ def run_mutation(ctx):
         )
         report["runs"][name]["test_files"] = files
         ctx["timings"][f"mutation.{name}"] = round(time.time() - t0, 1)
+        if name == "developers":
+            ctx["developers_mutation"] = report["runs"][name]
     gen = report["runs"]["generated"]
     if gen["status"] != "pass":
-        raise CheckFailed(f"mutmut did not run: {gen.get('reason')}")
+        raise CheckFailed(f"mutmut did not run: {gen.get('reason')}", report=report)
     if gen.get("generated", 0) and not gen.get("checked", 0):
-        raise CheckFailed("mutmut checked no mutant: the generated tests never reach the changed functions")
+        raise CheckFailed(
+            "mutmut checked no mutant: the generated tests never reach the changed functions",
+            repairable=True,
+            report=report,
+        )
     changed = gen.get("on_changed_lines", {})
     if gen.get("checked", 0) and changed.get("checked", 0) and changed.get("killed", 0) == 0:
         raise CheckFailed(
-            "the generated tests kill no mutant on the changed lines: they do not exercise the change"
+            "the generated tests kill no mutant on the changed lines: they do not exercise the change",
+            repairable=True,
+            report=report,
         )
     return report
 
@@ -319,7 +445,7 @@ def run_suite(ctx):
     report = suite.run(ctx["head_tree"], app["python"], app["suite"], app["pytest_args"])
     if report["status"] != "pass":
         summaries = "; ".join(r.get("summary") or f"rc={r['returncode']}" for r in report["runs"])
-        raise CheckFailed(f"the application's suite is red with the new tests: {summaries}")
+        raise CheckFailed(f"the application's suite is red with the new tests: {summaries}", report=report)
     return report
 
 
@@ -337,6 +463,7 @@ def write_cases(ctx):
     app, head_tree, out = ctx["app"], ctx["head_tree"], ctx["out"]
     area = ctx["ticket"].get("area") or app["source_package"]
     cases_dir = os.path.join(out, "testcases")
+    shutil.rmtree(cases_dir, ignore_errors=True)  # a later round's cases replace the earlier ones
     os.makedirs(cases_dir, exist_ok=True)
     listing = []
     for path in ctx["files"]:
@@ -358,13 +485,14 @@ def write_cases(ctx):
         _prompt("test_cases", values),
         cwd=head_tree,
         model=CASES_MODEL,
-        budget_usd=CASES_BUDGET_USD,
+        budget_usd=ctx["ledger"].budget_for(CASES_BUDGET_USD),
         tools=tools,
         allowed_tools=tools,
         schema=schema,
         add_dirs=[cases_dir],
+        runner=RUNNER,
     )
-    ctx["costs"]["test_cases"] = result.metrics()
+    _record(ctx, "test_cases", "cases", result.metrics())
     rc, findings = _lint_cases(cases_dir)
     repair = None
     if rc != 0:
@@ -374,13 +502,14 @@ def write_cases(ctx):
             "change nothing else. Respond only through the structured output.\n\n" + findings,
             cwd=head_tree,
             model=CASES_MODEL,
-            budget_usd=1.00,
+            budget_usd=ctx["ledger"].budget_for(1.00),
             tools="Read,Glob,Grep,Edit,Write",
             allowed_tools="Read,Glob,Grep,Edit,Write",
             schema=schema,
             add_dirs=[cases_dir],
+            runner=RUNNER,
         )
-        ctx["costs"]["test_cases_repair"] = repair.metrics()
+        _record(ctx, "test_cases_repair", "cases_repair", repair.metrics())
         rc, findings = _lint_cases(cases_dir)
     written = sorted(
         os.path.join(root, name)[len(cases_dir) + 1 :]
@@ -407,113 +536,313 @@ def write_cases(ctx):
     return report
 
 
-CHECKS = [
+ATTEMPT_CHECKS = [
     ("write_tests", write_tests),
     ("lint", run_lint),
     ("revert", run_revert),
     ("mutation", run_mutation),
     ("suite", run_suite),
-    ("test_cases", write_cases),
 ]
+FINAL_CHECKS = [("test_cases", write_cases)]
 
 
-def _answer(ctx, report_path):
-    with open(ctx["artifacts"]["answer"]) as f:
-        answer = json.load(f)
-    with open(report_path) as f:
-        report = json.load(f)
-    by = answer.get("by", "a person")
-    if answer.get("approved") is True:
-        return {
-            "status": "pass",
-            "artifacts": report["artifacts"],
-            "reason": f"approved by {by}: {answer.get('note', '')}".strip(),
-            "gate": None,
-            "metrics": report.get("metrics", {}),
-        }
-    return {
-        "status": "fail",
-        "artifacts": report["artifacts"],
-        "reason": f"declined by {by}: {answer.get('note', '')}".strip(),
-        "gate": None,
-        "metrics": report.get("metrics", {}),
-    }
-
-
-def run(inp):
+# ------------------------------------------------------------------ the rounds
+def _context(inp, previous=None):
+    """Everything one Verify run carries. `previous` is an earlier report.json this run continues."""
     repo, ticket, artifacts, run_dir = (_field(inp, k) for k in ("repo", "ticket", "artifacts", "run_dir"))
     app = repo["app"]
     out = os.path.join(run_dir, "verify")
     os.makedirs(out, exist_ok=True)
-    report_path = os.path.join(out, "report.json")
-    if "answer" in artifacts and os.path.exists(report_path):
-        return _answer({"artifacts": artifacts}, report_path)
-
     slug = ticket["id"]
     if slug.startswith(app["name"] + "-"):
         slug = slug[len(app["name"]) + 1 :]
-    ctx = {
+    rounds_dir = os.path.join(out, "rounds")
+    done = [int(n) for n in os.listdir(rounds_dir) if n.isdigit()] if os.path.isdir(rounds_dir) else []
+    previous = previous or {}
+    return {
         "repo": repo,
         "app": app,
         "ticket": ticket,
         "artifacts": artifacts,
         "run_dir": run_dir,
         "out": out,
+        "report_path": os.path.join(out, "report.json"),
         "head_tree": repo["head_tree"],
         "base_tree": repo["base_tree"],
         "slug": slug.replace("-", "_"),
         "files": [],
         "timings": {},
         "costs": {},
-        "artifacts_out": {},
-    }
-    report = {
+        "artifacts_out": dict(previous.get("artifacts") or {}),
         "checks": {},
-        "timings": ctx["timings"],
-        "costs": ctx["costs"],
-        "artifacts": ctx["artifacts_out"],
+        "ledger": rounds.Ledger(run_dir, rounds.caps_for(ticket, app)),
+        "blind": blind.is_blind(ticket),
+        "rounds": list(previous.get("rounds") or []),
+        "history": [
+            {k: r.get(k) for k in ("round", "kind", "failure")} for r in previous.get("history") or []
+        ],
+        "advice": list(previous.get("advice") or []),
+        "attempts": 0,
+        "repaired": False,
+        "guided": False,
+        "round_no": max(done, default=0) + 1,
+        "round": None,
+        "kind": None,
+        "mode": "fresh",
+        "findings": "",
+        "guidance": "",
     }
-    failure = None
-    for name, check in CHECKS:
-        t0 = time.time()
-        try:
-            report["checks"][name] = {"status": "pass", "result": check(ctx)}
-        except CheckFailed as e:
-            report["checks"][name] = {"status": "fail", "reason": str(e)}
-            failure = f"{name}: {e}"
-        finally:
-            ctx["timings"][name] = round(time.time() - t0, 1)
-            _dump(os.path.join(out, name + ".json"), report["checks"].get(name))
-        if failure:
-            break
 
-    total_cost = sum((m or {}).get("cost_usd") or 0 for m in ctx["costs"].values())
-    metrics = {"cost_usd": round(total_cost, 4), "time_s": dict(ctx["timings"]), "costs": dict(ctx["costs"])}
-    mut = report["checks"].get("mutation", {}).get("result") or {}
+
+def _metrics(ctx):
+    total = sum((m or {}).get("cost_usd") or 0 for m in ctx["costs"].values())
+    metrics = {
+        "cost_usd": round(total, 4),
+        "time_s": dict(ctx["timings"]),
+        "costs": dict(ctx["costs"]),
+        "rounds": ctx["attempts"],
+        "ticket_spent_usd": rounds.round_4(ctx["ledger"].spent()),
+    }
+    mut = ctx["checks"].get("mutation", {}).get("result") or {}
     for name, run_report in (mut.get("runs") or {}).items():
         metrics[f"mutation_score.{name}"] = run_report.get("score")
         metrics[f"mutation_score_changed_lines.{name}"] = (run_report.get("on_changed_lines") or {}).get(
             "score"
         )
-    report["metrics"] = metrics
-    ctx["artifacts_out"]["verify_report"] = report_path
-    _dump(report_path, report)
+    return metrics
 
-    if failure:
-        return {
-            "status": "fail",
-            "artifacts": dict(ctx["artifacts_out"]),
-            "reason": failure,
-            "gate": None,
-            "metrics": metrics,
-        }
 
-    suite_runs = report["checks"]["suite"]["result"]["runs"]
+def _write_report(ctx):
+    ctx["artifacts_out"]["verify_report"] = ctx["report_path"]
+    first = _load(os.path.join(ctx["out"], "rounds", "1", "tests_manifest.json")) or {}
+    report = {
+        "checks": ctx["checks"],
+        "timings": ctx["timings"],
+        "costs": ctx["costs"],
+        "artifacts": ctx["artifacts_out"],
+        "metrics": _metrics(ctx),
+        "rounds": ctx["rounds"],
+        "history": ctx["history"],
+        "advice": ctx["advice"],
+        "ledger": ctx["ledger"].summary(),
+        "blind": ctx["blind"],
+        "blind_audit": first.get("blind_audit"),
+        "gate_kind": ctx.get("gate_kind"),
+        "last_failure": ctx.get("last_failure"),
+        "status": ctx.get("status"),
+    }
+    _dump(ctx["report_path"], report)
+    return report
+
+
+def _attempt(ctx, kind, findings="", guidance=""):
+    """One round of ATTEMPT_CHECKS; returns the failure or None."""
+    n = ctx["round_no"]
+    ctx["round_no"] = n + 1
+    ctx["attempts"] += 1
+    ctx.update(round=n, kind=kind, mode="fresh" if kind == "write" else "repair")
+    ctx.update(findings=findings, guidance=guidance, checks={})
+    round_dir = os.path.join(ctx["out"], "rounds", str(n))
+    os.makedirs(round_dir, exist_ok=True)
+    summary, failure = {}, None
+    for name, check in ATTEMPT_CHECKS:
+        t0 = time.time()
+        try:
+            entry = {"status": "pass", "result": check(ctx)}
+        except CheckFailed as e:
+            entry = {"status": "fail", "reason": str(e), "repairable": e.repairable}
+            if e.report is not None:
+                entry["result"] = e.report
+        secs = round(time.time() - t0, 1)
+        ctx["timings"][name if kind == "write" else f"{name}.r{n}"] = secs
+        if name == "write_tests":  # the writer's call counts as a round even when its fake has no cost
+            metrics = ctx["costs"].get(_cost_key(ctx)) or {}
+            _record(ctx, _cost_key(ctx), "write" if kind == "write" else kind, metrics)
+        ctx["checks"][name] = entry
+        path = os.path.join(round_dir, name + ".json")
+        _dump(path, entry)
+        _dump(os.path.join(ctx["out"], name + ".json"), entry)
+        summary[name] = {"status": entry["status"], "s": secs}
+        if entry["status"] == "fail":
+            failure = {
+                "check": name,
+                "reason": entry["reason"],
+                "repairable": entry["repairable"],
+                "report": path,
+            }
+            break
+    ctx["rounds"].append({"round": n, "kind": kind, "checks": summary, "failure": failure})
+    ctx["history"].append({"round": n, "kind": kind, "failure": failure["reason"] if failure else None})
+    _write_report(ctx)
+    return failure
+
+
+def _source_line(tree, key, files, line):
+    """The head tree's text of `line` in the file whose module the mutant key names."""
+    module = key.rsplit(".", 1)[0]
+    for path in files:
+        if path[:-3].replace("/", ".") == module:
+            lines = _read(os.path.join(tree, path)).splitlines()
+            return lines[line - 1].strip() if 0 < line <= len(lines) else ""
+    return ""
+
+
+def _findings(ctx, failure):
+    """Plain text for the writer from the failing round's check JSON."""
+    entry = _load(failure.get("report")) or {}
+    result = entry.get("result") or {}
+    check = failure.get("check")
+    out = [f"The check `{check}` failed: {failure.get('reason', '')}"]
+    if check == "lint":
+        for f in result.get("findings") or []:
+            out.append(f"{f.get('file')}:{f.get('line')} {f.get('rule')} {f.get('message')}")
+    elif check == "revert":
+        tests = result.get("tests") or {}
+        for nodeid, t in tests.items():
+            if t.get("verdict") in ("proves-behaviour", "passes-without-change"):
+                continue
+            out.append(
+                f"{nodeid}: {t.get('verdict')} (at head: {t.get('at_head')}, without the change: "
+                f"{t.get('reverted')}): {(t.get('message') or '')[:300]}"
+            )
+        if tests and not any(t.get("verdict") == "proves-behaviour" for t in tests.values()):
+            out.append("No test fails on an assertion when the change is taken out.")
+    elif check == "mutation":
+        gen = (result.get("runs") or {}).get("generated") or {}
+        changed = gen.get("on_changed_lines") or {}
+        out.append(
+            f"on the changed lines: checked {changed.get('checked', 0)}, killed {changed.get('killed', 0)}, "
+            f"survived {changed.get('survived', 0)}"
+        )
+        survivors = [
+            (key, m)
+            for key, m in (gen.get("mutants") or {}).items()
+            if m.get("changed_line") and m.get("status") == "survived" and m.get("line")
+        ]
+        for key, m in survivors[:10]:
+            line = m["line"]
+            text = _source_line(ctx["head_tree"], key, result.get("only_mutate") or [], line)
+            out.append(f"line {line}: {text}")
+    elif check == "suite":
+        for r in result.get("runs") or []:
+            out.append(f"run: {r.get('summary') or 'rc=' + str(r.get('returncode'))}")
+            if r.get("returncode") != 0:
+                out.extend(r.get("tail") or [])
+    return "\n".join(out)[:FINDINGS_MAX]
+
+
+def _fail(ctx, reason):
+    ctx["status"] = "fail"
+    report = _write_report(ctx)
+    return {
+        "status": "fail",
+        "artifacts": dict(ctx["artifacts_out"]),
+        "reason": reason,
+        "gate": None,
+        "metrics": report["metrics"],
+    }
+
+
+def _advise(ctx, failure, allow_retry):
+    """One stronger-model call; its record is kept as verify/escalation-<k>.json."""
+    ledger = ctx["ledger"]
+    k = ledger.count("advice") + 1
+    path = os.path.join(ctx["out"], f"escalation-{k}.json")
+    record = escalate.decide(
+        ticket=ctx["ticket"],
+        strategy=_read(os.path.join(FACTORY_ROOT, ctx["app"].get("strategy", ""))),
+        diff=_read(ctx["artifacts"].get("change_diff", "")),
+        failure=failure,
+        history=ctx["history"],
+        test_files=ctx["files"],
+        head_tree=ctx["head_tree"],
+        run_dir=ctx["run_dir"],
+        allow_retry=allow_retry,
+        budget_usd=ledger.budget_for(escalate.BUDGET_USD),
+        out_path=path,
+        runner=RUNNER,
+    )
+    metrics = record.get("metrics") or {}
+    ctx["costs"][f"advice.{k}"] = metrics
+    ledger.add(
+        "verify",
+        "advice",
+        float(metrics.get("cost_usd") or 0.0),
+        metrics.get("model") or escalate.MODEL,
+        round((metrics.get("duration_ms") or 0) / 1000, 1),
+        outcome=record["decision"],
+    )
+    ctx["advice"].append(path)
+    ctx["artifacts_out"]["escalation"] = path
+    return record
+
+
+def _escalation_gate(ctx, failure, record):
+    ctx["gate_kind"], ctx["last_failure"], ctx["status"] = "escalation", failure, "needs_person"
+    report = _write_report(ctx)
+    return {
+        "status": "needs_person",
+        "artifacts": dict(ctx["artifacts_out"]),
+        "reason": f"the stronger model could not decide about {failure['check']}: {record.get('why', '')}",
+        "gate": {
+            "who": "Oleg",
+            "question": f"Verify still fails for '{ctx['ticket']['title']}' ({failure['check']}: "
+            f"{failure['reason'][:300]}) and the stronger model could not decide. Answer with "
+            '{"decision": "retry", "guidance": "<what the writer should do>", "by": "Oleg"} for one '
+            'more guided round, or any other decision (for example "change_is_wrong") with a "note" '
+            "to fail the step.",
+            "context": {
+                "kind": "escalation",
+                "failure": failure,
+                "why": record.get("why", ""),
+                "escalation": ctx["artifacts_out"].get("escalation"),
+                "rounds": ctx["history"],
+                "ledger": report["ledger"],
+            },
+        },
+        "metrics": report["metrics"],
+    }
+
+
+def _settle(ctx, failure):
+    """Repair, ask the stronger model, retry, until an attempt passes (None) or the step ends."""
+    ledger = ctx["ledger"]
+    while failure:
+        if failure["repairable"] and not ctx["repaired"] and ledger.rounds_left() > 0:
+            ctx["repaired"] = True
+            failure = _attempt(ctx, "repair", findings=_findings(ctx, failure))
+            continue
+        last = f"{failure['check']}: {failure['reason']}"
+        if ledger.advice_left() <= 0:
+            cap = ledger.caps["advice"]
+            return _fail(ctx, f"{last} (the cap of {cap} stronger-model calls on this ticket was reached)")
+        allow_retry = not ctx["guided"] and ledger.rounds_left() > 0
+        record = _advise(ctx, failure, allow_retry)
+        decision, diagnosis = record["decision"], record.get("diagnosis") or record.get("why", "")
+        if decision == "retry" and allow_retry:
+            ctx["guided"] = True
+            failure = _attempt(
+                ctx, "guided", findings=_findings(ctx, failure), guidance=record.get("guidance", "")
+            )
+            continue
+        if decision == "change_is_wrong":
+            return _fail(ctx, f"the stronger model judged the tests right and the change wrong: {diagnosis}")
+        if decision == "environment":
+            return _fail(ctx, f"environment problem, diagnosed by the stronger model: {diagnosis}")
+        return _escalation_gate(ctx, failure, record)
+    return None
+
+
+def _approve(ctx, rule):
+    ticket, app = ctx["ticket"], ctx["app"]
+    report = _write_report(ctx)
+    metrics = report["metrics"]
+    mut = ctx["checks"].get("mutation", {}).get("result") or {}
     context = {
         "tests": ctx["files"],
         "test_files_copy": ctx["artifacts_out"].get("tests_dir"),
         "test_cases": ctx["artifacts_out"].get("test_cases"),
-        "revert_check": {k: v["verdict"] for k, v in report["checks"]["revert"]["result"]["tests"].items()},
+        "revert_check": {k: v["verdict"] for k, v in ctx["checks"]["revert"]["result"]["tests"].items()},
         "mutation": {
             k: {
                 "checked": v.get("checked"),
@@ -525,7 +854,7 @@ def run(inp):
             for k, v in (mut.get("runs") or {}).items()
         }
         or mut.get("skipped"),
-        "suite": [r.get("summary") for r in suite_runs],
+        "suite": [r.get("summary") for r in ctx["checks"]["suite"]["result"]["runs"]],
         "cost_usd": metrics["cost_usd"],
         "time_s": metrics["time_s"],
     }
@@ -534,13 +863,11 @@ def run(inp):
     # stops here, for a risk rule that wants a human.
     gate_mode = ticket.get("gate") or app.get("gate") or "auto"
     if gate_mode == "auto":
-        approval_path = os.path.join(out, "approval.json")
-        _dump(
-            approval_path,
-            {"approved": True, "by": "factory", "rule": "every Verify check passed", "context": context},
-        )
+        ctx["status"] = "pass"
+        approval_path = os.path.join(ctx["out"], "approval.json")
+        _dump(approval_path, {"approved": True, "by": "factory", "rule": rule, "context": context})
         ctx["artifacts_out"]["approval"] = approval_path
-        _dump(report_path, report)
+        _write_report(ctx)
         return {
             "status": "pass",
             "artifacts": dict(ctx["artifacts_out"]),
@@ -548,6 +875,8 @@ def run(inp):
             "gate": None,
             "metrics": metrics,
         }
+    ctx["gate_kind"], ctx["status"] = "approval", "needs_person"
+    _write_report(ctx)
     return {
         "status": "needs_person",
         "artifacts": dict(ctx["artifacts_out"]),
@@ -560,3 +889,105 @@ def run(inp):
         },
         "metrics": metrics,
     }
+
+
+def _finish(ctx, failure, rule):
+    """After the first attempt: settle its failure, write the test cases, approve."""
+    terminal = _settle(ctx, failure)
+    if terminal:
+        return terminal
+    for name, check in FINAL_CHECKS:
+        t0 = time.time()
+        try:
+            entry = {"status": "pass", "result": check(ctx)}
+        except CheckFailed as e:
+            entry = {"status": "fail", "reason": str(e)}
+        ctx["timings"][name] = round(time.time() - t0, 1)
+        ctx["checks"][name] = entry
+        _dump(os.path.join(ctx["out"], name + ".json"), entry)
+        if entry["status"] == "fail":
+            return _fail(ctx, f"{name}: {entry['reason']}")
+    return _approve(ctx, rule)
+
+
+def _guarded(ctx, step):
+    try:
+        return step()
+    except rounds.CapReached as e:
+        return _fail(ctx, str(e))
+
+
+def _restore(ctx, artifacts):
+    """Put the tests of an earlier round back into the head tree; ctx["files"] from its manifest."""
+    manifest = _load(artifacts.get("tests_manifest")) or {}
+    ctx["files"] = list(manifest.get("files") or [])
+    restore_tests(ctx["head_tree"], ctx["files"], artifacts.get("tests_dir"))
+
+
+def _answer(inp, report_path):
+    artifacts = _field(inp, "artifacts")
+    with open(artifacts["answer"]) as f:
+        answer = json.load(f)
+    with open(report_path) as f:
+        report = json.load(f)
+    by = answer.get("by", "a person")
+    done = {"artifacts": report["artifacts"], "gate": None, "metrics": report.get("metrics", {})}
+
+    def ended(status, reason):
+        report["status"] = status
+        _dump(report_path, report)
+        return {"status": status, "reason": reason.strip(), **done}
+
+    if (report.get("gate_kind") or "approval") == "approval":
+        if answer.get("approved") is True:
+            return ended("pass", f"approved by {by}: {answer.get('note', '')}")
+        return ended("fail", f"declined by {by}: {answer.get('note', '')}")
+    decision = answer.get("decision")
+    if decision != "retry":
+        note = answer.get("guidance") or answer.get("note") or ""
+        return ended("fail", f"decided by {by}: {decision}: {note}")
+    ctx = _context(inp, previous=report)
+    ctx["repaired"] = ctx["guided"] = True
+    _restore(ctx, report["artifacts"])
+    findings = _findings(ctx, report.get("last_failure") or {})
+    guidance = answer.get("guidance", "")
+    return _guarded(
+        ctx, lambda: _finish(ctx, _attempt(ctx, "guided", findings=findings, guidance=guidance), RULE_VERIFY)
+    )
+
+
+def resume(inp):
+    """The step's answer to a gate it raised: Verify's own, or one raised in Review's fix round."""
+    return _answer(inp, os.path.join(_field(inp, "run_dir"), "verify", "report.json"))
+
+
+def repair_from_review(inp, review):
+    """Review asked for changes: one writer round on its findings, then Verify's checks, cases, approval."""
+    artifacts = _field(inp, "artifacts")
+    previous = _load(artifacts.get("verify_report"))
+    ctx = _context(inp, previous=previous)
+    if ctx["ledger"].rounds_left() <= 0:
+        return {
+            "status": "fail",
+            "artifacts": {},
+            "reason": "no writer round left on this ticket for the review's fix round",
+            "gate": None,
+            "metrics": {},
+        }
+    _restore(ctx, artifacts)
+    findings = "\n".join(
+        f"{f.get('file')}:{f.get('line')} {f.get('severity')} {f.get('summary')}: {f.get('failure_scenario')}"
+        for f in (review or {}).get("findings") or []
+    )
+    return _guarded(
+        ctx, lambda: _finish(ctx, _attempt(ctx, "review_fix", findings=findings), RULE_REVIEW_FIX)
+    )
+
+
+def run(inp):
+    run_dir = _field(inp, "run_dir")
+    report_path = os.path.join(run_dir, "verify", "report.json")
+    if "answer" in _field(inp, "artifacts") and os.path.exists(report_path):
+        return resume(inp)
+    ctx = _context(inp)
+    return _guarded(ctx, lambda: _finish(ctx, _attempt(ctx, "write"), RULE_VERIFY))

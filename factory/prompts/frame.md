@@ -1,5 +1,5 @@
-You are framing a ticket for QA on this repository. You are in the working tree of the changed code.
-Do not write code and do not change files. You may read files to understand the application.
+You are framing a ticket for QA on this repository. {where}
+Do not write code and do not change files. You may read files.
 
 For each acceptance criterion in the ticket:
 - restate it as something a test can check, in one sentence;

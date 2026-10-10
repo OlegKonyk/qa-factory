@@ -145,3 +145,30 @@ def test_timeout_is_an_error():
 
     res = do_call(runner, timeout_s=1)
     assert res.is_error and "timed out" in res.stderr
+
+
+STREAM = "\n".join(
+    [
+        json.dumps({"type": "system", "subtype": "init"}),
+        json.dumps({"type": "assistant", "message": {"content": []}}),
+        json.dumps({"type": "result", "result": "streamed", "total_cost_usd": 0.02, "num_turns": 3}),
+    ]
+)
+
+
+def test_transcript_uses_stream_json_and_is_saved(tmp_path):
+    runner = FakeRunner(STREAM)
+    path = tmp_path / "deep" / "transcript.jsonl"
+    res = do_call(runner, transcript_path=path)
+    argv = runner.argv
+    assert argv[argv.index("--output-format") + 1] == "stream-json"
+    assert "--verbose" in argv and "json" not in argv
+    assert path.read_text() == STREAM
+    assert res.text == "streamed" and res.turns == 3 and res.cost_usd == 0.02 and not res.is_error
+
+
+def test_no_transcript_keeps_json_format():
+    runner = FakeRunner(PLAIN)
+    do_call(runner)
+    assert runner.argv[runner.argv.index("--output-format") + 1] == "json"
+    assert "--verbose" not in runner.argv
