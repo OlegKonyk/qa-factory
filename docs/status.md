@@ -7,10 +7,10 @@ Read this first. Update it last, in the same pull request as the work.
 1. Will tickets at work state the public contract (field names, values, labels, routes) before
    coding starts? Track 1's blind tests met the change with no mismatch, but both tickets were
    written from finished commits. If not, Plan has to fix the contract first.
-2. Let the bundles ticket spend about 1.5 USD more (estimate) to finish (readable cases, Review,
-   Ship)? It stopped at its 8 USD cap after its checks passed. Recommended: yes, as the first run
-   track 2 watches on Restate (raise `"caps"` in `targets/linkding/tickets/bundle-filters-blind.json`
-   and re-run; Verify resumes with the cases).
+2. Run the bundles ticket again, from a fresh blind writer, as the run track 2 watches on
+   Restate? About 5.5 USD (estimate from the two blind runs). It stopped at its 8 USD cap after its
+   checks passed, and a failed Verify re-runs from the start: nothing resumes after a cap stop yet.
+   The new run would also give a second blind sample of the same ticket. Recommended: yes.
 
 ## Where things stand, 2026-10-10
 
@@ -105,7 +105,9 @@ Read this first. Update it last, in the same pull request as the work.
 0. From `docs/next-session.md`: exploration track 2 (the factory on Restate, and a run report),
    then track 3 (the deployed environment, linkding's Docker image on this laptop).
 
-1. From track 1: the sequential run of the bundles ticket was not done (cap); the writer's
+1. From track 1: a Verify that stops at the spend cap after its checks passed has no way to
+   resume with the readable cases; a re-run starts from a fresh writer (about 4 USD of the writer
+   wasted). The sequential run of the bundles ticket was not done (cap); the writer's
    placement of form tests in the API file follows the strategy loosely; a Fable call that runs
    out of budget still counts as "cannot decide" (it now cannot start below 1.50 USD, but can still
    overshoot); the raw writer transcript stays local because it holds this machine's hook output.

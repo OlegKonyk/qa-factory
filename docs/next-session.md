@@ -22,9 +22,11 @@ stays the default until Restate proves out.
    to fit a Verify of about 15 minutes. Tests for every factory change.
 3. Run a real ticket through it and measure: what the UI at localhost:9070 shows for a running
    step and for a run waiting at a gate (screenshots), resume after killing the service mid-step,
-   and the timeouts. If Oleg answered yes to question 2 in docs/status.md, the bundles ticket
-   (`targets/linkding/tickets/bundle-filters-blind.json`, raise its `"caps"`) is the run to watch;
-   otherwise write a third ticket from linkding's 2026 history.
+   and the timeouts. If Oleg answered yes to question 2 in docs/status.md, the bundles ticket is
+   the run to watch: its Verify starts over from a fresh blind writer, so give it a new id (for
+   example `linkding-bundle-filters-blind-2`, its own worktrees by `fetch.py --ticket <t>
+   --prepare-e2e`) and keep the stopped run as evidence; otherwise write a third ticket from
+   linkding's 2026 history.
 4. A run report of our own, generated from the run folder (tests, readable cases, revert
    verdicts, surviving mutants, rounds, spend): the QA evidence Restate does not show.
    `python -m factory summary` already computes the numbers.
