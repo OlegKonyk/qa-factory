@@ -8,6 +8,35 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-10 · Stronger models before people, and blind mode, built
+
+**Asked.** `docs/next-session.md`: first the fix round and the stronger model's advice in Verify,
+then track 1 (blind mode, two tickets, the numbers).
+
+**Built** (specs in `docs/specs/2026-10-10-escalation-and-blind/`, decisions in
+`docs/decisions.md`): the repair round, the stronger model's four decisions, the Review fix round
+and per-ticket caps (`factory/rounds.py`, `factory/escalate.py`, `factory/steps/verify.py`,
+`factory/steps/review.py`); blind mode (`factory/blind.py`, `factory/headless.py`); a run summary
+(`python -m factory summary <run folder>...`, `factory/summary.py`). 172 factory tests.
+
+**How.** The supervisor plugin is still dormant, so its agents were spawned directly from the
+specs, in one workflow: three `supervisor:implementer` builders in parallel (caps and the
+stronger model, blind plumbing, the summary), then `supervisor:senior-implementer` for the Verify
+and Review loop, then one `supervisor:reviewer` per slice.
+
+**Measured before building** (Claude Code 2.1.296): a deny rule needs the absolute form
+`Read(//abs/path/**)` (a single slash is read relative to the settings file and denied nothing);
+with it, a headless session's Read of a hidden folder and its `git log` are both denied, while
+linkding's interpreter, which lives inside the hidden clone, still runs pytest and ruff. A cold
+headless Fable 5.1 call with a schema cost 0.61 USD.
+
+**The reviewers found four real defects, fixed with tests:** Review's spend record was
+overwritten by a stale copy after the fix round (two ledgers on one file); a re-run of Review
+after a failed or stopped fix round would have reviewed, and passed to Ship, tests whose checks
+had not passed (Verify's report now records how it ended, and Review refuses anything but a pass);
+old test cases stayed beside a fix round's new ones; the blindness audit flagged every run
+because the writer must run linkding's interpreter from inside the hidden clone.
+
 ## 2026-10-10 · His answers: the first ticket ships, and the factory stops asking
 
 **Asked.** He approved the first run and objected to being asked: approving passing work is not
