@@ -3,6 +3,35 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-10 · Stop asking: approve, nothing at work yet, stronger models instead of questions, salvage the lab, Docker
+
+> Of course I approve the first run's test. Why wouldn't I approve this? Why do I have to approve
+> this kind of stupid question? Factory work does not run on nothing. We are also trying to figure
+> out how to do this shit. That's part of the whole thing. I want to understand how to run this
+> crap.
+>
+> Test writer is asking questions. We need the system to advise on stronger models, too. If the
+> factory is going to be stopping every turn to ask fucking questions, how far is that going to
+> go? Leftovers: we pick ideas and pieces from there. We have put a lot of effort into it. Can we
+> at least salvage something, or was it just wasted completely? If it was wasted, what the fuck,
+> then? What deployed environment are you talking about? Of course, you will be running that on a
+> fucking Docker image on this local
+
+How it was read ("Factory work does not run on nothing" is read as "the factory at work does not
+run on anything yet"):
+
+- The first run is approved. More than that: the factory must not stop to ask a person when its
+  checks pass. Approving passing work is not his job.
+- Nothing at work runs a factory yet; working out how to run one is part of this project. So the
+  orchestrator (Restate, Temporal or the plain driver) is ours to choose from running it, and
+  track 2 is a real trial of running the factory on Restate, not a spike to match work.
+- When an agent is unsure or a check fails, the factory asks a stronger model for advice, not a
+  person. A person is asked only when that cannot resolve it.
+- The old lab is kept, and its pieces are salvaged as the factory needs them; he wants to know what
+  was salvaged so far.
+- Track 3 runs linkding from its Docker image on this laptop; that was never in doubt.
+- Feedback on the asking itself: no questions about passing work or obvious defaults.
+
 ## 2026-10-10 · Go with the exploration plan; persist it before the context is cleared
 
 > Yes, I want you to go with this plan persisted because I want to clear context before we kick

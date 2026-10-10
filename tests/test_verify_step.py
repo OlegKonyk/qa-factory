@@ -85,3 +85,50 @@ def test_prompts_have_every_placeholder_the_step_fills():
         "test_cases", {"ticket_json": "{}", "tests_listing": "- x", "area": "bookmarks", "out_dir": "/o"}
     )
     assert "TC-bookmarks-001" in cases
+
+
+def _fake_checks(monkeypatch):
+    """Every check passes with the minimal result the end of Verify reads."""
+
+    def write_tests(ctx):
+        ctx["files"] = ["tests/test_x.py"]
+        return {"files": ctx["files"]}
+
+    results = {
+        "lint": lambda ctx: {"status": "pass", "findings": []},
+        "revert": lambda ctx: {
+            "status": "pass",
+            "tests": {"tests/test_x.py::test_x": {"verdict": "proves-behaviour"}},
+        },
+        "mutation": lambda ctx: {"skipped": "no function changed"},
+        "suite": lambda ctx: {"status": "pass", "runs": [{"summary": "1 passed"}]},
+        "test_cases": lambda ctx: {"files": ["demo/TC-demo-001.md"]},
+    }
+    monkeypatch.setattr(verify, "CHECKS", [("write_tests", write_tests)] + list(results.items()))
+
+
+def _inp(tmp_path, ticket_extra=None):
+    ticket = {"id": "demo-x", "title": "x", **(ticket_extra or {})}
+    return {
+        "repo": {"app": {"name": "demo"}, "head_tree": str(tmp_path), "base_tree": str(tmp_path)},
+        "ticket": ticket,
+        "artifacts": {},
+        "round": 1,
+        "run_dir": str(tmp_path / "run"),
+    }
+
+
+def test_verify_passes_without_asking_when_every_check_passes(tmp_path, monkeypatch):
+    _fake_checks(monkeypatch)
+    out = verify.run(_inp(tmp_path))
+    assert out["status"] == "pass", out["reason"]
+    assert out["gate"] is None
+    approval = json.load(open(out["artifacts"]["approval"]))
+    assert approval["by"] == "factory" and approval["approved"] is True
+
+
+def test_a_ticket_can_still_ask_for_a_person(tmp_path, monkeypatch):
+    _fake_checks(monkeypatch)
+    out = verify.run(_inp(tmp_path, {"gate": "person"}))
+    assert out["status"] == "needs_person"
+    assert out["gate"]["who"] == "Oleg"

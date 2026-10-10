@@ -58,6 +58,26 @@ spend caps and test-file capture, 28 unit tests, 2 failing and 2 errors) and `fe
 They live in the lab's worktrees under `~/dev/assay/.claude/worktrees/`. Removing those worktrees
 loses them; that is Oleg's call.
 
+## Salvaged so far, and what is still to take (2026-10-10)
+
+The lab is kept as it is: read-only history, nothing deleted (Oleg, 2026-10-10). Pieces are taken
+when the factory needs them. Taken so far, all in the first path:
+
+| From the lab | Where it went |
+|---|---|
+| The linkding fetch script, its cached clone and its list of 2026 features | `targets/linkding/fetch.py` (rewritten); the clone served as the mirror; the feature for the first ticket came from the list |
+| The linkding history probe: which features' own tests fail on the old code, and why | Chose the first feature (its developers' tests fail only on a missing name), and is the evidence behind the loop recommendation in `docs/exploration.md` |
+| The mutmut probe: one fresh copy per run, function-scoped globs, never reuse the cache, the `.meta` exit codes, the mangled names | `factory/checks/mutants.py` |
+| The revert check's two-tree construction (base source under head tests) | `factory/checks/revert.py` |
+| The fail-before sorter's pytest plugin | `factory/checks/failsort_plugin.py`, rewritten, with two fixes the lab had not found (assertions in helpers and in Playwright's `expect`, and unittest failures arriving without frames) |
+| The headless runner's measured flags (no `$schema` in `--json-schema`, permission flags) | `factory/headless.py` |
+
+Next to take, as the tracks reach them: "test from a ticket" (track 1 runs that idea on real code);
+the feature-description builder for writing tickets from commits and issues; the sandbox for
+agent-written tests; the flaky-test sorter and test selection by impact, when the suite needs
+them; the generated-test linter's extra rules (private names, large pasted literals, duplicates);
+isso as the second application.
+
 ## Not worth salvaging
 
 - **Pynguin**, its environments (branch `feat/coverage-envs`) and every other non-AI generator.

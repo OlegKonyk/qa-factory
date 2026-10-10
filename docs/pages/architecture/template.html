@@ -159,8 +159,8 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
   <h1>qa-factory Architecture</h1>
   <p class="lede">A ticket goes in. Claude Code writes the API and browser tests, deterministic tools check that each test is not misleading, you approve a readable version, and the approved tests join the application's own suite. This page shows how it is built today and where it is fixed to one laptop, one ticket and one application, so we can place your use cases on it.</p>
   <div class="chips">
-    <span class="chip person"><i></i>First run parked at your approval</span>
-    <span class="chip pass"><i></i>100 factory tests green</span>
+    <span class="chip pass"><i></i>First ticket shipped: its tests are in linkding's suite</span>
+    <span class="chip pass"><i></i>102 factory tests green</span>
     <span class="chip ai"><i></i>One application so far: linkding 1.47.0</span>
     <span class="chip pass"><i></i>Exploration plan approved: track 1 next</span>
   </div>
@@ -187,12 +187,12 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="flow">
   <div class="col">
     <div class="eyebrow">1 · The flow</div>
-    <h2>Seven steps, one stop for you</h2>
+    <h2>Seven steps, and no stop when the checks pass</h2>
     <p>The driver runs the steps in order and hands each one the files the earlier steps wrote. Verify is the QA step and is built fully; the other steps are simple but real. The lettered badges mark the places a new use case would attach; section 8 lists them.</p>
   </div>
   <figure>
     <div class="scroll">{{FLOW}}</div>
-    <figcaption>Three things the picture must not hide. Implement is the developers' real commit, not an agent. A failure in Verify stops the run; the loop back to Implement that the brief describes is not built. Review and Ship have tests of their own but have not yet run on linkding as steps; they wait behind your approval. The 53 s Review was run by hand on the same files.</figcaption>
+    <figcaption>Two things the picture must not hide. Implement is the developers' real commit, not an agent. A failure in Verify stops the run; the fix round and the stronger-model advice that replace a person there are the next thing built, and the loop back to Implement is not built. Since 10 October the factory approves its own work when every check passes; a ticket can still ask for a person. The first ticket ran all six steps that day.</figcaption>
   </figure>
 </section>
 
@@ -226,7 +226,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 
 <section id="approve">
   <div class="col">
-    <div class="eyebrow">4 · What you approve</div>
+    <div class="eyebrow">4 · What gets approved</div>
     <h2>A readable case beside every test</h2>
     <p>Each test gets one Markdown case in the skeleton of your signoff plugin, linted by a copy of its <code>cases.py</code>. Here is the first of six, next to the test it describes.</p>
   </div>
@@ -275,11 +275,11 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <tr><td>8 Oct · <code>run --until implement</code></td><td><span class="state s-pass">pass 13 s</span></td><td><span class="state s-pass">pass 14 s</span></td><td><span class="state s-pass">pass</span></td><td class="s-none">stopped as asked</td><td></td><td></td><td class="num">0</td></tr>
         <tr><td>8 Oct · <code>run</code></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-gate">question, 800 s</span></td><td></td><td></td><td class="num">2</td></tr>
         <tr><td>10 Oct · <code>run</code>, no answer yet</td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-gate">same question</span></td><td></td><td></td><td class="num">2</td></tr>
-        <tr><td>Next · after your <code>answer.json</code></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-next">pass on your answer</span></td><td><span class="state s-next">runs</span></td><td><span class="state s-next">runs</span></td><td class="num">0</td></tr>
+        <tr><td>10 Oct · <code>run</code>, after your approval</td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-pass">pass on the answer</span></td><td><span class="state s-pass">pass 51 s</span></td><td><span class="state s-pass">pass 32 s</span></td><td class="num">0</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note" style="margin-top:10px">A failed step is re-run on the next invocation with its round number raised, and the old record is kept beside the new one.</p>
+  <p class="note" style="margin-top:10px">A failed step is re-run on the next invocation with its round number raised, and the old record is kept beside the new one. Since 10 October Verify approves on its own when every check passes, so a new ticket runs all six steps in one invocation; the question file is written only for a ticket that sets <code>gate: person</code>.</p>
 </section>
 
 <section id="lives">
@@ -324,6 +324,8 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <tr><td>App's suite</td><td>pytest, Playwright 1.62.0</td><td>1294 passed; 83 browser passed, 1 skipped</td><td class="num">93 s</td><td class="num">0</td></tr>
         <tr><td>Test cases</td><td>Claude Code, Opus 5.5</td><td>6 cases, lint clean</td><td class="num">116 s</td><td class="num">1.28</td></tr>
         <tr><td>Review, by hand</td><td>Claude Code, Opus 5.5</td><td>approve, 2 low findings</td><td class="num">53 s</td><td class="num">0.58</td></tr>
+        <tr><td>Review, as a step</td><td>Claude Code, Opus 5.5</td><td>approve, 3 low findings</td><td class="num">51 s</td><td class="num">0.47</td></tr>
+        <tr><td>Ship</td><td>git, pytest, Playwright</td><td>commit d1c4de7 on <code>qa/linkding-sort-by-modified</code>; 1294 passed, 2 browser passed</td><td class="num">32 s</td><td class="num">0</td></tr>
       </tbody>
     </table>
   </div>
@@ -367,7 +369,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <tr><td>Time per ticket</td><td>Writer 414 s, mutation 159 s, cases 116 s, suite 93 s.</td><td>The whole suite runs every time; mutation runs twice.</td><td>Test selection by impact when a run shows the suite is slow.</td></tr>
         <tr><td>Disk</td><td>Per ticket: head worktree 61 MB (47 MB of it node_modules), base 6 MB, run folder 48 MB. Per app: environment 294 MB. Shared: browsers 1.1 GB.</td><td>node_modules and the two app copies in each run folder grow with every ticket.</td><td>Open.</td></tr>
         <tr><td>Applications</td><td>One. A new one needs a recipe, a strategy rule, a fetch script and tickets.</td><td>The checks assume Python: ruff, pytest, mutmut, and a pytest plugin that reads Python tracebacks.</td><td>isso second, then a greenfield app.</td></tr>
-        <tr><td>People</td><td>One approver, by file, on this laptop.</td><td>No notification and no record of who answered beyond what the file says.</td><td>Approval on pull requests, once the app is forked.</td></tr>
+        <tr><td>People</td><td>Nobody, when every check passes. A ticket can ask for a person by rule.</td><td>A failing check still stops the run until the stronger-model advice is built.</td><td>Stronger models before people (10 Oct).</td></tr>
         <tr><td>Retries</td><td>None. A Verify failure or a review finding stops the run.</td><td>Each retry is a full fresh Verify, about 5 USD and 13 min (estimate from the first run).</td><td>The brief's capped loop back to Implement. Not built.</td></tr>
         <tr><td>Machines</td><td>This laptop.</td><td>Run folders and caches are local; a resume needs the run folder.</td><td>Local first is a constraint of the brief.</td></tr>
       </tbody>
@@ -390,7 +392,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <dt>Exists today</dt><dd>A JSON record per step, <code>python -m factory status</code>, the question file, and this page, which is static.</dd>
         <dt>Missing</dt><dd>A live view of runs, steps and waiting gates, and a view of each run's QA evidence: tests, cases, revert verdicts, surviving mutants.</dd>
         <dt>At scale</dt><dd>Tickets at once, people.</dd>
-        <dt>Open for you</dt><dd>What the factory at work runs on. Restate is assessed in section 12.</dd>
+        <dt>Settled</dt><dd>Nothing at work runs a factory yet, so track 2 is a real trial of running this one on Restate.</dd>
       </dl>
     </div>
     <div class="card">
@@ -401,7 +403,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <dt>Exists today</dt><dd>Trusted API and browser tests inside the application's own suite, checked by the revert check and mutmut.</dd>
         <dt>Missing</dt><dd>Tests that can run against a deployed URL. linkding's browser tests create their data through the database inside a test server, so they cannot run against a deployed environment as written. Also missing: a checklist that makes a repository agent-friendly (section 13).</dd>
         <dt>At scale</dt><dd>Applications, machines.</dd>
-        <dt>Open for you</dt><dd>Which environment counts as deployed for an experiment.</dd>
+        <dt>Settled</dt><dd>linkding from its Docker image on this laptop.</dd>
       </dl>
     </div>
     <div class="card">
@@ -412,7 +414,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
         <dt>Exists today</dt><dd>QA after the change, in a fresh session that reads the finished diff.</dd>
         <dt>Missing</dt><dd>An acceptance lane that starts when the criteria are ready, the join with the implementation, and the capped loop back to Implement.</dd>
         <dt>At scale</dt><dd>Time per ticket, retries.</dd>
-        <dt>Open for you</dt><dd>Which shape to build after the measurement in section 14.</dd>
+        <dt>Settled by</dt><dd>The numbers of track 1.</dd>
       </dl>
     </div>
   </div>
@@ -445,7 +447,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
   <div class="col">
     <div class="eyebrow">12 · Restate</div>
     <h2>Useful for watching runs and for waits that last days; it does not show the QA evidence</h2>
-    <p class="answer">Restate would replace the driver loop with a durable workflow per ticket and give you a UI on top of it. The steps, the checks and the run folder stay as they are. It is the same kind of piece as Temporal, which is deferred; the fact that decides both is what the factory at work runs.</p>
+    <p class="answer">Restate would replace the driver loop with a durable workflow per ticket and give you a UI on top of it. The steps, the checks and the run folder stay as they are. It is the same kind of piece as Temporal, which is deferred. Nothing at work runs a factory yet, so the choice is ours, made from running track 2.</p>
   </div>
   <figure>
     <div class="scroll">{{RESTATE}}</div>
@@ -526,12 +528,9 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="decide">
   <div class="col">
     <div class="eyebrow">15 · Yours to decide</div>
-    <h2>Open now</h2>
-    <ol class="decide">
-      <li><strong>What the factory at work runs on.</strong> Temporal, Restate, or neither yet, and whether your colleague meant Restate for that factory. This decides whether track 2 is a spike or the start of the orchestrator.</li>
-      <li><strong>The first run's approval</strong>, still parked. Approve, and Review and Ship run for the first time on linkding. Decline with a note, and Verify starts over for about 5 USD and 13 minutes.</li>
-    </ol>
-    <p class="note" style="margin-top:18px">Settled on 10 October: the exploration plan as written, track 1 first, with linkding's Docker image on this laptop standing for the deployed environment in track 3. Still open from before: whether the old lab's worktrees are kept. The record behind this page is in the repository: <code>docs/status.md</code>, <code>docs/log.md</code>, <code>docs/decisions.md</code>, <code>docs/architecture.md</code> and <code>docs/exploration.md</code>.</p>
+    <h2>Nothing is waiting on you</h2>
+    <p>Settled on 10 October: the first run is approved and shipped; the factory approves its own work when every check passes and will ask a stronger model before a person; nothing at work runs a factory yet, so the orchestrator is ours to choose from track 2; the old lab is kept and salvaged piece by piece; track 3 runs linkding from its Docker image on this laptop.</p>
+    <p class="note" style="margin-top:18px">The record behind this page is in the repository: <code>docs/status.md</code>, <code>docs/log.md</code>, <code>docs/decisions.md</code>, <code>docs/architecture.md</code>, <code>docs/exploration.md</code>, and what was salvaged from the lab in <code>docs/reference/lab.md</code>.</p>
   </div>
 </section>
 </div>

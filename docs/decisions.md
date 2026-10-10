@@ -3,6 +3,29 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-10 · The factory does not stop to ask when its checks pass; stronger models before people
+
+**Decided, his words:** "Of course I approve the first run's test. Why do I have to approve this
+kind of stupid question?" "We need the system to advise on stronger models, too. If the factory is
+going to be stopping every turn to ask questions, how far is that going to go?"
+
+- **Approval of passing work is automatic.** When every Verify check passes, Verify approves on its
+  own and records `approval.json` (by: factory). A ticket or application may set `"gate": "person"`
+  for a risk rule that wants a human. Built in this change (`factory/steps/verify.py`).
+- **A stronger model before a person.** When a check fails or an agent is unsure, the step gets one
+  capped fix round, then asks a stronger model for a decision; a person is asked only when that
+  cannot resolve it. Not built yet; it is the first item of the next session.
+- **The first run is approved.** It ran through Review and Ship on his answer.
+- **Nothing at work runs a factory yet.** Working out how to run one is part of this project, so
+  the orchestrator is ours to choose from running it. Track 2 is a real trial of running the
+  factory on Restate. Temporal stays the deferred alternative; it is not compared unless he asks.
+- **The lab is kept**, and salvaged piece by piece (`docs/reference/lab.md`, "Salvaged so far").
+- **Track 3 runs linkding from its Docker image on this laptop.**
+
+**Supersedes** item 8 of the delegated planning decisions (approving the test cases as a human gate
+QA owns) and the person-as-default part of item 4. The approval on a pull request stays possible as
+a configured gate. The open question "whether the factory at work is built on Temporal" is closed.
+
 ## 2026-10-10 · The exploration plan is approved
 
 **Decided.** Oleg: "Yes, I want you to go with this plan." The three tracks of

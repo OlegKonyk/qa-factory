@@ -1,7 +1,7 @@
 {
   "step": "verify",
   "index": 4,
-  "status": "needs_person",
+  "status": "pass",
   "input": {
     "ticket": {
       "id": "linkding-sort-by-modified",
@@ -73,8 +73,8 @@
       },
       "base": "0837b5186979e4a52e75582bd295cc73e43d2612",
       "head": "0490013e4f67f0d31ccd764a5cb723dcafaf4acd",
-      "base_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/base",
-      "head_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/head"
+      "base_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/base",
+      "head_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/head"
     },
     "artifacts": {
       "frame": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/frame/frame.json",
@@ -82,81 +82,22 @@
       "change_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/change.diff",
       "change_full_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/change_full.diff",
       "changed_source": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/changed_source.json",
-      "changed_tests": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/changed_tests.json"
+      "changed_tests": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/changed_tests.json",
+      "answer": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/answer.json"
     },
     "round": 1,
     "run_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified"
   },
   "output": {
-    "status": "needs_person",
+    "status": "pass",
     "artifacts": {
       "tests_manifest": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/tests_manifest.json",
       "tests_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/tests",
       "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/testcases",
       "verify_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/report.json"
     },
-    "reason": "the tests and their readable cases are ready for approval",
-    "gate": {
-      "who": "Oleg",
-      "question": "Approve the generated tests and their test cases for 'Add sort by modification date option' so they join the application's suite?",
-      "context": {
-        "tests": [
-          "bookmarks/tests/test_sort_by_modified_api.py",
-          "bookmarks/tests_e2e/e2e_test_sort_by_modified.py"
-        ],
-        "test_files_copy": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/tests",
-        "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/testcases",
-        "revert_check": {
-          "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_archived_bookmarks_sort_modified_asc_and_desc": "proves-behaviour",
-          "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_bookmarks_sort_modified_asc": "proves-behaviour",
-          "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_bookmarks_sort_modified_desc": "proves-behaviour",
-          "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_bookmarks_unknown_sort_falls_back_to_default_order": "passes-without-change",
-          "bookmarks/tests_e2e/e2e_test_sort_by_modified.py::SortByModifiedE2ETestCase::test_sort_archived_bookmarks_by_modified": "proves-behaviour",
-          "bookmarks/tests_e2e/e2e_test_sort_by_modified.py::SortByModifiedE2ETestCase::test_sort_bookmarks_by_modified_asc_and_desc": "proves-behaviour"
-        },
-        "mutation": {
-          "generated": {
-            "checked": 108,
-            "killed": 27,
-            "survived": 81,
-            "score": 0.25,
-            "on_changed_lines": {
-              "checked": 10,
-              "killed": 10,
-              "survived": 0,
-              "score": 1.0
-            }
-          },
-          "generated_and_developers": {
-            "checked": 108,
-            "killed": 98,
-            "survived": 10,
-            "score": 0.9074074074074074,
-            "on_changed_lines": {
-              "checked": 10,
-              "killed": 10,
-              "survived": 0,
-              "score": 1.0
-            }
-          }
-        },
-        "suite": [
-          "============================ 1294 passed in 24.18s =============================",
-          "=================== 83 passed, 1 skipped in 68.13s (0:01:08) ==================="
-        ],
-        "cost_usd": 4.9005,
-        "time_s": {
-          "write_tests": 413.8,
-          "lint": 0.1,
-          "revert": 17.9,
-          "mutation.generated": 21.3,
-          "mutation.generated_and_developers": 137.8,
-          "mutation": 159.2,
-          "suite": 93.3,
-          "test_cases": 115.5
-        }
-      }
-    },
+    "reason": "approved by Oleg: approved in chat, 2026-10-10",
+    "gate": null,
     "metrics": {
       "cost_usd": 4.9005,
       "time_s": {
@@ -193,7 +134,7 @@
       "mutation_score_changed_lines.generated_and_developers": 1.0
     }
   },
-  "started": "2026-10-08T22:49:05+00:00",
-  "finished": "2026-10-08T23:02:24+00:00",
-  "duration_s": 799.751
+  "started": "2026-10-10T19:18:37+00:00",
+  "finished": "2026-10-10T19:18:37+00:00",
+  "duration_s": 0.001
 }

@@ -51,9 +51,9 @@ def flow_svg():
         ("Plan", ["Sonnet 5.5", "14 s · 0.07 USD"], "ai", "→ test placement", None, None),
         ("Implement", ["the developers'", "real commit"], "det", "→ diff, file lists", None, "G"),
         ("Verify", ["6 stages", "800 s · 4.90 USD"], "mixed", "→ tests + cases", None, "CD"),
-        ("You", ["approve", "or decline"], "person", "→ answer.json", None, "E"),
-        ("Review", ["Opus 5.5", "by hand: 53 s"], "ai", "→ findings", "not yet run as a step", None),
-        ("Ship", ["git commit", "+ full suite"], "det", "→ a commit", "not yet run as a step", None),
+        ("Approval", ["automatic when", "checks all pass"], "det", "→ approval.json", None, "E"),
+        ("Review", ["Opus 5.5", "51 s · 0.47 USD"], "ai", "→ findings", None, None),
+        ("Ship", ["git commit", "+ full suite, 32 s"], "det", "→ a commit", None, None),
         ("App's suite", ["linkding's own", "test folders"], "io", "tests join here", None, "F"),
     ]
     p = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="The flow: a ticket passes Frame, Plan, Implement and Verify, stops for your approval, then Review and Ship add the tests to the application\'s own suite. The loops back to Implement are planned and not built." class="dia">', defs("f")]
@@ -79,7 +79,6 @@ def flow_svg():
         if letters:
             for j, ch in enumerate(letters):
                 p.append(badge(x + 10 + j * 20, y - 2, ch))
-    p.append(text(cx[5], 80, "run parked here", "t-park"))
     p.append(f'<rect x="{xs[1]}" y="226" width="{xs[-1] + nw - xs[1]}" height="30" rx="6" class="band"/>')
     p.append(badge(xs[1] + 16, 241, "B"))
     p.append(text(xs[1] + 34, 245, "Application recipe: app.json, strategy.md, fetch.py, tickets. One set per application; linkding is the only one today.", "t-band", "start"))
@@ -108,7 +107,7 @@ def verify_svg():
         ("4  Mutation", "mutmut 3.8.0", "159 s, two runs", "det", ["no mutant is checked,", "or none is killed on", "the changed lines"]),
         ("5  App's suite", "pytest, Playwright", "93 s", "det", ["any test is red", "(1294 API and unit,", "83 browser)"]),
         ("6  Test cases", "Claude Code, Opus", "116 s · 1.28 USD", "ai", ["the case linter still", "finds issues after", "one repair"]),
-        ("Question to you", "question.md", "the run exits 2", "person", None),
+        ("Approval", "approval.json", "by the factory", "det", None),
     ]
     p = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Inside Verify: six stages in order, each able to stop the run, then a question to you." class="dia">', defs("v")]
     xs = [16 + i * (bw + gap) for i in range(len(st))]
@@ -129,8 +128,9 @@ def verify_svg():
                 p.append(text(cx, y + bh + 40 + j * 15, line, "t-stop"))
             p.append(arrow(cx, y + bh + 82, cx, 238, "edge-fail", "vahf"))
         else:
-            p.append(text(cx, y + bh + 22, "WAITS FOR", "t-cap"))
-            p.append(text(cx, y + bh + 40, "answer.json", "t-stop"))
+            p.append(text(cx, y + bh + 22, "ASKS A PERSON ONLY IF", "t-cap"))
+            p.append(text(cx, y + bh + 40, "the ticket sets", "t-stop"))
+            p.append(text(cx, y + bh + 55, "gate: person", "t-stop"))
     p.append(f'<line x1="{xs[0] + bw/2}" y1="242" x2="{xs[5] + bw/2}" y2="242" class="rail"/>')
     p.append(text((xs[0] + xs[5] + bw) / 2, 268, "The run stops with a fail record and exit 1. Nothing loops back to the writer yet; a retry is a fresh run of Verify.", "t-railtext"))
     p.append("</svg>")
@@ -218,7 +218,7 @@ def loop_svg():
     p.append(text(16, 22, "TODAY: QA AFTER THE CHANGE", "t-cap", "start"))
     row = [(16, 110, "Frame", "criteria", "ai"), (142, 110, "Plan", "test placement", "ai"),
            (268, 140, "Implement", "developers' commit", "det"), (424, 170, "Write tests", "reads the finished diff", "ai"),
-           (610, 170, "Checks", "lint, revert, mutation, suite", "det"), (796, 100, "You", "approve", "person"),
+           (610, 170, "Checks", "lint, revert, mutation, suite", "det"), (796, 100, "Approval", "you, until 10 Oct", "person"),
            (912, 130, "Review, Ship", "commit, suite", "det")]
     for i, (x, w, t, sub, k) in enumerate(row):
         p.append(node(x, 34, w, 52, t, sub, k))
@@ -242,7 +242,7 @@ def loop_svg():
     p.append(arrow(691, 228, 716, 228, "edge", "lah"))
     p.append(node(906, 196, 120, 64, "Regression", "the app's suite", "det", "plus new tests"))
     p.append(arrow(879, 228, 904, 228, "edge", "lah"))
-    p.append(node(1054, 196, 110, 64, "You", "approve the", "person", "cases"))
+    p.append(node(1054, 196, 110, 64, "Approval", "automatic when", "det", "checks pass"))
     p.append(arrow(1027, 228, 1052, 228, "edge", "lah"))
     p.append(node(718, 330, 160, 56, "Ship", "merge to the app", "det"))
     p.append(node(906, 330, 120, 56, "Deploy", "the app's pipeline", "io"))

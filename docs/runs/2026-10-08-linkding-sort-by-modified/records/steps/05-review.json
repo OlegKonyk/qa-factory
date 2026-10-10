@@ -1,0 +1,113 @@
+{
+  "step": "review",
+  "index": 5,
+  "status": "pass",
+  "input": {
+    "ticket": {
+      "id": "linkding-sort-by-modified",
+      "app": "targets/linkding/app.json",
+      "base": "0837b5186979e4a52e75582bd295cc73e43d2612",
+      "head": "0490013e4f67f0d31ccd764a5cb723dcafaf4acd",
+      "title": "Add sort by modification date option",
+      "description": "The bookmark list can be sorted by the date a bookmark was added or by title. Add sorting by the date a bookmark was last modified, ascending and descending. The option is available wherever the existing sort options are: the sort dropdown of the bookmark list and the `sort` query parameter of the bookmarks REST API (`GET /api/bookmarks/?sort=modified_asc` and `sort=modified_desc`), including the archived bookmarks list. Taken from linkding pull request #1363 (upstream commit 0490013).",
+      "acceptance_criteria": [
+        "GET /api/bookmarks/?sort=modified_asc returns the user's bookmarks ordered by date_modified ascending",
+        "GET /api/bookmarks/?sort=modified_desc returns them ordered by date_modified descending",
+        "The bookmark list page offers 'Modified \u2191' and 'Modified \u2193' in the sort dropdown and selecting one reorders the list accordingly",
+        "The archived bookmarks list and its API accept the same two sort values",
+        "An unknown sort value still falls back to the default order (added, newest first)"
+      ]
+    },
+    "repo": {
+      "app": {
+        "name": "linkding",
+        "repo": "/Users/oleg/Library/Caches/qa-factory/linkding/repo",
+        "worktrees": "/Users/oleg/Library/Caches/qa-factory/linkding/wt",
+        "python": "/Users/oleg/Library/Caches/qa-factory/linkding/repo/.venv/bin/python",
+        "source_package": "bookmarks",
+        "pytest_args": [
+          "-p",
+          "no:cacheprovider"
+        ],
+        "api_tests_dir": "bookmarks/tests",
+        "browser_tests_dir": "bookmarks/tests_e2e",
+        "browser_test_files": "e2e_test_*.py",
+        "test_support": [
+          "bookmarks/tests/helpers.py",
+          "bookmarks/tests_e2e/helpers.py"
+        ],
+        "exclude_copy": [
+          ".git",
+          "node_modules",
+          ".venv",
+          "mutants",
+          "__pycache__",
+          ".pytest_cache"
+        ],
+        "mutmut": {
+          "pytest_add_cli_args": [
+            "-p",
+            "no:cacheprovider",
+            "-o",
+            "django_find_project=false"
+          ],
+          "pre_create_dirs": [
+            "data/assets",
+            "data/favicons",
+            "data/previews"
+          ]
+        },
+        "suite": [
+          [
+            "-n",
+            "auto",
+            "bookmarks/tests"
+          ],
+          [
+            "-o",
+            "python_files=e2e_test_*.py",
+            "bookmarks/tests_e2e"
+          ]
+        ],
+        "strategy": "targets/linkding/strategy.md"
+      },
+      "base": "0837b5186979e4a52e75582bd295cc73e43d2612",
+      "head": "0490013e4f67f0d31ccd764a5cb723dcafaf4acd",
+      "base_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/base",
+      "head_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/head"
+    },
+    "artifacts": {
+      "frame": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/frame/frame.json",
+      "plan": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/plan/plan.json",
+      "change_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/change.diff",
+      "change_full_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/change_full.diff",
+      "changed_source": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/changed_source.json",
+      "changed_tests": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/implement/changed_tests.json",
+      "tests_manifest": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/tests_manifest.json",
+      "tests_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/tests",
+      "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/testcases",
+      "verify_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/verify/report.json"
+    },
+    "round": 1,
+    "run_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified"
+  },
+  "output": {
+    "status": "pass",
+    "artifacts": {
+      "review": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-sort-by-modified/review/review.json"
+    },
+    "reason": "",
+    "gate": null,
+    "metrics": {
+      "cost_usd": 0.4713728,
+      "model": "claude-opus-5-5",
+      "turns": 12,
+      "duration_ms": 49084,
+      "input_tokens": 12,
+      "output_tokens": 4753
+    }
+  },
+  "started": "2026-10-10T19:18:37+00:00",
+  "finished": "2026-10-10T19:19:28+00:00",
+  "duration_s": 50.712
+}
