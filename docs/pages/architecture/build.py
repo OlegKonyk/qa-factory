@@ -206,6 +206,77 @@ def lives_svg():
     p.append("</svg>")
     return "\n".join(p)
 
+
+# ---------------------------------------------------------------- 5. the loop: after or alongside
+def loop_svg():
+    W, H = 1180, 410
+    p = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Two shapes of the loop. Today QA writes tests after the change exists. Proposed: after Plan fixes the public contract, the change and the acceptance tests are written in parallel, joined, then a coverage pass on the diff, regression, your approval, and end-to-end tests on the deployed environment." class="dia">', defs("l")]
+    def node(x, y, w, h, title, sub, kind, sub2=None):
+        out = [box(x, y, w, h, kind), text(x + w / 2, y + 23, title, "t-title"), text(x + w / 2, y + 41, sub, "t-sub")]
+        if sub2: out.append(text(x + w / 2, y + 56, sub2, "t-sub"))
+        return "\n".join(out)
+    p.append(text(16, 22, "TODAY: QA AFTER THE CHANGE", "t-cap", "start"))
+    row = [(16, 110, "Frame", "criteria", "ai"), (142, 110, "Plan", "test placement", "ai"),
+           (268, 140, "Implement", "developers' commit", "det"), (424, 170, "Write tests", "reads the finished diff", "ai"),
+           (610, 170, "Checks", "lint, revert, mutation, suite", "det"), (796, 100, "You", "approve", "person"),
+           (912, 130, "Review, Ship", "commit, suite", "det")]
+    for i, (x, w, t, sub, k) in enumerate(row):
+        p.append(node(x, 34, w, 52, t, sub, k))
+        if i < len(row) - 1:
+            p.append(arrow(x + w + 1, 60, row[i + 1][0] - 2, 60, "edge", "lah"))
+    p.append(f'<line x1="16" y1="112" x2="1164" y2="112" class="grid"/>')
+    p.append(text(16, 142, "PROPOSED: QA ALONGSIDE THE CHANGE", "t-cap", "start"))
+    p.append(node(16, 200, 110, 52, "Frame", "criteria", "ai"))
+    p.append(node(142, 194, 136, 64, "Plan", "fixes the public", "ai", "contract first"))
+    p.append(arrow(127, 226, 140, 226, "edge", "lah"))
+    p.append(node(320, 158, 180, 64, "Implement", "the change and its", "ai", "unit tests, test-first"))
+    p.append(node(320, 236, 180, 64, "Acceptance tests", "API and browser, from the", "ai", "criteria, blind to the code"))
+    p.append('<path d="M279 218 C300 218, 300 190, 318 190" class="edge" marker-end="url(#lah)"/>')
+    p.append('<path d="M279 234 C300 234, 300 268, 318 268" class="edge" marker-end="url(#lah)"/>')
+    p.append(node(540, 196, 150, 64, "Run together", "acceptance tests", "det", "on the new code"))
+    p.append('<path d="M501 190 C520 190, 520 214, 538 214" class="edge" marker-end="url(#lah)"/>')
+    p.append('<path d="M501 268 C520 268, 520 244, 538 244" class="edge" marker-end="url(#lah)"/>')
+    p.append('<path d="M615 196 C615 166, 560 150, 504 168" class="edge-dash" marker-end="url(#lahd)"/>')
+    p.append(label_bg(600, 160, "fail → fix, capped"))
+    p.append(node(718, 196, 160, 64, "Coverage pass", "survivors on changed", "mixed", "lines → new tests"))
+    p.append(arrow(691, 228, 716, 228, "edge", "lah"))
+    p.append(node(906, 196, 120, 64, "Regression", "the app's suite", "det", "plus new tests"))
+    p.append(arrow(879, 228, 904, 228, "edge", "lah"))
+    p.append(node(1054, 196, 110, 64, "You", "approve the", "person", "cases"))
+    p.append(arrow(1027, 228, 1052, 228, "edge", "lah"))
+    p.append(node(718, 330, 160, 56, "Ship", "merge to the app", "det"))
+    p.append(node(906, 330, 120, 56, "Deploy", "the app's pipeline", "io"))
+    p.append(node(1054, 330, 110, 56, "E2E on deployed", "same cases", "mixed"))
+    p.append('<path d="M1109 261 C1109 300, 800 290, 798 328" class="edge" marker-end="url(#lah)"/>')
+    p.append(arrow(879, 358, 904, 358, "edge", "lah"))
+    p.append(arrow(1027, 358, 1052, 358, "edge", "lah"))
+    p.append(text(400, 330, "Anthropic: one Claude writes the tests,", "t-edge"))
+    p.append(text(400, 344, "another writes the code to pass them", "t-edge"))
+    p.append(text(798, 182, "Meta ACH, Google: mutants on changed code", "t-edge"))
+    p.append("</svg>")
+    return "\n".join(p)
+
+# ---------------------------------------------------------------- 6. Restate in the factory
+def restate_svg():
+    W, H = 1000, 250
+    p = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Where Restate would sit: the Restate server keeps a journal per ticket and shows it in its UI; a factory service built with the Python SDK runs each step as a durable step; the steps and the run folder stay as they are; you answer the gate by resolving a promise." class="dia">', defs("s")]
+    def panel(x, y, w, h, title, lines, kind):
+        out = [box(x, y, w, h, kind), text(x + 14, y + 24, title, "t-title", "start")]
+        for j, line in enumerate(lines):
+            out.append(text(x + 14, y + 46 + j * 19, line, "t-sub", "start"))
+        return "\n".join(out)
+    p.append(panel(16, 70, 120, 110, "You", ["watch runs", "answer gates"], "person"))
+    p.append(panel(220, 30, 250, 190, "Restate server", ["single binary, brew install", "journal per ticket", "UI at localhost:9070", "status: running, suspended", "journal kept 24 h by default", "BSL 1.1"], "det"))
+    p.append(panel(560, 30, 230, 190, "Factory service", ["restate Python SDK", "one workflow per ticket", "each step a durable step", "gate: waits on a promise", "steps' timeouts set to fit", "7-minute writer calls"], "mixed"))
+    p.append(panel(840, 30, 144, 190, "Steps, as today", ["Claude Code", "pytest, mutmut", "run folder", "worktrees"], "ai"))
+    p.append(arrow(137, 105, 218, 105, "edge", "sah")); p.append(label_bg(178, 96, "UI"))
+    p.append(arrow(137, 150, 218, 150, "edge", "sah")); p.append(label_bg(178, 141, "resolve"))
+    p.append(arrow(471, 95, 558, 95, "edge", "sah")); p.append(label_bg(514, 86, "invokes"))
+    p.append(arrow(558, 160, 473, 160, "edge", "sah")); p.append(label_bg(514, 151, "journals"))
+    p.append(arrow(791, 125, 838, 125, "edge", "sah")); p.append(label_bg(814, 116, "runs"))
+    p.append("</svg>")
+    return "\n".join(p)
+
 # ---------------------------------------------------------------- charts
 def bars_svg(rows, unit, fmt, label, maxv, aria):
     W, rowh, top, left, right = 760, 30, 10, 170, 80
@@ -257,7 +328,7 @@ gen, both = mut["generated"], mut["generated_and_developers"]
 
 page = pathlib.Path(__file__).with_name("template.html").read_text()
 page = (page.replace("{{FLOW}}", flow_svg()).replace("{{VERIFY}}", verify_svg()).replace("{{REVERT}}", revert_svg())
-        .replace("{{LIVES}}", lives_svg()).replace("{{CHART_TIME}}", chart_time).replace("{{CHART_COST}}", chart_cost)
+        .replace("{{LIVES}}", lives_svg()).replace("{{LOOP}}", loop_svg()).replace("{{RESTATE}}", restate_svg()).replace("{{CHART_TIME}}", chart_time).replace("{{CHART_COST}}", chart_cost)
         .replace("{{TOTAL_MIN}}", f"{total_s/60:.1f}").replace("{{TOTAL_USD}}", f"{total_usd:.2f}")
         .replace("{{WRITER_SHARE}}", f"{100*costs['write_tests']['cost_usd']/total_usd:.0f}")
         .replace("{{GEN_KILLED}}", str(gen["killed"])).replace("{{CHECKED}}", str(gen["checked"]))

@@ -66,6 +66,10 @@ the human gate; Oleg's answer file resumes it (below).
 
 ## Waiting on Oleg
 
+- **The exploration plan** (`docs/exploration.md`, sections 10 to 15 of the architecture page):
+  yes, no, or reorder its three tracks; what the factory at work runs on; whether linkding's
+  Docker image may stand for the deployed environment.
+
 - **The gate of the first run.** Read
   `docs/runs/2026-10-08-linkding-sort-by-modified/question.md`, the two test files and the six
   cases beside it. To approve, write `.artifacts/runs/linkding-sort-by-modified/answer.json` with
@@ -84,8 +88,7 @@ the human gate; Oleg's answer file resumes it (below).
 
 ## Next
 
-0. Oleg names the use cases he has in mind; each is placed on the architecture page and in
-   `docs/architecture.md` before anything is built for it.
+0. On Oleg's yes, the exploration tracks in `docs/exploration.md`, track 1 first.
 
 1. Close the first run (the gate above), then run a second ticket end to end without a stop for
    anything but the gate: the "Filter bundles by reading or sharing state" commit (573b6f5) is

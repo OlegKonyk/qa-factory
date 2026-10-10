@@ -3,6 +3,47 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-10 · A UI to observe the factory, Restate, the feature loop, and an exploration period
+
+> This is really, really interesting stuff. I will spend more time on it later today. Overall, I
+> like where we are moving. I want to ask for a couple more things. I would like to start having
+> some skin for this whole thing so I can start observing stuff. A colleague recently brought this
+> up. https://restate.dev/ How useful it would be for our use case.
+>
+> Also, the major question that everyone has every time I start talking about the software
+> factory that we are building is: my current plan is that every repo that we're going to be
+> dealing with will be agent-friendly. That's the basis: it needs to be capable of authoring
+> end-to-end tests that can be trusted and then executing those end-to-end tests on the deployed
+> environment eventually. It's going to be the same. I don't know how to do it.
+>
+> Imagine that we are putting up a small feature, a straightforward small feature. The
+> implementation part of the factory will implement the feature. Then, the time for QA stuff:
+> regression plus new coverage. Is it the same session, or is it happening in parallel as the
+> feature is being developed? That can also be useful. How to organize that loop is my question.
+>
+> I would like to rely on the results of reputable companies. A lot of people are doing the same
+> crap these days, so I want to make sure that you scan the internets and help me adopt some good
+> ideas. I would like to find something that is ready out of the box and useful for these kinds of
+> use cases on the QA side of things.
+>
+> Let's approach it from this angle as well, plus the questions that I asked you. I would like to
+> run this experimentation and exploration for a little while. Let me know if this sounds like a
+> plan.
+
+How it was read:
+
+- "Some skin" is read as a UI on top of the factory, the brief's "with a UI on top": a place to
+  watch runs, steps and gates. Restate is named by him, so its usefulness is assessed by name
+  (rule 2 allows it).
+- These are the use cases he had in mind (`docs/architecture.md`): observing the factory; every
+  repository agent-friendly, able to author trusted end-to-end tests and run them against a
+  deployed environment; and the loop for a small feature: does QA (regression plus new coverage)
+  run after implementation in the same session, or in parallel while the feature is built.
+- He asks for a scan of what reputable companies publish and for ready-made QA pieces, then an
+  exploration period. Research stays short and labelled (rule 5); each exploration track has to
+  end in something that runs on a real application (rules 3, 4, 6), so the period does not repeat
+  the lab. The plan and its questions go to him; he decides (rule 8).
+
 ## 2026-10-10 · A visual walkthrough of the architecture, then his use cases and how they scale
 
 > Cool. Now you need to create some visuals for me and a good artifact so I can consume the
