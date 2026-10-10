@@ -1,0 +1,62 @@
+{
+  "structured": {
+    "tests": [
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bookmark_sort_modified_api.py",
+        "name": "test_list_bookmarks_sort_modified_asc",
+        "covers": [
+          "AC1"
+        ],
+        "reason": "Developers only unit-tested queries.py. Nothing checks the REST `sort` parameter. Create 3 bookmarks whose date_modified order differs from date_added order (set via setup_bookmark with explicit dates). Assert GET /api/bookmarks/?sort=modified_asc returns ids oldest-modified first. It would fail under the default added-desc order."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bookmark_sort_modified_api.py",
+        "name": "test_list_bookmarks_sort_modified_desc",
+        "covers": [
+          "AC2"
+        ],
+        "reason": "Same fixture. Assert sort=modified_desc returns the most recently modified first, and that this order differs from both modified_asc and the default order."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bookmark_sort_modified_api.py",
+        "name": "test_list_archived_bookmarks_sort_modified_asc_and_desc",
+        "covers": [
+          "AC4"
+        ],
+        "reason": "The archived endpoint /api/bookmarks/archived/ is a separate view and is not covered by the developers' tests. Create archived bookmarks with distinct date_modified values that differ from the added order. Assert both modified_asc and modified_desc order them correctly. Also include one non-archived bookmark to check it is excluded."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bookmark_sort_modified_api.py",
+        "name": "test_list_bookmarks_unknown_sort_falls_back_to_default_order",
+        "covers": [
+          "AC5"
+        ],
+        "reason": "Assert sort=bogus returns 200 and the default order (date_added descending), which differs from the modified order in the fixture. Locks the fallback so the new values do not break it."
+      },
+      {
+        "surface": "browser",
+        "file": "bookmarks/tests_e2e/e2e_test_bookmark_sort_modified.py",
+        "name": "test_sort_dropdown_offers_and_applies_modified_options",
+        "covers": [
+          "AC3",
+          "AC4"
+        ],
+        "reason": "Covers the user-visible path with one test. Open the bookmark list and check the sort dropdown has 'Modified \u2191' and 'Modified \u2193'. Select each and assert the rendered bookmark titles reorder by modification date, using a fixture where this differs from the added order. Repeat the dropdown check on the archived page for the UI half of AC4. No sleeps. Wait on Playwright expectations."
+      }
+    ],
+    "placement_reason": "The strategy puts most coverage at API level in bookmarks/tests/test_<feature>_api.py, so the four API tests (AC1, AC2, AC4 API, AC5) go in one new file, test_bookmark_sort_modified_api.py. They use LinkdingApiTestCase and BookmarkFactoryMixin. The developers' only tests are the unit tests in test_queries.py (which the test writer does not add to), so the REST `sort` parameter and the archived endpoint are untested. The user-visible dropdown (AC3, and the UI side of AC4) is one browser test in a new file, bookmarks/tests_e2e/e2e_test_bookmark_sort_modified.py, using LinkdingE2ETestCase. Browser tests are slow, so that one test is the only one. Every fixture makes the modified order differ from the default added order, so each test fails without the feature for a behavioural reason. I have not run any of these."
+  },
+  "text": "{\"tests\":[{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bookmark_sort_modified_api.py\",\"name\":\"test_list_bookmarks_sort_modified_asc\",\"covers\":[\"AC1\"],\"reason\":\"Developers only unit-tested queries.py. Nothing checks the REST `sort` parameter. Create 3 bookmarks whose date_modified order differs from date_added order (set via setup_bookmark with explicit dates). Assert GET /api/bookmarks/?sort=modified_asc returns ids oldest-modified first. It would fail under the default added-desc order.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bookmark_sort_modified_api.py\",\"name\":\"test_list_bookmarks_sort_modified_desc\",\"covers\":[\"AC2\"],\"reason\":\"Same fixture. Assert sort=modified_desc returns the most recently modified first, and that this order differs from both modified_asc and the default order.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bookmark_sort_modified_api.py\",\"name\":\"test_list_archived_bookmarks_sort_modified_asc_and_desc\",\"covers\":[\"AC4\"],\"reason\":\"The archived endpoint /api/bookmarks/archived/ is a separate view and is not covered by the developers' tests. Create archived bookmarks with distinct date_modified values that differ from the added order. Assert both modified_asc and modified_desc order them correctly. Also include one non-archived bookmark to check it is excluded.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bookmark_sort_modified_api.py\",\"name\":\"test_list_bookmarks_unknown_sort_falls_back_to_default_order\",\"covers\":[\"AC5\"],\"reason\":\"Assert sort=bogus returns 200 and the default order (date_added descending), which differs from the modified order in the fixture. Locks the fallback so the new values do not break it.\"},{\"surface\":\"browser\",\"file\":\"bookmarks/tests_e2e/e2e_test_bookmark_sort_modified.py\",\"name\":\"test_sort_dropdown_offers_and_applies_modified_options\",\"covers\":[\"AC3\",\"AC4\"],\"reason\":\"Covers the user-visible path with one test. Open the bookmark list and check the sort dropdown has 'Modified \u2191' and 'Modified \u2193'. Select each and assert the rendered bookmark titles reorder by modification date, using a fixture where this differs from the added order. Repeat the dropdown check on the archived page for the UI half of AC4. No sleeps. Wait on Playwright expectations.\"}],\"placement_reason\":\"The strategy puts most coverage at API level in bookmarks/tests/test_<feature>_api.py, so the four API tests (AC1, AC2, AC4 API, AC5) go in one new file, test_bookmark_sort_modified_api.py. They use LinkdingApiTestCase and BookmarkFactoryMixin. The developers' only tests are the unit tests in test_queries.py (which the test writer does not add to), so the REST `sort` parameter and the archived endpoint are untested. The user-visible dropdown (AC3, and the UI side of AC4) is one browser test in a new file, bookmarks/tests_e2e/e2e_test_bookmark_sort_modified.py, using LinkdingE2ETestCase. Browser tests are slow, so that one test is the only one. Every fixture makes the modified order differ from the default added order, so each test fails without the feature for a behavioural reason. I have not run any of these.\"}",
+  "metrics": {
+    "cost_usd": 0.0668524,
+    "model": "claude-sonnet-5-5",
+    "turns": 4,
+    "duration_ms": 12072,
+    "input_tokens": 4,
+    "output_tokens": 1545
+  }
+}

@@ -51,6 +51,10 @@ stated as skipped. Nothing is called working until it has run here.
   is his to decide. No coined project vocabulary at all, not even defined. Show the tools and
   techniques under the hood by name and version.
 - He wants speed and visible progress on real code.
+- Every session leaves a record he can be walked through cold: `docs/status.md` (what exists),
+  `docs/log.md` (what was tried, what failed and why), `docs/decisions.md` (what was decided).
+  Nothing a later session needs stays only in a conversation or a scratch folder. When he asks to
+  sit together, explain from those and end with the choices that are his.
 
 ## Boundary: not negotiable
 

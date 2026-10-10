@@ -1,0 +1,14 @@
+[
+ {
+  "path": "bookmarks/forms.py",
+  "status": "M"
+ },
+ {
+  "path": "bookmarks/models.py",
+  "status": "M"
+ },
+ {
+  "path": "bookmarks/queries.py",
+  "status": "M"
+ }
+]

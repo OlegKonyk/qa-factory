@@ -2,7 +2,10 @@
 
 Read this first. Update it last, in the same pull request as the work.
 
-**As of 2026-10-08, after the first build session.** The first end-to-end path exists as running
+**As of 2026-10-10, after the session that persisted the state.** What was tried, including what
+failed, is in `docs/log.md`.
+
+**2026-10-08, after the first build session.** The first end-to-end path exists as running
 code and has run on linkding: a plain Python driver, six steps, one run folder per ticket, resume
 from the last finished step, and the QA step built fully. The run on the real ticket is parked at
 the human gate; Oleg's answer file resumes it (below).
@@ -10,7 +13,7 @@ the human gate; Oleg's answer file resumes it (below).
 ## Done
 
 - The repository, the planning session and the decisions (previous entry; `docs/decisions.md`).
-- **The factory, first path** (`factory/`, branch merged as `feat/first-path`):
+- **The factory, first path** (`factory/`, pull request 6, 2026-10-08):
   - `python -m factory run <ticket.json>`: the driver over frame, plan, implement, verify, review,
     ship; one JSON record per step in `.artifacts/runs/<ticket id>/steps/`; a step that needs a
     person writes `question.md` and exits 2; a re-run skips passed steps, re-runs failed ones, and
@@ -30,6 +33,11 @@ the human gate; Oleg's answer file resumes it (below).
     preparation), `app.json` (the run recipe), `strategy.md` (the rule the test writer reads), and
     the first ticket, written from upstream pull request #1363.
   - 99 factory tests (`uv run pytest`), `just check` green.
+- **One worktree pair per ticket** (pull request 7, 2026-10-10), so a run parked at a gate keeps
+  its trees while other tickets run; Review and Ship restore the generated tests from the run
+  folder if a worktree lost them. 100 factory tests.
+- **The record** (2026-10-10): `docs/log.md`, the build specs in `docs/specs/2026-10-08-first-path/`,
+  the first run's full records in `docs/runs/2026-10-08-linkding-sort-by-modified/records/`.
 - **The first run** (`docs/runs/2026-10-08-linkding-sort-by-modified/`), all numbers measured:
   - Frame 13 s, 0.03 USD; Plan 14 s, 0.07 USD (both Sonnet). Implement 0.06 s.
   - Verify 800 s, 4.90 USD: the test writer 414 s and 3.62 USD (Opus, 39 turns) wrote 4 API tests
@@ -46,6 +54,15 @@ the human gate; Oleg's answer file resumes it (below).
     ran by hand on the artifacts (above) and will run again as a step after the approval; Ship has
     run only against a fixture repository in its tests (`tests/test_ship.py`).
 
+## What lives only on this machine
+
+- `.artifacts/runs/<ticket id>/`, the run folders: what a resume needs. Gitignored, so
+  `git clean -fdx` deletes them. If one is lost, its run starts over (about 5 USD and 13 minutes
+  for the first ticket, estimated from its run). The evidence is copied to `docs/runs/`.
+- `~/Library/Caches/qa-factory/linkding/`: the clone, its environment and one worktree pair per
+  ticket. `targets/linkding/fetch.py --ticket <ticket> [--prepare-e2e]` rebuilds them; Review and
+  Ship put the generated tests back from the run folder.
+
 ## Waiting on Oleg
 
 - **The gate of the first run.** Read
@@ -57,6 +74,10 @@ the human gate; Oleg's answer file resumes it (below).
   `qa/linkding-sort-by-modified` in
   `~/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/head` and runs the
   suite. The pull-request form of the answer comes once linkding is forked under his account.
+  Review's two low findings are worth reading first: the API fixture leaves bookmark titles
+  random, and the fallback test proves no new behaviour. A decline (`"approved": false` with a
+  note) re-runs Verify from the test writer: about 5 USD and 13 minutes for a fresh draft. There
+  is no "fix these findings and re-check" round yet (Next, item 2).
 - Whether the factory at work is built on Temporal (decides the Temporal question later).
 - Whether the old lab's worktrees and laptop-only branches are kept (`docs/reference/lab.md`).
 

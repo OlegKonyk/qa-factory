@@ -1,0 +1,55 @@
+{
+  "structured": {
+    "summary": "The ticket adds two sort options, modified ascending and descending, to the bookmark list dropdown and to the `sort` parameter of the bookmarks REST API, including the archived list. The diff was empty, so I read the code instead. `models.py`, `forms.py` and `queries.py` already define `modified_asc`/`modified_desc`, with the labels 'Modified \u2191' and 'Modified \u2193'. Most criteria are testable through the API or the browser; the fallback criterion needs a decision on what \"unknown value\" means.",
+    "acceptance_criteria": [
+      {
+        "id": "AC1",
+        "text": "With several bookmarks having distinct date_modified values, GET /api/bookmarks/?sort=modified_asc returns them with date_modified in ascending order (oldest modification first).",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC2",
+        "text": "GET /api/bookmarks/?sort=modified_desc returns the same bookmarks with date_modified in descending order (most recently modified first).",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC3",
+        "text": "The bookmark list page's sort dropdown contains the options 'Modified \u2191' and 'Modified \u2193', and selecting each one reorders the displayed bookmarks by modification date ascending or descending respectively.",
+        "testable": true,
+        "surface": "browser"
+      },
+      {
+        "id": "AC4",
+        "text": "GET /api/bookmarks/archived/?sort=modified_asc and sort=modified_desc return archived bookmarks ordered by date_modified ascending and descending, and the archived list page's dropdown offers and applies both options.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC5",
+        "text": "GET /api/bookmarks/?sort=<unrecognised value> returns bookmarks in the default order (date_added descending, newest first) and does not return an error.",
+        "testable": true,
+        "surface": "api"
+      }
+    ],
+    "ambiguities": [
+      "The ticket doesn't say how a test makes date_modified differ between bookmarks. Is it set directly in the database or by editing a bookmark through the API or UI? Does editing a bookmark, archiving it, or changing its tags update date_modified?",
+      "Ties: the ticket doesn't say how bookmarks with equal date_modified are ordered, so a test must use distinct timestamps.",
+      "AC4 says 'its API' for the archived list but doesn't name the endpoint. I assume /api/bookmarks/archived/, which I did not verify.",
+      "AC5: the ticket doesn't say what counts as an unknown sort value. It could be a garbage string, an empty value or a differently cased value. It also doesn't say whether the API silently falls back or returns a 400. The web UI form uses a ChoiceField, so an invalid value there may behave differently from the API.",
+      "AC3: the ticket doesn't say whether the selected sort should persist in the user profile or the URL query string after selection. It also doesn't say whether the dropdown should show the current choice as selected.",
+      "Whether the sort combines with search, tag filters and pagination isn't stated. I assume that behaviour is unchanged, but the ticket doesn't say so.",
+      "The diff was empty. The ticket pins base and head commits but gives no change content, so the behaviour above comes from reading the head tree. The head tree already contains the modified options."
+    ]
+  },
+  "text": "{\"summary\":\"The ticket adds two sort options, modified ascending and descending, to the bookmark list dropdown and to the `sort` parameter of the bookmarks REST API, including the archived list. The diff was empty, so I read the code instead. `models.py`, `forms.py` and `queries.py` already define `modified_asc`/`modified_desc`, with the labels 'Modified \u2191' and 'Modified \u2193'. Most criteria are testable through the API or the browser; the fallback criterion needs a decision on what \\\"unknown value\\\" means.\",\"acceptance_criteria\":[{\"id\":\"AC1\",\"text\":\"With several bookmarks having distinct date_modified values, GET /api/bookmarks/?sort=modified_asc returns them with date_modified in ascending order (oldest modification first).\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC2\",\"text\":\"GET /api/bookmarks/?sort=modified_desc returns the same bookmarks with date_modified in descending order (most recently modified first).\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC3\",\"text\":\"The bookmark list page's sort dropdown contains the options 'Modified \u2191' and 'Modified \u2193', and selecting each one reorders the displayed bookmarks by modification date ascending or descending respectively.\",\"testable\":true,\"surface\":\"browser\"},{\"id\":\"AC4\",\"text\":\"GET /api/bookmarks/archived/?sort=modified_asc and sort=modified_desc return archived bookmarks ordered by date_modified ascending and descending, and the archived list page's dropdown offers and applies both options.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC5\",\"text\":\"GET /api/bookmarks/?sort=<unrecognised value> returns bookmarks in the default order (date_added descending, newest first) and does not return an error.\",\"testable\":true,\"surface\":\"api\"}],\"ambiguities\":[\"The ticket doesn't say how a test makes date_modified differ between bookmarks. Is it set directly in the database or by editing a bookmark through the API or UI? Does editing a bookmark, archiving it, or changing its tags update date_modified?\",\"Ties: the ticket doesn't say how bookmarks with equal date_modified are ordered, so a test must use distinct timestamps.\",\"AC4 says 'its API' for the archived list but doesn't name the endpoint. I assume /api/bookmarks/archived/, which I did not verify.\",\"AC5: the ticket doesn't say what counts as an unknown sort value. It could be a garbage string, an empty value or a differently cased value. It also doesn't say whether the API silently falls back or returns a 400. The web UI form uses a ChoiceField, so an invalid value there may behave differently from the API.\",\"AC3: the ticket doesn't say whether the selected sort should persist in the user profile or the URL query string after selection. It also doesn't say whether the dropdown should show the current choice as selected.\",\"Whether the sort combines with search, tag filters and pagination isn't stated. I assume that behaviour is unchanged, but the ticket doesn't say so.\",\"The diff was empty. The ticket pins base and head commits but gives no change content, so the behaviour above comes from reading the head tree. The head tree already contains the modified options.\"]}",
+  "metrics": {
+    "cost_usd": 0.030818800000000004,
+    "model": "claude-sonnet-5-5",
+    "turns": 3,
+    "duration_ms": 11128,
+    "input_tokens": 4,
+    "output_tokens": 1448
+  }
+}
