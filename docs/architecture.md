@@ -37,6 +37,11 @@ estimated.
 
 ## Use cases
 
-None recorded yet. Each one Oleg names is filed in `docs/inputs.md` and gets a card on the page:
-in his words, the points it attaches at, what exists, what is missing, which rows above it hits,
-and the questions only he can answer.
+Filed in `docs/inputs.md` on 2026-10-10; the exploration that would answer them is
+`docs/exploration.md`.
+
+| | Use case | Attaches at | Exists today | Missing | At scale |
+|---|---|---|---|---|---|
+| UC1 | Watch the factory work ("some skin ... so I can start observing stuff") | H, E | A record per step, `python -m factory status`, the question file, the static page | A live view of runs, steps and waiting gates; a view of each run's QA evidence | Tickets at once, people |
+| UC2 | Every repository agent-friendly, with trusted end-to-end tests that also run on the deployed environment | B, C, F | Trusted API and browser tests inside the app's suite | Tests that run against a deployed URL (linkding's browser tests seed data through the ORM in a test server); an agent-friendly checklist | Applications, machines |
+| UC3 | The loop for a small feature: QA after the change, or alongside it | G, D, H | QA after the change, in a fresh session reading the diff | An acceptance lane from the criteria, the join, the capped loop back to Implement | Time per ticket, retries |

@@ -8,6 +8,26 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-10 · Use cases, a scan of published practice, Restate, the exploration plan
+
+**Asked.** A UI to observe the factory; how useful Restate is; how to organize QA for a small
+feature (same session or in parallel); what reputable companies publish and what is ready-made;
+whether an exploration period sounds like a plan (`docs/inputs.md`).
+
+**Done.** His three use cases placed on the architecture page and in `docs/architecture.md`. A
+short scan, each claim labelled: Anthropic's Claude Code best practices and Restate's docs were
+read; Meta's two test-generation papers, Google's mutation testing paper, Spotify's agent
+verification post and OpenAI's harness engineering post were seen through search summaries only
+(OpenAI's page refused the fetch); Playwright's test agents docs were read. Findings: Restate is a
+single local binary with a bundled UI, human waits as promises, BSL 1.1, and default timeouts
+(1 minute inactivity, 10 minutes abort) that a 7-minute step needs raised; it shows execution, not
+QA evidence. Playwright's test agents are TypeScript only. Published practice supports tests and
+code in separate sessions and mutation on changed code. linkding's browser tests cannot run
+against a deployed URL as written, because they seed data through the ORM. The plan, three capped
+tracks, is in `docs/exploration.md` and on the page.
+
+**Not done.** No Restate code ran; no experiment ran. Both wait for his yes.
+
 ## 2026-10-10 · The architecture page
 
 **Asked.** Visuals and a page to take in the current architecture and setup, then discuss the use
