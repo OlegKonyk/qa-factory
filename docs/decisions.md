@@ -3,6 +3,25 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-10 · What the first blind runs changed in the checks, by delegation
+
+Made by the session that ran track 1, from what the run on linkding 573b6f5 showed; each can be
+overturned by a later entry.
+
+1. **The revert check puts the test helpers back too.** The copy of the old code now gets the
+   base version of every declared test-support file, not only of the changed source. The helpers
+   are part of the code before the change; with the developers' new helpers, every test of that
+   ticket failed on the old code while importing them, before any assertion. A test that needs a
+   helper argument the change added is still reported, now as the missing name it is.
+2. **The writer is blamed only for what it changed.** Files already changed before its session
+   (the preparation's `npm install`) are neither held against it nor undone.
+3. **A stronger-model call starts only with 1.50 USD or more left on the ticket.** With less, the
+   step fails on the spend cap instead of asking a person.
+4. **A third answer to the escalation question: recheck.** `{"decision": "recheck", "round": n}`
+   runs the checks again on round n's tests with no writer call, for after a fix to the
+   environment or to the factory. When the factory itself caused the stop, the session that fixed
+   it may give this answer and records that it did; it never answers retry and never approves.
+
 ## 2026-10-10 · How Verify escalates, and what blind mode hides, by delegation
 
 Made by the session that built them, under his decision of the same day ("stronger models before

@@ -48,6 +48,15 @@ WRITER_SETTINGS = {
             "Bash(git checkout*)",
             "Bash(git reset*)",
             "Bash(git clean*)",
+            "Bash(git worktree*)",
+            "Bash(git -C*)",
+            "Bash(git stash*)",
+            "Bash(git switch*)",
+            "Bash(git restore*)",
+            "Bash(npm *)",
+            "Bash(npx *)",
+            "Bash(yarn*)",
+            "Bash(pnpm*)",
             "Bash(rm -rf*)",
         ]
     }
@@ -168,25 +177,72 @@ def _clean_tests(tree, app):
         _git(tree, "checkout", "--", *tracked)
 
 
-def _sort_status(tree, app):
-    """Undo what the writer may not do in `tree`; return (touched source, modified tests, new tests)."""
-    status_lines = _git(tree, "status", "--porcelain", "--untracked-files=all").splitlines()
+def _content(tree, path):
+    try:
+        with open(os.path.join(tree, path), "rb") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def _status(tree):
+    """(code, path) for every changed path in `tree`, read with -z so no path comes back quoted."""
+    entries = _git(tree, "status", "--porcelain", "-z", "--untracked-files=all").split("\0")
+    out, i = [], 0
+    while i < len(entries):
+        entry = entries[i]
+        i += 1
+        if len(entry) < 4:
+            continue
+        code, path = entry[:2], entry[3:]
+        if code[0] in "RC":  # a rename or copy: the next entry is the old path
+            i += 1
+        out.append((code, path))
+    return out
+
+
+def _snapshot(tree, app):
+    """What is already changed in `tree` before the writer runs, other than new tests: {path: content}.
+
+    Preparing a tree can leave files changed (`npm install` rewrote linkding's package-lock.json at
+    573b6f5), and the writer must not be blamed for them, nor may they be undone.
+    """
+    return {
+        path: _content(tree, path)
+        for code, path in _status(tree)
+        if not (code.strip() == "??" and _in_test_dirs(path, app))
+    }
+
+
+def _sort_status(tree, app, before=None):
+    """Undo what the writer may not do in `tree`; return (touched source, modified tests, new tests).
+
+    `before` is the `_snapshot` taken before the writer ran; a path changed then and not since is
+    not the writer's doing.
+    """
+    before = before or {}
     touched_source, modified_tests, new_tests = [], [], []
-    for line in status_lines:
-        code, path = line[:2], line[3:]
+    for code, path in _status(tree):
+        if path in before and before[path] == _content(tree, path):
+            continue
         if not _in_test_dirs(path, app):
             touched_source.append(path)
         elif code.strip() == "??":
             new_tests.append(path)
         else:
             modified_tests.append(path)
-    for path in touched_source:  # undo, then fail: the writer may only add tests
-        if os.path.exists(os.path.join(tree, path)) and not _git(tree, "ls-files", "--", path).strip():
+    for path in touched_source + modified_tests:  # undo, then fail: the writer may only add tests
+        if path in before:  # changed before the writer ran: put back what was there then
+            if before[path] is None:
+                if os.path.exists(os.path.join(tree, path)):
+                    os.remove(os.path.join(tree, path))
+            else:
+                with open(os.path.join(tree, path), "wb") as f:
+                    f.write(before[path])
+        elif os.path.exists(os.path.join(tree, path)) and not _git(tree, "ls-files", "--", path).strip():
             os.remove(os.path.join(tree, path))
         else:
             _git(tree, "checkout", "--", path)
-    for path in modified_tests:
-        _git(tree, "checkout", "--", path)
     return touched_source, modified_tests, new_tests
 
 
@@ -253,6 +309,7 @@ def write_tests(ctx):
         "properties": {"files": {"type": "array", "items": {"type": "string"}}, "notes": {"type": "string"}},
         "required": ["files", "notes"],
     }
+    before = _snapshot(cwd, app)
     result = headless.call(
         _writer_prompt(ctx),
         cwd=cwd,
@@ -267,7 +324,7 @@ def write_tests(ctx):
     )
     ctx["costs"][_cost_key(ctx)] = result.metrics()  # _attempt puts it in the ledger
 
-    touched_source, modified_tests, new_tests = _sort_status(cwd, app)
+    touched_source, modified_tests, new_tests = _sort_status(cwd, app, before)
     clashes = []
     if blind_fresh:  # move the new files into the change's tree and leave the base tree as it was
         for path in new_tests:
@@ -536,6 +593,38 @@ def write_cases(ctx):
     return report
 
 
+def restore_round(ctx):
+    """A recheck round's first stage: an earlier round's tests put back as they were; no writer call.
+
+    For after a fix to the environment or to the factory itself, so the same tests are judged again.
+    """
+    app, head_tree, out, n = ctx["app"], ctx["head_tree"], ctx["out"], ctx["recheck_round"]
+    source = os.path.join(out, "rounds", str(n))
+    files = list((_load(os.path.join(source, "tests_manifest.json")) or {}).get("files") or [])
+    if not files or not all(os.path.isfile(os.path.join(source, "tests", p)) for p in files):
+        raise CheckFailed(f"round {n} kept no tests to check again")
+    written = _load(os.path.join(source, "write_tests.json")) or {}
+    if written.get("status") != "pass":  # the writer's own checks: an API file, no error, no clash
+        raise CheckFailed(f"round {n}'s tests failed the writer's own checks: {written.get('reason', '')}")
+    _clean_tests(head_tree, app)
+    round_dir = os.path.join(out, "rounds", str(ctx["round"]))
+    tests_dir = os.path.join(out, "tests")
+    shutil.rmtree(tests_dir, ignore_errors=True)
+    for dest_root in (head_tree, tests_dir, os.path.join(round_dir, "tests")):
+        for path in files:
+            dest = os.path.join(dest_root, path)
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            shutil.copy2(os.path.join(source, "tests", path), dest)
+    manifest = {"files": files, "rechecked_round": n, "round": ctx["round"], "kind": "recheck"}
+    manifest_path = os.path.join(out, "tests_manifest.json")
+    _dump(manifest_path, manifest)
+    _dump(os.path.join(round_dir, "tests_manifest.json"), manifest)
+    ctx["artifacts_out"]["tests_manifest"] = manifest_path
+    ctx["artifacts_out"]["tests_dir"] = tests_dir
+    ctx["files"] = files
+    return {"files": files, "rechecked_round": n}
+
+
 ATTEMPT_CHECKS = [
     ("write_tests", write_tests),
     ("lint", run_lint),
@@ -585,6 +674,7 @@ def _context(inp, previous=None):
         "attempts": 0,
         "repaired": False,
         "guided": False,
+        "recheck_round": None,
         "round_no": max(done, default=0) + 1,
         "round": None,
         "kind": None,
@@ -645,7 +735,10 @@ def _attempt(ctx, kind, findings="", guidance=""):
     round_dir = os.path.join(ctx["out"], "rounds", str(n))
     os.makedirs(round_dir, exist_ok=True)
     summary, failure = {}, None
-    for name, check in ATTEMPT_CHECKS:
+    checks = ATTEMPT_CHECKS
+    if kind == "recheck":  # the tests of an earlier round, no writer
+        checks = [("write_tests", restore_round)] + [c for c in ATTEMPT_CHECKS if c[0] != "write_tests"]
+    for name, check in checks:
         t0 = time.time()
         try:
             entry = {"status": "pass", "result": check(ctx)}
@@ -655,7 +748,7 @@ def _attempt(ctx, kind, findings="", guidance=""):
                 entry["result"] = e.report
         secs = round(time.time() - t0, 1)
         ctx["timings"][name if kind == "write" else f"{name}.r{n}"] = secs
-        if name == "write_tests":  # the writer's call counts as a round even when its fake has no cost
+        if name == "write_tests" and kind != "recheck":  # a writer call is a round even at no cost
             metrics = ctx["costs"].get(_cost_key(ctx)) or {}
             _record(ctx, _cost_key(ctx), "write" if kind == "write" else kind, metrics)
         ctx["checks"][name] = entry
@@ -758,7 +851,7 @@ def _advise(ctx, failure, allow_retry):
         head_tree=ctx["head_tree"],
         run_dir=ctx["run_dir"],
         allow_retry=allow_retry,
-        budget_usd=ledger.budget_for(escalate.BUDGET_USD),
+        budget_usd=ledger.budget_for(escalate.BUDGET_USD, minimum=min(escalate.MIN_USD, escalate.BUDGET_USD)),
         out_path=path,
         runner=RUNNER,
     )
@@ -789,8 +882,9 @@ def _escalation_gate(ctx, failure, record):
             "question": f"Verify still fails for '{ctx['ticket']['title']}' ({failure['check']}: "
             f"{failure['reason'][:300]}) and the stronger model could not decide. Answer with "
             '{"decision": "retry", "guidance": "<what the writer should do>", "by": "Oleg"} for one '
-            'more guided round, or any other decision (for example "change_is_wrong") with a "note" '
-            "to fail the step.",
+            'more guided round; {"decision": "recheck", "round": <n>, "by": "Oleg"} to check the tests of '
+            "round n again with no writer call, after fixing the environment or the factory; or any other "
+            'decision (for example "change_is_wrong") with a "note" to fail the step.',
             "context": {
                 "kind": "escalation",
                 "failure": failure,
@@ -943,6 +1037,15 @@ def _answer(inp, report_path):
             return ended("pass", f"approved by {by}: {answer.get('note', '')}")
         return ended("fail", f"declined by {by}: {answer.get('note', '')}")
     decision = answer.get("decision")
+    if decision == "recheck":  # the environment or the factory was fixed: judge the same tests again
+        ctx = _context(inp, previous=report)
+        kinds = {r.get("kind") for r in ctx["rounds"]}
+        ctx["repaired"], ctx["guided"] = "repair" in kinds, "guided" in kinds
+        n = answer.get("round")
+        if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+            return ended("fail", f"decided by {by}: recheck without a round number (got {n!r})")
+        ctx["recheck_round"] = n
+        return _guarded(ctx, lambda: _finish(ctx, _attempt(ctx, "recheck"), RULE_VERIFY))
     if decision != "retry":
         note = answer.get("guidance") or answer.get("note") or ""
         return ended("fail", f"decided by {by}: {decision}: {note}")

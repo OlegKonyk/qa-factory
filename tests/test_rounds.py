@@ -70,3 +70,11 @@ def test_two_ledgers_on_one_folder_keep_each_others_calls(tmp_path):
     assert [e["kind"] for e in again.entries] == ["review", "review_fix", "advice", "review"]
     assert held.count("review_fix") == 1
     assert held.spent() == 8.0
+
+
+def test_budget_for_can_ask_for_a_larger_minimum(tmp_path):
+    ledger = Ledger(tmp_path, {"usd": 8.0})
+    ledger.add("verify", "write", 7.25)
+    assert ledger.budget_for(3.0) == 0.75
+    with pytest.raises(CapReached):
+        ledger.budget_for(3.0, minimum=1.5)

@@ -36,6 +36,8 @@ Its test names, fixtures and reasons are guidance. Its file names are not: the p
 
 1. Read `{api_tests_dir}/helpers.py`, `{browser_tests_dir}/helpers.py`, and one existing test file
    in each folder to learn the conventions. The application's conventions win over anything else.
+   Use the helpers only with arguments they accepted before the change: your tests are also run on
+   the code before the change, with the helpers as they were then.
 2. Write the API tests into `{api_tests_dir}/{api_test_file}` and the browser test(s) into
    `{browser_tests_dir}/{browser_test_file}`. New files only, those two names exactly.
 3. Every test must use the public surface (query strings, API JSON, visible controls), never the

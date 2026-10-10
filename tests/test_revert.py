@@ -256,3 +256,32 @@ def test_a_file_whose_name_only_ends_like_the_test_file_does_not_count():
     rec = record(files=["/r/bookmarks/tests/old_test_x.py"])
 
     assert revert.classify(rec, "test_x.py", []) == "crash"
+
+
+def test_the_test_helpers_go_back_to_the_base_version_too(trees):
+    # The change added a name to app.py and the developers' helpers started using it, as linkding's
+    # commit 573b6f5 did; with the head's helpers every test would fail on import, not on an assertion.
+    head, base, work = trees
+    (head / "app.py").write_text(HEAD_APP + "\nDEFAULT = 0\n")
+    (head / "helpers.py").write_text(
+        "from app import DEFAULT\n\n\ndef start(value=DEFAULT):\n    return value\n"
+    )
+    (base / "helpers.py").write_text("def start(value=0):\n    return value\n")
+    (head / "test_helped.py").write_text(
+        "from app import add\nfrom helpers import start\n\n\n"
+        "def test_add():\n    assert add(start(), 2) == 2\n"
+    )
+    report = revert.run(
+        head_tree=head,
+        base_tree=base,
+        changed_source=[{"path": "app.py", "status": "M"}],
+        new_test_files=["test_helped.py"],
+        workdir=work,
+        python=sys.executable,
+        pytest_args=["-p", "no:cacheprovider"],
+        test_support=["helpers.py"],
+        browser_glob="e2e_test_*.py",
+        exclude_copy=[".git", "__pycache__"],
+    )
+    assert report["tests"]["test_helped.py::test_add"]["verdict"] == "proves-behaviour", report
+    assert (work / "reverted" / "helpers.py").read_text() == (base / "helpers.py").read_text()
