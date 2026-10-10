@@ -73,7 +73,7 @@ def ensure_env(repo: Path, py: Path) -> bool:
 
 
 def ensure_worktree(repo: Path, wt: Path, sha: str) -> bool:
-    name = wt.name
+    name = f"{wt.parent.name}/{wt.name}"
     if (wt / ".git").exists():
         if head_of(wt) == sha:
             ok = report(True, f"worktree {name} at {sha[:7]}")
@@ -104,7 +104,9 @@ def main() -> int:
     ap.add_argument("--ticket", help="ticket JSON; creates worktrees at its base and head commits")
     ap.add_argument("--from", dest="mirror", help="clone from this local path, then point origin at upstream")
     ap.add_argument(
-        "--prepare-e2e", action="store_true", help="build assets and install the browser in wt/head"
+        "--prepare-e2e",
+        action="store_true",
+        help="build assets and install the browser in the ticket's head worktree (needs --ticket)",
     )
     args = ap.parse_args()
 
@@ -115,12 +117,15 @@ def main() -> int:
 
     if ensure_clone(repo, args.mirror) and ensure_tag(repo):
         ensure_env(repo, py)
+    if args.prepare_e2e and not args.ticket:
+        ap.error("--prepare-e2e needs --ticket")
     if args.ticket:
+        # One worktree pair per ticket (the driver's rule), so tickets never share a tree.
         ticket = json.loads(Path(args.ticket).read_text())
         for name in ("base", "head"):
-            ensure_worktree(repo, wts / name, ticket[name])
-    if args.prepare_e2e:
-        prepare_e2e(wts / "head", py)
+            ensure_worktree(repo, wts / ticket["id"] / name, ticket[name])
+        if args.prepare_e2e:
+            prepare_e2e(wts / ticket["id"] / "head", py)
     return 1 if failures else 0
 
 

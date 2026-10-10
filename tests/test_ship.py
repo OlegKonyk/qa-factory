@@ -82,3 +82,18 @@ def test_ship_fails_when_the_suite_is_red(world):
     out = ship.run(world["inp"])
     assert out["status"] == "fail"
     assert "suite red" in out["reason"]
+
+
+def test_ship_restores_tests_missing_from_a_recreated_worktree(world, tmp_path):
+    copy = tmp_path / "run" / "verify" / "tests" / "tests"
+    copy.mkdir(parents=True)
+    (copy / "test_new.py").write_text((world["head"] / "tests" / "test_new.py").read_text())
+    (world["head"] / "tests" / "test_new.py").unlink()
+    world["inp"]["artifacts"]["tests_dir"] = str(tmp_path / "run" / "verify" / "tests")
+
+    out = ship.run(world["inp"])
+
+    assert out["status"] == "pass", out["reason"]
+    report = json.load(open(out["artifacts"]["ship_report"]))
+    assert report["restored_from_run_folder"] == ["tests/test_new.py"]
+    assert "tests/test_new.py" in git(world["head"], "show", "--name-only", "--format=", "HEAD").split()

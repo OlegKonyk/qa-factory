@@ -80,8 +80,8 @@ def test_steps_get_repo_trees_and_accumulated_artifacts(ticket_path, tmp_path):
     calls = []
     go(ticket_path, tmp_path, make_steps(calls))
     last = calls[-1][1]
-    assert last["repo"]["base_tree"] == str(tmp_path / "wt" / "base")
-    assert last["repo"]["head_tree"] == str(tmp_path / "wt" / "head")
+    assert last["repo"]["base_tree"] == str(tmp_path / "wt" / "t-1" / "base")
+    assert last["repo"]["head_tree"] == str(tmp_path / "wt" / "t-1" / "head")
     assert last["repo"]["app"]["python"] == str(Path("~/venv/bin/python").expanduser())
     assert set(last["artifacts"]) == set(STEP_NAMES[:-1])
     assert last["round"] == 1

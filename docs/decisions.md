@@ -3,6 +3,20 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-10 · One worktree pair per ticket, by delegation
+
+**Decided.** Each ticket gets its own base and head worktrees of the application, at
+`<worktrees>/<ticket id>/base` and `.../head` (`factory/driver.py`, `targets/linkding/fetch.py`).
+The first run's worktrees were moved there with `git worktree move`, untracked tests included.
+Review and Ship put back any generated test missing from the head worktree from the copy in the
+run folder (`restore_tests` in `factory/steps/ship.py`).
+
+**Reasoning.** With one shared pair per application, a second ticket checks the head worktree
+out at another commit and its Verify cleans the test folders, so a run parked at a gate would
+resume on the wrong code without its tests. A run may wait days for a person; nothing else may
+touch its trees. Cost: a second checkout and, for browser tests, a second `npm install` and build
+per ticket (`fetch.py --ticket <t> --prepare-e2e`).
+
 ## 2026-10-08 · Build decisions of the first path, made by delegation
 
 Made by the first build session under the delegation of the same day; each can be overturned by
