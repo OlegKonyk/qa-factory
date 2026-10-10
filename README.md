@@ -4,7 +4,7 @@ The QA part of an AI software factory, built as working code that runs on one ma
 the tests; deterministic tools check that they are not misleading; a person approves a readable
 version; approved tests join the regression suite.
 
-Start with `docs/status.md`. The rules are in `CLAUDE.md`, the requirements in `docs/brief.md`,
+Start with `docs/status.md`; `docs/log.md` has what each session tried. The rules are in `CLAUDE.md`, the requirements in `docs/brief.md`,
 the decisions in `docs/decisions.md`.
 
 ```

@@ -1,0 +1,15 @@
+{
+  "id": "linkding-sort-by-modified",
+  "app": "targets/linkding/app.json",
+  "base": "0837b5186979e4a52e75582bd295cc73e43d2612",
+  "head": "0490013e4f67f0d31ccd764a5cb723dcafaf4acd",
+  "title": "Add sort by modification date option",
+  "description": "The bookmark list can be sorted by the date a bookmark was added or by title. Add sorting by the date a bookmark was last modified, ascending and descending. The option is available wherever the existing sort options are: the sort dropdown of the bookmark list and the `sort` query parameter of the bookmarks REST API (`GET /api/bookmarks/?sort=modified_asc` and `sort=modified_desc`), including the archived bookmarks list. Taken from linkding pull request #1363 (upstream commit 0490013).",
+  "acceptance_criteria": [
+    "GET /api/bookmarks/?sort=modified_asc returns the user's bookmarks ordered by date_modified ascending",
+    "GET /api/bookmarks/?sort=modified_desc returns them ordered by date_modified descending",
+    "The bookmark list page offers 'Modified \u2191' and 'Modified \u2193' in the sort dropdown and selecting one reorders the list accordingly",
+    "The archived bookmarks list and its API accept the same two sort values",
+    "An unknown sort value still falls back to the default order (added, newest first)"
+  ]
+}
