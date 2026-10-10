@@ -29,6 +29,24 @@ def _field(inp, name):
     return getattr(inp, name) if hasattr(inp, name) else inp[name]
 
 
+def restore_tests(head_tree: str, manifest_files: list[str], tests_dir: str | None) -> list[str]:
+    """Put back any generated test missing from the head worktree, from the run folder's copy.
+
+    Verify leaves the tests untracked in the ticket's head worktree and keeps a copy in the run
+    folder. If the worktree was recreated (fetch.py after a wiped cache), the copy is the source.
+    Returns the paths restored.
+    """
+    restored = []
+    for rel in manifest_files:
+        target = os.path.join(head_tree, rel)
+        source = os.path.join(tests_dir, rel) if tests_dir else ""
+        if not os.path.exists(target) and source and os.path.isfile(source):
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            shutil.copy2(source, target)
+            restored.append(rel)
+    return restored
+
+
 def run(inp):
     repo, ticket, artifacts, run_dir = (_field(inp, k) for k in ("repo", "ticket", "artifacts", "run_dir"))
     app, head_tree = repo["app"], repo["head_tree"]
@@ -38,6 +56,7 @@ def run(inp):
     with open(artifacts["tests_manifest"]) as f:
         manifest = json.load(f)
     files = list(manifest["files"])
+    restored = restore_tests(head_tree, files, artifacts.get("tests_dir"))
 
     # The readable cases travel with the tests, under testcases/ at the application's root.
     cases_dir = artifacts.get("test_cases")
@@ -84,6 +103,7 @@ def run(inp):
         "branch": branch,
         "commit": sha,
         "files": files,
+        "restored_from_run_folder": restored,
         "suite": result,
         "wall_s": round(time.time() - t0, 1),
     }

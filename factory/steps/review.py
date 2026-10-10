@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from factory.headless import one_prompt
+from factory.steps.ship import restore_tests
 
 SCHEMA = {
     "type": "object",
@@ -38,6 +39,10 @@ def _test_files(inp: dict) -> str:
 
 def run(inp: dict, runner=None) -> dict:
     kwargs = {"runner": runner} if runner else {}
+    manifest = (inp.get("artifacts") or {}).get("tests_manifest")
+    if manifest and Path(manifest).is_file():  # the reviewer reads the tests in the head worktree
+        files = json.loads(Path(manifest).read_text()).get("files", [])
+        restore_tests(inp["repo"]["head_tree"], files, inp["artifacts"].get("tests_dir"))
     out = one_prompt(
         "review",
         inp,

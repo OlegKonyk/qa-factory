@@ -54,7 +54,8 @@ the human gate; Oleg's answer file resumes it (below).
   `{"approved": true, "by": "Oleg", "note": ""}` (or `false` with a note) and run
   `uv run python -m factory run targets/linkding/tickets/sort-by-modified.json`. The run then
   passes Verify, runs Review, and Ship commits the tests and cases on branch
-  `qa/linkding-sort-by-modified` in `~/Library/Caches/qa-factory/linkding/wt/head` and runs the
+  `qa/linkding-sort-by-modified` in
+  `~/Library/Caches/qa-factory/linkding/wt/linkding-sort-by-modified/head` and runs the
   suite. The pull-request form of the answer comes once linkding is forked under his account.
 - Whether the factory at work is built on Temporal (decides the Temporal question later).
 - Whether the old lab's worktrees and laptop-only branches are kept (`docs/reference/lab.md`).

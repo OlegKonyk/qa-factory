@@ -55,7 +55,8 @@ def _expand(value):
 def _load_repo(ticket: dict) -> dict:
     app_path = repo_root() / ticket["app"]  # an absolute ticket["app"] wins over the root
     app = _expand(json.loads(app_path.read_text()))
-    worktrees = Path(app["worktrees"])
+    # One worktree pair per ticket, so a second ticket never moves or cleans a parked run's trees.
+    worktrees = Path(app["worktrees"]) / ticket["id"]
     return {
         "app": app,
         "base": ticket["base"],

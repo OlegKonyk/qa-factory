@@ -3,6 +3,27 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-10 · Persist the state so a session can walk him through it
+
+> Please make sure the current state is properly persisted. Sometimes I want to sit together with
+> you so you can explain to me what we tried, what we have, and we can decide on next steps.
+
+How it was read: nothing a later session needs may live only in a conversation or a scratch
+folder. The repository has to hold what exists (`docs/status.md`), what was decided
+(`docs/decisions.md`) and also what was tried, including what failed and why, so that a fresh
+session can sit with him and explain it, then help him pick the next step. The parked run on
+linkding is part of "the current state": it has to survive whatever the next session does.
+Changed: a session log (`docs/log.md`); the build specs and the first run's records copied into
+`docs/`; one worktree pair per ticket so a second ticket cannot disturb a parked one; a line in
+`CLAUDE.md` that every session leaves that record.
+
+## 2026-10-08 · Start the first build session
+
+> let's start!
+
+How it was read: run `docs/next-session.md` as written: build the first end-to-end path and run
+it on linkding. Changed: nothing beyond that prompt; the session's result is pull request 6.
+
 ## 2026-10-08 · The plugins are the toolchain for building the factory
 
 > Hey, listen. We will be building a factory, right? That itself, I want to use those plugins
