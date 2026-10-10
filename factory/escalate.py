@@ -11,6 +11,9 @@ from factory import headless
 
 MODEL = os.environ.get("QA_FACTORY_ADVICE_MODEL", "claude-fable-5-1")
 BUDGET_USD = float(os.environ.get("QA_FACTORY_ADVICE_BUDGET", "3.00"))
+# Below this, do not start a call: it cannot finish. Measured 2026-10-10: a cold one-file call cost
+# 0.61 USD; on linkding 573b6f5 a call given 0.75 USD stopped after 4 turns at 1.10 USD, unanswered.
+MIN_USD = 1.50
 TOOLS = "Read,Glob,Grep"
 DECISIONS = ("retry", "change_is_wrong", "environment", "cannot_decide")
 

@@ -595,3 +595,144 @@ def test_the_test_cases_of_an_earlier_round_never_stay_beside_the_new_ones(tmp_p
     except verify.CheckFailed:
         pass  # no case was written; what matters is that the stale one is gone
     assert not stale.exists()
+
+
+def test_files_changed_before_the_writer_ran_are_not_blamed_on_it_nor_undone(trees, monkeypatch):
+    # fetch.py's npm install rewrote linkding's package-lock.json at 573b6f5 before any writer ran.
+    claude = FakeClaude()
+    monkeypatch.setattr(verify, "RUNNER", claude)
+    monkeypatch.setattr(verify, "ATTEMPT_CHECKS", [("write_tests", verify.write_tests)])
+    del trees["ticket"]["qa_mode"]
+    head = Path(trees["repo"]["head_tree"])
+    (head / "app.py").write_text("def add(a, b):\n    return a + b  # prepared\n")
+    (head / "build.log").write_text("made by the preparation\n")
+    ctx = verify._context(trees)
+    assert verify._attempt(ctx, "write") is None
+    assert verify._attempt(ctx, "repair", findings="F") is None
+    assert (head / "app.py").read_text().endswith("# prepared\n")
+    assert (head / "build.log").exists()
+
+
+def test_a_writer_change_to_an_already_changed_file_is_undone_back_to_what_was_there(trees, monkeypatch):
+    claude = FakeClaude()
+
+    def edits_app(argv, **kwargs):
+        (Path(kwargs["cwd"]) / "app.py").write_text("def add(a, b):\n    return 0\n")
+        return claude(argv, **kwargs)
+
+    monkeypatch.setattr(verify, "RUNNER", edits_app)
+    monkeypatch.setattr(verify, "ATTEMPT_CHECKS", [("write_tests", verify.write_tests)])
+    del trees["ticket"]["qa_mode"]
+    head = Path(trees["repo"]["head_tree"])
+    prepared = "def add(a, b):\n    return a + b  # prepared\n"
+    (head / "app.py").write_text(prepared)
+    failure = verify._attempt(verify._context(trees), "write")
+    assert failure["check"] == "write_tests" and "app.py" in failure["reason"]
+    assert (head / "app.py").read_text() == prepared
+
+
+def test_the_writer_may_not_make_worktrees_or_run_npm(trees, monkeypatch):
+    claude = FakeClaude()
+    monkeypatch.setattr(verify, "RUNNER", claude)
+    monkeypatch.setattr(verify, "ATTEMPT_CHECKS", [("write_tests", verify.write_tests)])
+    del trees["ticket"]["qa_mode"]
+    verify._attempt(verify._context(trees), "write")
+    deny = claude.calls[0]["settings"]["permissions"]["deny"]
+    assert "Bash(git worktree*)" in deny and "Bash(npm *)" in deny
+
+
+def test_too_little_left_for_the_stronger_model_fails_the_step_instead_of_asking(tmp_path, monkeypatch):
+    Fakes(monkeypatch, tmp_path, suite=["fail"])
+    advisor = Advisor(monkeypatch, "cannot_decide")
+    out = verify.run(_inp(tmp_path, {"caps": {"usd": 1.75}}))  # the writer's 0.5 leaves 1.25 < 1.50
+    assert out["status"] == "fail" and "spend cap reached" in out["reason"]
+    assert advisor.calls == []
+
+
+def _round_with_tests(tmp_path, n, body):
+    folder = tmp_path / "run" / "verify" / "rounds" / str(n)
+    (folder / "tests" / "tests").mkdir(parents=True, exist_ok=True)
+    (folder / "tests" / "tests" / "test_x.py").write_text(body)
+    (folder / "tests_manifest.json").write_text(json.dumps({"files": ["tests/test_x.py"]}))
+
+
+def test_a_recheck_answer_judges_an_earlier_rounds_tests_again_without_a_writer(tmp_path, monkeypatch):
+    inp, answer = _escalated(tmp_path, monkeypatch)
+    _round_with_tests(tmp_path, 1, "def test_x():\n    assert 'round one'\n")
+    (tmp_path / "tests").mkdir(exist_ok=True)
+    (tmp_path / "tests" / "test_x.py").write_text("def test_x():\n    assert 'a later repair'\n")
+    answer.write_text(json.dumps({"decision": "recheck", "round": 1, "by": "the session"}))
+    fakes = Fakes(monkeypatch, tmp_path)
+    cleaned = []
+    monkeypatch.setattr(verify, "_clean_tests", lambda tree, app: cleaned.append(tree))  # no git here
+    out = verify.run(inp)
+    assert out["status"] == "pass", out["reason"]
+    assert fakes.writes == []  # no writer call
+    assert cleaned == [str(tmp_path)]  # the later round's files are cleared first
+    assert (tmp_path / "tests" / "test_x.py").read_text().endswith("'round one'\n")
+    report = _report(tmp_path)
+    assert [(r["round"], r["kind"]) for r in report["rounds"]] == [(1, "write"), (2, "recheck")]
+    manifest = json.loads((tmp_path / "run" / "verify" / "rounds" / "2" / "tests_manifest.json").read_text())
+    assert manifest["rechecked_round"] == 1 and manifest["files"] == ["tests/test_x.py"]
+    assert _ledger_kinds(tmp_path) == ["write", "advice"]  # a recheck spends nothing
+
+
+def test_a_recheck_of_a_round_that_kept_no_tests_goes_to_the_stronger_model(tmp_path, monkeypatch):
+    inp, answer = _escalated(tmp_path, monkeypatch)
+    answer.write_text(json.dumps({"decision": "recheck", "round": 7, "by": "the session"}))
+    Fakes(monkeypatch, tmp_path)
+    advisor = Advisor(monkeypatch, "environment")
+    out = verify.run(inp)
+    assert out["status"] == "fail" and "environment problem" in out["reason"]
+    assert advisor.calls[0]["failure"]["reason"] == "round 7 kept no tests to check again"
+
+
+def test_a_recheck_never_takes_a_round_whose_tests_failed_the_writers_own_checks(tmp_path, monkeypatch):
+    inp, answer = _escalated(tmp_path, monkeypatch)
+    _round_with_tests(tmp_path, 1, "def test_x():\n    assert 1\n")
+    written = tmp_path / "run" / "verify" / "rounds" / "1" / "write_tests.json"
+    written.write_text(json.dumps({"status": "fail", "reason": "test writer wrote no API test file"}))
+    answer.write_text(json.dumps({"decision": "recheck", "round": 1, "by": "the session"}))
+    Fakes(monkeypatch, tmp_path)
+    advisor = Advisor(monkeypatch, "environment")
+    out = verify.run(inp)
+    assert out["status"] == "fail"
+    assert (
+        "failed the writer's own checks: test writer wrote no API test file"
+        in (advisor.calls[0]["failure"]["reason"])
+    )
+
+
+@pytest.mark.parametrize("given", [None, "latest", 0, True])
+def test_a_recheck_answer_needs_a_round_number(tmp_path, monkeypatch, given):
+    inp, answer = _escalated(tmp_path, monkeypatch)
+    answer.write_text(json.dumps({"decision": "recheck", "round": given, "by": "Oleg"}))
+    fakes = Fakes(monkeypatch, tmp_path)
+    out = verify.run(inp)
+    assert out["status"] == "fail" and "recheck without a round number" in out["reason"]
+    assert fakes.writes == [] and fakes.calls == {}
+
+
+def test_status_reads_paths_with_spaces_unquoted(tmp_path):
+    git(tmp_path, "init", "-q")
+    (tmp_path / "a b.txt").write_text("one\n")
+    (tmp_path / "old name.txt").write_text("x\n")
+    git(tmp_path, "add", ".")
+    git(tmp_path, "commit", "-q", "-m", "c")
+    (tmp_path / "a b.txt").write_text("two\n")
+    (tmp_path / "née.py").write_text("x = 1\n")
+    git(tmp_path, "mv", "old name.txt", "new name.txt")
+    assert sorted(verify._status(str(tmp_path))) == [
+        (" M", "a b.txt"),
+        ("??", "née.py"),
+        ("R ", "new name.txt"),
+    ]
+
+
+def test_a_lowered_advice_budget_still_reaches_the_stronger_model(tmp_path, monkeypatch):
+    Fakes(monkeypatch, tmp_path, suite=["fail"])
+    advisor = Advisor(monkeypatch, "environment")
+    monkeypatch.setattr(verify.escalate, "BUDGET_USD", 1.0)
+    out = verify.run(_inp(tmp_path))
+    assert out["status"] == "fail" and "environment problem" in out["reason"]
+    assert advisor.calls[0]["budget_usd"] == 1.0

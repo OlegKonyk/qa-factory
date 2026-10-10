@@ -1,8 +1,12 @@
 """The revert check: a new test must pass with the change and fail for a behaviour reason without it.
 
 Each new test file runs twice with the failure-recording pytest plugin (failsort_plugin.py): once in
-the tree at the change (head), once in a copy of that tree whose changed source files are put back
-as they were before the change (base) while the tests stay as at head. Every failure in the copy is
+the tree at the change (head), once in a copy of that tree whose changed source files and declared
+test-support files are put back as they were before the change (base) while the new tests stay as
+at head. The test helpers go back too because they belong to the code before the change: linkding's
+commit 573b6f5 changed `bookmarks/tests/helpers.py` to use a name the change adds, so with the
+head's helpers every test failed on the old code while importing them, before any assertion
+(measured 2026-10-10). Every failure in the copy is
 sorted into a cause: an assertion that fails (the test checks behaviour), a name the test needs that
 does not exist before the change (the test only proves the code is new), or anything else (a crash).
 """
@@ -121,7 +125,7 @@ def _run_tree(tree, label, files, workdir, counter, python, pytest_args, support
     return results, time.monotonic() - start, None
 
 
-def _build_reverted(head_tree, base_tree, changed_source, target, exclude_copy):
+def _build_reverted(head_tree, base_tree, changed_source, target, exclude_copy, test_support=()):
     if target.exists():
         shutil.rmtree(target)
     shutil.copytree(head_tree, target, symlinks=True, ignore=shutil.ignore_patterns(*exclude_copy))
@@ -135,6 +139,13 @@ def _build_reverted(head_tree, base_tree, changed_source, target, exclude_copy):
             shutil.copy2(Path(base_tree) / path, dest)
         else:
             raise ValueError(f"unknown change status {status!r} for {path}")
+    for path in test_support:  # the helpers as they were before the change, or gone if it added them
+        source, dest = Path(base_tree) / path, target / path
+        if source.is_file():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, dest)
+        else:
+            dest.unlink(missing_ok=True)
 
 
 def _reverted_result(nodeid, reverted):
@@ -188,7 +199,7 @@ def run(
         report["reason"] = err
         return report
 
-    _build_reverted(Path(head_tree), base_tree, changed_source, target, exclude_copy)
+    _build_reverted(Path(head_tree), base_tree, changed_source, target, exclude_copy, support)
     reverted, secs, err = _run_tree(target, "with the change reverted", *common)
     report["wall_s"]["reverted"] = round(secs, 2)
     if err:

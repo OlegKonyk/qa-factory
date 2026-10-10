@@ -84,11 +84,14 @@ class Ledger:
     def advice_left(self) -> int:
         return max(0, self.caps["advice"] - self.count("advice"))
 
-    def budget_for(self, default_usd: float) -> float:
-        """The --max-budget-usd for the next call; raises CapReached when too little is left."""
+    def budget_for(self, default_usd: float, minimum: float = MIN_CALL_USD) -> float:
+        """The --max-budget-usd for the next call; raises CapReached when less than `minimum` is left.
+
+        A call stops at the first turn that goes past its budget, so it can overshoot by one turn.
+        """
         spent, cap = self.spent(), float(self.caps["usd"])
         budget = round(min(default_usd, cap - spent), 2)
-        if budget < MIN_CALL_USD:
+        if budget < minimum:
             raise CapReached(f"spend cap reached: {spent:.2f} of {cap:.2f} USD spent on this ticket")
         return budget
 
