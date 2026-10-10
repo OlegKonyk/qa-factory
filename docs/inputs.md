@@ -3,6 +3,20 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-10 · A visual walkthrough of the architecture, then his use cases and how they scale
+
+> Cool. Now you need to create some visuals for me and a good artifact so I can consume the
+> current architecture and current setup, and discuss some more use cases that I have in my mind.
+> We're going to have to support them, and not only support but explore how that can be done in
+> a scalable way.
+
+How it was read: a published page with diagrams that explains what the factory is today (the
+flow, what happens inside Verify, how a run stops and resumes, where every piece lives, what a
+new application needs, what the first run measured) and shows honestly where today's design is
+fixed to one laptop, one ticket and one application. The use cases are his and not yet told; the
+page prepares the discussion with a way to place each one on the architecture, and records them
+as he gives them. No use case is designed or decided before he names it.
+
 ## 2026-10-10 · Persist the state so a session can walk him through it
 
 > Please make sure the current state is properly persisted. Sometimes I want to sit together with

@@ -1,0 +1,393 @@
+<title>qa-factory Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: one reading column of about 70 characters; diagrams and tables break out to a wider measure and scroll sideways on phones. */
+:root {
+  --bg: #f2f4f7; --surface: #ffffff; --ink: #18202b; --muted: #556170; --faint: #8b95a3; --line: #d6dbe3;
+  --ai: #2f56c6; --ai-tint: #e7edfc; --person: #a35f00; --person-tint: #fcefd9;
+  --pass: #1f7445; --pass-tint: #e1f2e8; --fail: #b02a21; --fail-tint: #fbe5e3; --code: #eceff4;
+  --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1218; --surface: #161b23; --ink: #e4e8ee; --muted: #9ca7b6; --faint: #6e7988; --line: #2a323e;
+  --ai: #8aa8ff; --ai-tint: #1b2540; --person: #f0a83a; --person-tint: #33260e;
+  --pass: #5cc48a; --pass-tint: #14301f; --fail: #f2786f; --fail-tint: #3a1715; --code: #1c222c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e1218; --surface: #161b23; --ink: #e4e8ee; --muted: #9ca7b6; --faint: #6e7988; --line: #2a323e;
+  --ai: #8aa8ff; --ai-tint: #1b2540; --person: #f0a83a; --person-tint: #33260e;
+  --pass: #5cc48a; --pass-tint: #14301f; --fail: #f2786f; --fail-tint: #3a1715; --code: #1c222c; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--body); padding-inline: 16px; padding-block: 0 64px; }
+.wrap { max-width: 1180px; margin: 0 auto; }
+.col { max-width: 44rem; }
+h1, h2, h3 { font-family: var(--display); font-stretch: 85%; line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.75rem; font-weight: 750; margin-bottom: 0.6rem; }
+h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem; }
+p { margin: 0 0 0.9rem; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+:not(pre) > code { background: var(--code); padding: 0.08em 0.35em; border-radius: 4px; }
+a { color: var(--ai); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--ai); outline-offset: 2px; border-radius: 4px; }
+.eyebrow { font: 600 0.72rem/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.7rem; }
+
+header.top { padding-block: 48px 28px; display: grid; gap: 18px; }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 44rem; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.chip.person i { background: var(--person); } .chip.pass i { background: var(--pass); } .chip.ai i { background: var(--ai); }
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 10px; margin-bottom: 8px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px 18px; flex-wrap: wrap; font-size: 0.85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; }
+nav.toc a:hover { color: var(--ink); }
+nav.toc b { font-family: var(--mono); font-weight: 500; color: var(--faint); margin-right: 4px; }
+
+section { padding-block: 44px 8px; border-top: 1px solid var(--line); margin-top: 28px; scroll-margin-top: 56px; }
+section:first-of-type { border-top: 0; }
+figure { margin: 22px 0 8px; }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.scroll svg.dia { display: block; width: 100%; min-width: 760px; height: auto; }
+.scroll svg.chart { display: block; width: 100%; max-width: 760px; min-width: 560px; height: auto; }
+.charts { display: grid; gap: 18px; margin-top: 18px; }
+figcaption { font-size: 0.9rem; color: var(--muted); margin-top: 10px; max-width: 48rem; }
+
+/* diagram vocabulary, shared by every figure */
+svg text { fill: var(--ink); font-family: var(--body); font-size: 12px; }
+.box { stroke-width: 1.4; }
+.box.ai { fill: var(--ai-tint); stroke: var(--ai); }
+.box.det { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box.mixed { fill: var(--ai-tint); stroke: var(--ink); stroke-width: 1.2; }
+.box.person { fill: var(--person-tint); stroke: var(--person); stroke-width: 1.8; }
+.box.io { fill: var(--surface); stroke: var(--faint); stroke-dasharray: 4 3; }
+.box.pass-box { fill: var(--pass-tint); stroke: var(--pass); }
+.box-notyet { fill: none; stroke: var(--bg); stroke-width: 2; stroke-dasharray: 3 4; }
+.frame { fill: none; stroke: var(--line); stroke-width: 1.5; }
+.band { fill: var(--bg); stroke: var(--line); }
+.label-bg { fill: var(--surface); }
+.edge, .edge-thin { stroke: var(--ink); stroke-width: 1.4; fill: none; }
+.edge-thin { stroke-width: 1; stroke: var(--muted); }
+.edge-dash { stroke: var(--faint); stroke-width: 1.4; stroke-dasharray: 5 4; fill: none; }
+.edge-fail { stroke: var(--fail); stroke-width: 1.2; }
+.rail { stroke: var(--fail); stroke-width: 2; }
+.ah { fill: var(--ink); } .ah-dim { fill: var(--faint); } .ah-fail { fill: var(--fail); } .ah-pass { fill: var(--pass); }
+.badge { fill: var(--ink); }
+.t-badge { fill: var(--surface); font: 600 10px var(--mono); }
+.t-title { font-weight: 600; font-size: 13.5px; }
+.t-sub { fill: var(--muted); font-size: 11.5px; }
+.t-mono { font-family: var(--mono); font-size: 11px; }
+.t-hand { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+.t-warn { font-size: 10.5px; fill: var(--fail); font-style: italic; }
+.t-park { font-size: 11px; font-weight: 600; fill: var(--person); }
+.t-band { font-size: 12px; fill: var(--muted); }
+.t-legend { font-size: 11.5px; fill: var(--muted); }
+.t-edge { font-size: 10.5px; fill: var(--muted); }
+.t-cap { font: 600 9.5px var(--body); letter-spacing: 0.1em; fill: var(--faint); }
+.t-stop { font-size: 11px; fill: var(--muted); }
+.t-move { font-family: var(--mono); font-size: 9.5px; fill: var(--faint); }
+.t-railtext { font-size: 12px; fill: var(--fail); }
+.pass-row { fill: var(--pass-tint); stroke: var(--pass); }
+.dim-row { fill: var(--bg); stroke: var(--line); }
+.fail-row { fill: var(--fail-tint); stroke: var(--fail); stroke-opacity: 0.5; }
+.t-row { font-size: 11.5px; font-weight: 500; }
+.t-rowsub { font-size: 10.5px; fill: var(--muted); }
+.t-count { font: 600 16px var(--mono); }
+/* charts */
+.grid { stroke: var(--line); stroke-width: 1; }
+.axis { stroke: var(--muted); stroke-width: 1; }
+.barfill { fill: var(--ai); }
+.hit { fill: transparent; }
+.bar:hover .barfill { fill: var(--ink); }
+.bar:hover .hit { fill: var(--bg); }
+.t-tick { fill: var(--faint); font-size: 10.5px; font-family: var(--mono); }
+.t-barlabel { font-size: 12px; fill: var(--ink); }
+.t-barval { font-size: 11.5px; fill: var(--muted); font-family: var(--mono); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; align-items: start; }
+.two > * { min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+.card h3 { margin-bottom: 8px; }
+pre { margin: 0; background: var(--code); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font: 400 12.5px/1.55 var(--mono); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+th { font: 600 0.72rem/1.2 var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.num { text-align: right; font-family: var(--mono); font-size: 0.85rem; white-space: nowrap; }
+.tag { display: inline-block; font: 600 0.7rem/1 var(--mono); padding: 4px 7px; border-radius: 5px; background: var(--ink); color: var(--surface); }
+.state { display: inline-block; font-size: 0.78rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.s-pass { background: var(--pass-tint); color: var(--pass); }
+.s-skip { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.s-gate { background: var(--person-tint); color: var(--person); }
+.s-next { background: transparent; color: var(--faint); border: 1px dashed var(--faint); }
+.s-none { color: var(--faint); }
+.casebox table { font-size: 0.85rem; }
+.casebox ul { margin: 6px 0 12px; padding-left: 1.1rem; font-size: 0.88rem; color: var(--muted); }
+.meta { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
+.empty { border: 1.5px dashed var(--faint); border-radius: 12px; padding: 22px; background: var(--surface); }
+.empty .tmpl { margin-top: 14px; opacity: 0.75; }
+.dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 0.9rem; }
+.dl dt { color: var(--muted); } .dl dd { margin: 0; }
+ol.decide { padding-left: 1.3rem; margin: 0; display: grid; gap: 10px; }
+ol.decide li::marker { font-family: var(--mono); color: var(--person); }
+.note { font-size: 0.85rem; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">qa-factory · as of 10 October 2026</div>
+  <h1>qa-factory Architecture</h1>
+  <p class="lede">A ticket goes in. Claude Code writes the API and browser tests, deterministic tools check that each test is not misleading, you approve a readable version, and the approved tests join the application's own suite. This page shows how it is built today and where it is fixed to one laptop, one ticket and one application, so we can place your use cases on it.</p>
+  <div class="chips">
+    <span class="chip person"><i></i>First run parked at your approval</span>
+    <span class="chip pass"><i></i>100 factory tests green</span>
+    <span class="chip ai"><i></i>One application so far: linkding 1.47.0</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections"><ol>
+  <li><a href="#flow"><b>1</b>The flow</a></li>
+  <li><a href="#verify"><b>2</b>Inside Verify</a></li>
+  <li><a href="#proof"><b>3</b>Proving a test</a></li>
+  <li><a href="#approve"><b>4</b>What you approve</a></li>
+  <li><a href="#runs"><b>5</b>Stop and resume</a></li>
+  <li><a href="#lives"><b>6</b>Where it lives</a></li>
+  <li><a href="#numbers"><b>7</b>The first run</a></li>
+  <li><a href="#points"><b>8</b>Extension points</a></li>
+  <li><a href="#limits"><b>9</b>Where it is fixed</a></li>
+  <li><a href="#usecases"><b>10</b>Your use cases</a></li>
+  <li><a href="#decide"><b>11</b>Yours to decide</a></li>
+</ol></nav>
+
+<section id="flow">
+  <div class="col">
+    <div class="eyebrow">1 · The flow</div>
+    <h2>Seven steps, one stop for you</h2>
+    <p>The driver runs the steps in order and hands each one the files the earlier steps wrote. Verify is the QA step and is built fully; the other steps are simple but real. The lettered badges mark the places a new use case would attach; section 8 lists them.</p>
+  </div>
+  <figure>
+    <div class="scroll">{{FLOW}}</div>
+    <figcaption>Three things the picture must not hide. Implement is the developers' real commit, not an agent. A failure in Verify stops the run; the loop back to Implement that the brief describes is not built. Review and Ship have tests of their own but have not yet run on linkding as steps; they wait behind your approval. The 53 s Review was run by hand on the same files.</figcaption>
+  </figure>
+</section>
+
+<section id="verify">
+  <div class="col">
+    <div class="eyebrow">2 · Inside Verify</div>
+    <h2>Cheapest check first, and any check can stop the run</h2>
+    <p>Two Claude Code sessions do the writing: one writes the tests, one writes the readable cases. Everything between them is a deterministic tool with a fixed rule. Verify ran in 13.3 minutes on the first ticket.</p>
+  </div>
+  <figure>
+    <div class="scroll">{{VERIFY}}</div>
+    <figcaption>The writer may only add new files under linkding's two test folders. Anything else it touches is reverted and the step fails. Its prompt carries the ticket, the source diff, the developers' own tests, the plan and the strategy rule in <code>targets/linkding/strategy.md</code>.</figcaption>
+  </figure>
+</section>
+
+<section id="proof">
+  <div class="col">
+    <div class="eyebrow">3 · Proving a test is not misleading</div>
+    <h2>Take the change out and the test has to fail for the right reason</h2>
+    <p>The revert check builds a second copy of the application with the old source and the new tests, runs both, and sorts every failure by its cause. Only a failed assertion counts as proof. A test that fails because a name is missing proves only that the name is new.</p>
+  </div>
+  <figure>
+    <div class="scroll">{{REVERT}}</div>
+    <figcaption>The developers' own tests for this feature fail on the old code only because a name is missing, so this check would reject them. The factory's tests fail because the order is wrong. The one test that still passes checks that an unknown sort value falls back to the default; it guards behaviour that did not change and is reported as a regression guard.</figcaption>
+  </figure>
+  <div class="col">
+    <h3>Mutation testing on the changed function</h3>
+    <p>mutmut 3.8.0 makes small edits to the function the feature touched, one at a time, and runs the tests against each. A test that fails kills the edit. On the first run, the generated API tests alone killed all {{CL_KILLED}} of {{CL_CHECKED}} edits on the changed lines and {{GEN_KILLED}} of {{CHECKED}} across the whole function. Together with the developers' tests, {{BOTH_KILLED}} of {{CHECKED}}. Scores are reported, not used as a threshold yet; the run fails only if nothing on the changed lines is killed.</p>
+  </div>
+</section>
+
+<section id="approve">
+  <div class="col">
+    <div class="eyebrow">4 · What you approve</div>
+    <h2>A readable case beside every test</h2>
+    <p>Each test gets one Markdown case in the skeleton of your signoff plugin, linted by a copy of its <code>cases.py</code>. Here is the first of six, next to the test it describes.</p>
+  </div>
+  <div class="two" style="margin-top:18px">
+    <div class="card casebox">
+      <h3>TC-bookmarks-001: API lists bookmarks least recently modified first when sorted by modified ascending</h3>
+      <div class="meta">area: bookmarks · role: user · priority: high · status: automated<br>tiles: bookmarks.sort.modified-ascending</div>
+      <strong style="font-size:0.85rem">Preconditions</strong>
+      <ul>
+        <li>The user is authenticated to the REST API with their API token</li>
+        <li>Three bookmarks: A added 2020-01-01, modified 2022-01-01; B added 2021-01-01, modified 2020-01-01; C added 2022-01-01, modified 2021-01-01</li>
+      </ul>
+      <div class="tbl"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Expected</th></tr></thead>
+        <tbody><tr><td>1</td><td>Request <code>GET /api/bookmarks/?sort=modified_asc</code></td><td>The results list exactly B, C, A in that order, not the default newest-added order C, B, A</td></tr></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>The test it describes</h3>
+      <div class="meta">bookmarks/tests/test_sort_by_modified_api.py</div>
+<pre>def test_list_bookmarks_sort_modified_asc(self):
+    self.authenticate()
+    a, b, c = self.setup_sort_fixture()
+
+    ids = self.get_result_ids(
+        reverse("linkding:bookmark-list")
+        + "?sort=modified_asc"
+    )
+
+    self.assertEqual(ids, [b.id, c.id, a.id])</pre>
+      <p class="note" style="margin-top:12px">The fixture dates make all four orders different: newest added, oldest added, modified ascending and modified descending. That is what lets the test fail on the old code for a behavioural reason.</p>
+    </div>
+  </div>
+</section>
+
+<section id="runs">
+  <div class="col">
+    <div class="eyebrow">5 · Stop and resume</div>
+    <h2>Every step leaves a record, so a run can wait for days</h2>
+    <p>Each invocation of <code>python -m factory run &lt;ticket&gt;</code> walks the six steps. A step with a passing record is skipped. A step that needs a person writes <code>question.md</code> and the run exits with code 2. Your <code>answer.json</code> is handed to that step on the next run and then moved aside, so it can never answer a later question.</p>
+  </div>
+  <div class="tbl" style="margin-top:18px">
+    <table>
+      <thead><tr><th>Invocation</th><th>Frame</th><th>Plan</th><th>Implement</th><th>Verify</th><th>Review</th><th>Ship</th><th>Exit</th></tr></thead>
+      <tbody>
+        <tr><td>8 Oct · <code>run --until implement</code></td><td><span class="state s-pass">pass 13 s</span></td><td><span class="state s-pass">pass 14 s</span></td><td><span class="state s-pass">pass</span></td><td class="s-none">stopped as asked</td><td></td><td></td><td class="num">0</td></tr>
+        <tr><td>8 Oct · <code>run</code></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-gate">question, 800 s</span></td><td></td><td></td><td class="num">2</td></tr>
+        <tr><td>10 Oct · <code>run</code>, no answer yet</td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-gate">same question</span></td><td></td><td></td><td class="num">2</td></tr>
+        <tr><td>Next · after your <code>answer.json</code></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-skip">skip</span></td><td><span class="state s-next">pass on your answer</span></td><td><span class="state s-next">runs</span></td><td><span class="state s-next">runs</span></td><td class="num">0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:10px">A failed step is re-run on the next invocation with its round number raised, and the old record is kept beside the new one.</p>
+</section>
+
+<section id="lives">
+  <div class="col">
+    <div class="eyebrow">6 · Where it lives</div>
+    <h2>One laptop, three places on disk, two services outside</h2>
+    <p>The repository holds the code and the record. The run folders hold what a resume needs and nothing else. The cache holds the application, its environment, and one pair of worktrees per ticket, so a parked run keeps its trees while another ticket runs.</p>
+  </div>
+  <figure>
+    <div class="scroll">{{LIVES}}</div>
+    <figcaption>Sizes measured on 10 October. If a run folder is lost, its run starts over. If the cache is lost, <code>targets/linkding/fetch.py --ticket &lt;ticket&gt; --prepare-e2e</code> rebuilds it, and Review and Ship put the generated tests back from the run folder.</figcaption>
+  </figure>
+</section>
+
+<section id="numbers">
+  <div class="col">
+    <div class="eyebrow">7 · The first run, measured</div>
+    <h2>{{TOTAL_MIN}} minutes and {{TOTAL_USD}} USD to your approval</h2>
+    <p>Ticket: “Add sort by modification date option”, written from linkding pull request 1363. The test writer is most of both: about half the time and {{WRITER_SHARE}}% of the spend. Every number here is from the one run; nothing is averaged.</p>
+  </div>
+  <div class="charts">
+    <figure style="margin:0">
+      <div class="scroll">{{CHART_TIME}}</div>
+      <figcaption>Time per stage, Frame through Verify. Mutation is two runs: the generated tests alone, then with the developers' tests.</figcaption>
+    </figure>
+    <figure style="margin:0">
+      <div class="scroll">{{CHART_COST}}</div>
+      <figcaption>Model spend per call. Review was run by hand once and will run again as a step after your approval.</figcaption>
+    </figure>
+  </div>
+  <div class="tbl" style="margin-top:18px">
+    <table>
+      <thead><tr><th>Stage</th><th>Tool</th><th>Result</th><th class="num">Time</th><th class="num">USD</th></tr></thead>
+      <tbody>
+        <tr><td>Frame</td><td>Claude Code, Sonnet 5.5</td><td>5 criteria, all testable</td><td class="num">13 s</td><td class="num">0.03</td></tr>
+        <tr><td>Plan</td><td>Claude Code, Sonnet 5.5</td><td>4 API tests and 1 browser test proposed</td><td class="num">14 s</td><td class="num">0.07</td></tr>
+        <tr><td>Implement</td><td>git</td><td>3 source files, 1 test file changed upstream</td><td class="num">0.06 s</td><td class="num">0</td></tr>
+        <tr><td>Write tests</td><td>Claude Code, Opus 5.5, 39 turns</td><td>4 API tests, 2 browser tests</td><td class="num">414 s</td><td class="num">3.62</td></tr>
+        <tr><td>Lint</td><td>ruff 0.14.10 + assertion check</td><td>clean</td><td class="num">0.1 s</td><td class="num">0</td></tr>
+        <tr><td>Revert check</td><td>pytest 9.0.3 + failure plugin</td><td>5 prove behaviour, 1 regression guard</td><td class="num">18 s</td><td class="num">0</td></tr>
+        <tr><td>Mutation</td><td>mutmut 3.8.0</td><td>{{CL_KILLED}}/{{CL_CHECKED}} changed lines; {{GEN_KILLED}}/{{CHECKED}} alone; {{BOTH_KILLED}}/{{CHECKED}} with developers' tests</td><td class="num">159 s</td><td class="num">0</td></tr>
+        <tr><td>App's suite</td><td>pytest, Playwright 1.62.0</td><td>1294 passed; 83 browser passed, 1 skipped</td><td class="num">93 s</td><td class="num">0</td></tr>
+        <tr><td>Test cases</td><td>Claude Code, Opus 5.5</td><td>6 cases, lint clean</td><td class="num">116 s</td><td class="num">1.28</td></tr>
+        <tr><td>Review, by hand</td><td>Claude Code, Opus 5.5</td><td>approve, 2 low findings</td><td class="num">53 s</td><td class="num">0.58</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="points">
+  <div class="col">
+    <div class="eyebrow">8 · Extension points</div>
+    <h2>Where a new use case attaches</h2>
+    <p>The letters match the badges in the flow. For each one: what it is today, and the file where a change would go.</p>
+  </div>
+  <div class="tbl" style="margin-top:18px">
+    <table>
+      <thead><tr><th></th><th>Point</th><th>Today</th><th>Where it lives</th><th>Already on the record</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag">A</span></td><td>Ticket source</td><td>A JSON file written by hand from an upstream pull request</td><td><code>targets/&lt;app&gt;/tickets/</code></td><td>Tickets written with ticket skills (brief)</td></tr>
+        <tr><td><span class="tag">B</span></td><td>Application recipe</td><td>linkding only: where it lives, its Python, its test folders, its suite commands, its strategy rule</td><td><code>targets/linkding/app.json</code>, <code>strategy.md</code>, <code>fetch.py</code></td><td>isso second; a greenfield app once the loop runs</td></tr>
+        <tr><td><span class="tag">C</span></td><td>Test surfaces</td><td>API tests through Django's test client and Playwright browser tests in Python, inside the app's own test classes</td><td><code>factory/prompts/write_tests.md</code>, the strategy rule</td><td>Mostly API, one or two browser tests per feature</td></tr>
+        <tr><td><span class="tag">D</span></td><td>Checks</td><td>Lint, revert, mutation, suite, cases, in that order; each is a function that returns a report or stops the run</td><td><code>CHECKS</code> in <code>factory/steps/verify.py</code>, <code>factory/checks/</code></td><td>Flaky quarantine and test selection when a run needs them</td></tr>
+        <tr><td><span class="tag">E</span></td><td>Gate channel</td><td><code>question.md</code> out, <code>answer.json</code> in, one approver</td><td><code>factory/driver.py</code></td><td>Approval on a pull request once the app is forked</td></tr>
+        <tr><td><span class="tag">F</span></td><td>Destination</td><td>A commit on <code>qa/&lt;ticket&gt;</code> in the local worktree, then the full suite</td><td><code>factory/steps/ship.py</code></td><td>A pull request to the app's repository</td></tr>
+        <tr><td><span class="tag">G</span></td><td>Change source</td><td>The developers' real commit</td><td><code>factory/steps/implement.py</code></td><td>An agent writes the change test-first, after the loop runs</td></tr>
+        <tr><td><span class="tag">H</span></td><td>Orchestration</td><td>One Python process, steps in order, one ticket at a time, a run folder per ticket</td><td><code>factory/driver.py</code></td><td>Temporal under the driver: deferred until the loop runs</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="col">
+    <div class="eyebrow">9 · Where it is fixed today</div>
+    <h2>What gives first as the load grows</h2>
+    <p>Facts for the scaling discussion, not proposals. Measured numbers come from the first run; anything projected is marked as an estimate.</p>
+  </div>
+  <div class="tbl" style="margin-top:18px">
+    <table>
+      <thead><tr><th>Dimension</th><th>Today</th><th>What gives first</th><th>Decided or open</th></tr></thead>
+      <tbody>
+        <tr><td>Tickets at once</td><td>One per process, in order. 13.8 min from Frame to your approval.</td><td>Two tickets need two processes and nothing schedules them. Each ticket already has its own worktrees.</td><td>Open. Temporal is deferred until the loop runs.</td></tr>
+        <tr><td>Spend per ticket</td><td>5.58 USD, 3.62 of it the test writer (Opus).</td><td>About 560 USD for 100 tickets a month (estimate: the first run times 100).</td><td>Models and caps chosen by delegation, to revisit on the numbers.</td></tr>
+        <tr><td>Time per ticket</td><td>Writer 414 s, mutation 159 s, cases 116 s, suite 93 s.</td><td>The whole suite runs every time; mutation runs twice.</td><td>Test selection by impact when a run shows the suite is slow.</td></tr>
+        <tr><td>Disk</td><td>Per ticket: head worktree 61 MB (47 MB of it node_modules), base 6 MB, run folder 48 MB. Per app: environment 294 MB. Shared: browsers 1.1 GB.</td><td>node_modules and the two app copies in each run folder grow with every ticket.</td><td>Open.</td></tr>
+        <tr><td>Applications</td><td>One. A new one needs a recipe, a strategy rule, a fetch script and tickets.</td><td>The checks assume Python: ruff, pytest, mutmut, and a pytest plugin that reads Python tracebacks.</td><td>isso second, then a greenfield app.</td></tr>
+        <tr><td>People</td><td>One approver, by file, on this laptop.</td><td>No notification and no record of who answered beyond what the file says.</td><td>Approval on pull requests, once the app is forked.</td></tr>
+        <tr><td>Retries</td><td>None. A Verify failure or a review finding stops the run.</td><td>Each retry is a full fresh Verify, about 5 USD and 13 min (estimate from the first run).</td><td>The brief's capped loop back to Implement. Not built.</td></tr>
+        <tr><td>Machines</td><td>This laptop.</td><td>Run folders and caches are local; a resume needs the run folder.</td><td>Local first is a constraint of the brief.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="usecases">
+  <div class="col">
+    <div class="eyebrow">10 · Your use cases</div>
+    <h2>Placed on the map as you name them</h2>
+  </div>
+  <div class="empty" style="margin-top:14px">
+    <p style="margin:0"><strong>No use cases recorded yet.</strong> Tell me them in any order, as rough as you like. Each one lands here as a card and is filed in <code>docs/inputs.md</code>, and this page is updated in place.</p>
+    <div class="tmpl card">
+      <div class="eyebrow" style="margin-bottom:8px">Each card will show</div>
+      <dl class="dl">
+        <dt>In your words</dt><dd>the use case, quoted</dd>
+        <dt>Attaches at</dt><dd>the extension points it touches, A to H</dd>
+        <dt>Exists today</dt><dd>what the factory already does for it</dd>
+        <dt>Missing</dt><dd>what has to be built, smallest first</dd>
+        <dt>At scale</dt><dd>which rows of section 9 it hits</dd>
+        <dt>Open for you</dt><dd>the questions only you can answer</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section id="decide">
+  <div class="col">
+    <div class="eyebrow">11 · Yours to decide</div>
+    <h2>Open now</h2>
+    <ol class="decide">
+      <li><strong>The first run's approval.</strong> Approve, and Review and Ship run for the first time on linkding. Decline with a note, and Verify starts over with a fresh draft for about 5 USD and 13 minutes. Review flagged two low findings first: the API fixture leaves bookmark titles random, and the fallback test proves no new behaviour.</li>
+      <li><strong>A fix round before you are asked.</strong> Whether Review's findings go back to the test writer once, inside the same run, before the question reaches you.</li>
+      <li><strong>Temporal at work.</strong> Whether the factory at your employer is built on it. That decides whether it goes under the driver later.</li>
+      <li><strong>The old lab's worktrees</strong> and the branches that exist only on this laptop: keep or remove.</li>
+    </ol>
+    <p class="note" style="margin-top:18px">The record behind this page is in the repository: <code>docs/status.md</code> for what exists, <code>docs/log.md</code> for what was tried, <code>docs/decisions.md</code> for what was decided, <code>docs/runs/</code> for the first run's evidence.</p>
+  </div>
+</section>
+</div>
