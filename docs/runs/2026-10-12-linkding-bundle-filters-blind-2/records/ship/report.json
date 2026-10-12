@@ -1,0 +1,87 @@
+{
+ "branch": "qa/linkding-bundle-filters-blind-2",
+ "commit": "bf01f41bb9edc9e4cc2defa17fd4a28f74dabeb2",
+ "files": [
+  "bookmarks/tests/test_bundle_filters_blind_2_api.py",
+  "bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py",
+  "testcases/bookmarks/TC-bookmarks-005.md",
+  "testcases/bookmarks/TC-bookmarks-001.md",
+  "testcases/bookmarks/TC-bookmarks-004.md",
+  "testcases/bookmarks/TC-bookmarks-003.md",
+  "testcases/bookmarks/TC-bookmarks-007.md",
+  "testcases/bookmarks/TC-bookmarks-006.md",
+  "testcases/bookmarks/TC-bookmarks-002.md"
+ ],
+ "restored_from_run_folder": [],
+ "suite": {
+  "status": "pass",
+  "runs": [
+   {
+    "args": [
+     "/Users/oleg/Library/Caches/qa-factory/linkding/repo/.venv/bin/python",
+     "-m",
+     "pytest",
+     "-p",
+     "no:cacheprovider",
+     "-n",
+     "auto",
+     "bookmarks/tests"
+    ],
+    "returncode": 0,
+    "summary": "============================ 1280 passed in 24.43s =============================",
+    "wall_s": 25.13,
+    "tail": [
+     "",
+     "........................................................................ [  5%]",
+     "........................................................................ [ 11%]",
+     "........................................................................ [ 16%]",
+     "........................................................................ [ 22%]",
+     "........................................................................ [ 28%]",
+     "........................................................................ [ 33%]",
+     "........................................................................ [ 39%]",
+     "........................................................................ [ 45%]",
+     "........................................................................ [ 50%]",
+     "........................................................................ [ 56%]",
+     "........................................................................ [ 61%]",
+     "........................................................................ [ 67%]",
+     "........................................................................ [ 73%]",
+     "........................................................................ [ 78%]",
+     "........................................................................ [ 84%]",
+     "........................................................................ [ 90%]",
+     "........................................................................ [ 95%]",
+     "........................................................                 [100%]",
+     "============================ 1280 passed in 24.43s ============================="
+    ]
+   },
+   {
+    "args": [
+     "/Users/oleg/Library/Caches/qa-factory/linkding/repo/.venv/bin/python",
+     "-m",
+     "pytest",
+     "-p",
+     "no:cacheprovider",
+     "-o",
+     "python_files=e2e_test_*.py",
+     "bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py"
+    ],
+    "returncode": 0,
+    "summary": "============================== 2 passed in 5.05s ===============================",
+    "wall_s": 5.52,
+    "tail": [
+     "============================= test session starts ==============================",
+     "platform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0",
+     "django: version: 6.0.7, settings: bookmarks.settings.dev (from ini)",
+     "rootdir: /Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-bundle-filters-blind-2/head",
+     "configfile: pytest.ini",
+     "plugins: platformdirs-4.13.0, xdist-3.8.0, django-4.11.1",
+     "collected 2 items",
+     "",
+     "bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py ..                [100%]",
+     "",
+     "============================== 2 passed in 5.05s ==============================="
+    ]
+   }
+  ]
+ },
+ "wall_s": 30.7
+}

@@ -8,6 +8,54 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-12 · Track 2 on the laptop: the cloud branch merged, Restate installed, the bundles ticket run for real
+
+**Asked.** Oleg: "let's keep going". That answered the recommendation to run the bundles ticket on
+Restate, billed to the Console API key. The session ran from the konyklabs workspace, not from a
+session started in this repository. It did step 0 onward of the laptop hand-back the cloud session
+left in `docs/status.md`.
+
+**Ran, in order** (all measured):
+
+1. *The cloud branch (pull request 16).* Rescanned with the real guard term list: 0 hits in added
+   lines, file names, commit messages and the PR text. `scripts/check.sh` gave 212 passed, 2
+   skipped. Merged as `f79a8ca`.
+2. *Restate on macOS.* `brew install restatedev/tap/restate-server restatedev/tap/restate`
+   installed 1.7.13. The server runs on `~/Library/Caches/qa-factory/restate`, and all ports were
+   free. `just check` now runs the live Restate test: 213 passed, 1 skipped.
+3. *The stand-in proof, repeated.* `stub-laptop-1` ran end to end and was answered over HTTP.
+   `stub-laptop-2` was killed with `kill -9` 4 s into Verify, and only Verify ran again.
+   - **What failed first:** a plain `pkill` (SIGTERM) did not stop the service. The step finished,
+     the process kept its port, and the restart failed with "Address already in use". Only
+     `kill -9` works.
+   - **Screenshots** of the UI were taken with Playwright's Chromium from linkding's environment,
+     headless (`docs/runs/2026-10-12-restate-laptop/`).
+4. *The key.* The Console API key went into the Keychain (`anthropic-console-key`).
+   - **First attempt:** the entry was empty (0 characters read back), because the paste into
+     `security add-generic-password -w` did not take. A `read -rs` followed by `-w "$K"` worked:
+     106 characters.
+   - **The check:** with the key, `claude auth status` reports `api_key`, and one `claude -p
+     --model haiku` call billed 0.0003 USD. Claude Code warned that the API key takes precedence
+     over the claude.ai login.
+   - Now `scripts/with-console-key.sh`.
+5. *The real ticket.* The service on 9080 was started under the key, then registered.
+   `bundle-filters-blind-2` was prepared with `fetch.py --prepare-e2e` and submitted with
+   `--engine restate`.
+   - **Verify** passed every check in round 1 (16 min 7 s) and parked at the ticket's gate.
+   - **The session answered the gate** under the 2026-10-10 decision; Oleg was not asked. The
+     answer names the session.
+   - **Review** approved with six low findings, and **Ship** committed `bf01f41`; linkding's suite
+     passed.
+   - **Totals:** 19 min 23 s and 5.44 USD (`docs/runs/2026-10-12-linkding-bundle-filters-blind-2/`).
+
+**Then:**
+- **The architecture page:** sections 12, 14 and 15 and the header were updated and republished as
+  version 7. The live version was read first, and it matched a build of `main`.
+- **Track 3:** its kickoff is in `docs/next-session.md`.
+
+**Left open.** Whether the Console shows the 5.44 USD against the API credits; that is for Oleg to
+check (`docs/status.md`, question 3).
+
 ## 2026-10-12 · Track 2, the build half, in a cloud session: the factory on Restate, and the run report
 
 **Asked.** Steps 1, 2 and 4 of `docs/next-session.md` and the text of step 5, in a cloud session

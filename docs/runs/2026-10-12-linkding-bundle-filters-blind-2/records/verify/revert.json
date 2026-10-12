@@ -1,0 +1,56 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "pass",
+  "reason": "7 of 7 tests fail on an assertion without the change",
+  "tests": {
+   "bookmarks/tests/test_bundle_filters_blind_2_api.py::BundleReadingSharingFiltersApiTestCase::test_bookmarks_by_bundle_combines_unread_shared_search_and_tags": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Lists differ: [1, 2, 3, 4] != [1]\n\nFirst list contains 3 additional elements.\nFirst extra element 1:\n2\n\n- [1, 2, 3, 4]\n+ [1]"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_2_api.py::BundleReadingSharingFiltersApiTestCase::test_bookmarks_by_bundle_filter_shared_yes_no_off": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Lists differ: [1, 2, 3, 4, 5] != [1, 2, 3]\n\nFirst list contains 2 additional elements.\nFirst extra element 3:\n4\n\n- [1, 2, 3, 4, 5]\n?         ------\n\n+ [1, 2, 3]"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_2_api.py::BundleReadingSharingFiltersApiTestCase::test_bookmarks_by_bundle_filter_unread_yes_no_off": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Lists differ: [1, 2, 3, 4, 5] != [1, 2, 3]\n\nFirst list contains 2 additional elements.\nFirst extra element 3:\n4\n\n- [1, 2, 3, 4, 5]\n?         ------\n\n+ [1, 2, 3]"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_2_api.py::BundleReadingSharingFiltersApiTestCase::test_create_and_get_bundle_with_filter_unread_and_filter_shared": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "'filter_unread' not found in {'id': 1, 'name': 'Unread unshared', 'search': 'python', 'any_tags': '', 'all_tags': '', 'excluded_tags': '', 'order': 0, 'date_created': '2026-10-12T21:22:57.402229Z', 'date_modified': '2026-10-12T21:22:57.402233Z'}"
+   },
+   "bookmarks/tests/test_bundle_filters_blind_2_api.py::BundleReadingSharingFiltersApiTestCase::test_patch_bundle_changes_filter_fields_and_keeps_others": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "'filter_unread' not found in {'id': 1, 'name': 'Patched bundle', 'search': 'python', 'any_tags': 'programming', 'all_tags': 'required', 'excluded_tags': 'excluded', 'order': 0, 'date_created': '2026-10-12T21:22:57.507673Z', 'date_modified': '2026-10-12T21:22:57.508605Z'}"
+   },
+   "bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py::BundleReadingSharingStateE2ETestCase::test_create_bundle_with_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for get_by_label(\"Reading State\")\n\nAria snapshot:\n- banner:\n  - link \"Application logo LINKDING\":\n    - /url: /\n    - img \"Application logo\"\n    - text:"
+   },
+   "bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py::BundleReadingSharingStateE2ETestCase::test_edit_bundle_reading_and_sharing_state": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for get_by_label(\"Reading State\")\n\nAria snapshot:\n- banner:\n  - link \"Application logo LINKDING\":\n    - /url: /\n    - img \"Application logo\"\n    - text:"
+   }
+  },
+  "wall_s": {
+   "head": 6.75,
+   "reverted": 13.54
+  },
+  "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/verify/revert/reverted"
+ }
+}

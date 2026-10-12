@@ -1,0 +1,5 @@
+{
+  "approved": true,
+  "by": "the laptop session, under the 2026-10-10 decision that passing work is approved without asking Oleg",
+  "note": "every Verify check passed: 7 of 7 tests fail on the old code on an assertion and pass on the change; 16 of 16 mutants on the changed lines killed"
+}

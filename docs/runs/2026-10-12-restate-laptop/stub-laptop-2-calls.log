@@ -1,0 +1,9 @@
+16:55:51 frame start pid=2938
+16:55:52 frame end pid=2938
+16:55:52 plan start pid=2938
+16:55:53 plan end pid=2938
+16:55:53 implement start pid=2938
+16:55:54 implement end pid=2938
+16:55:54 verify start pid=2938
+16:56:03 verify start pid=4350
+16:56:43 verify asks a person pid=4350

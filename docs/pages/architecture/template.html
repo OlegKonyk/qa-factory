@@ -155,14 +155,15 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 
 <div class="wrap">
 <header class="top">
-  <div class="eyebrow">qa-factory · as of 10 October 2026</div>
+  <div class="eyebrow">qa-factory · as of 12 October 2026</div>
   <h1>qa-factory Architecture</h1>
   <p class="lede">A ticket goes in. Claude Code writes the API and browser tests, deterministic tools check that each test is not misleading, you approve a readable version, and the approved tests join the application's own suite. This page shows how it is built today and where it is fixed to one laptop, one ticket and one application, so we can place your use cases on it.</p>
   <div class="chips">
     <span class="chip pass"><i></i>First ticket shipped: its tests are in linkding's suite</span>
-    <span class="chip pass"><i></i>188 factory tests green</span>
+    <span class="chip pass"><i></i>213 factory tests green</span>
     <span class="chip ai"><i></i>One application so far: linkding 1.47.0</span>
     <span class="chip pass"><i></i>Track 1 done: tests written blind, measured on two tickets</span>
+    <span class="chip pass"><i></i>Track 2 done: a real ticket ran on Restate and shipped</span>
   </div>
 </header>
 
@@ -446,28 +447,28 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="restate">
   <div class="col">
     <div class="eyebrow">12 · Restate</div>
-    <h2>Useful for watching runs and for waits that last days; it does not show the QA evidence</h2>
-    <p class="answer">Restate would replace the driver loop with a durable workflow per ticket and give you a UI on top of it. The steps, the checks and the run folder stay as they are. It is the same kind of piece as Temporal, which is deferred. Nothing at work runs a factory yet, so the choice is ours, made from running track 2.</p>
+    <h2>A crash-safe run and a page per run; the QA evidence stays in our own report</h2>
+    <p class="answer">On 12 October the bundles ticket ran through all six steps as a Restate workflow: 19 minutes, 5.44 USD, shipped. Killed in the middle of a step, the service ran only that step again after the restart. The steps, the checks and the run folder are the same as under the plain driver, which stays the default until you decide (section 15).</p>
   </div>
   <figure>
     <div class="scroll">{{RESTATE}}</div>
-    <figcaption>Everything right of the Restate server is code we already have. The new part is the factory service: about the size of today's driver, written against the Restate Python SDK.</figcaption>
+    <figcaption>Everything right of the Restate server is code we already had. The new part is the factory service, <code>factory/restate_service.py</code>: about 200 lines against the Restate Python SDK 1.0.5, run with <code>--engine restate</code>.</figcaption>
   </figure>
   <div class="tbl" style="margin-top:16px">
     <table>
-      <thead><tr><th>What we need</th><th>The plain driver today</th><th>Restate, from its documentation</th></tr></thead>
+      <thead><tr><th>What we need</th><th>The plain driver today</th><th>Restate, as run on 12 October</th></tr></thead>
       <tbody>
-        <tr><td>A run that waits days for a person</td><td>A run folder and a re-run</td><td>The workflow suspends on a promise. An HTTP call to <code>/restate/awakeables/&lt;id&gt;/resolve</code> wakes it.</td></tr>
-        <tr><td>Seeing what a run is doing</td><td><code>python -m factory status</code> and the records</td><td>A UI bundled with the server at <code>localhost:9070</code>. Its CLI and SQL views give each invocation a status such as running, backing off, or suspended while it waits on a person; what the UI shows exactly is for the spike to see. Journals are kept 24 hours after completion by default, and that is configurable.</td></tr>
-        <tr><td>Steps that run for minutes</td><td>No limit</td><td>After 1 minute without a new journal entry, Restate asks the handler to suspend, and it aborts 10 minutes later by default. Both are settable per handler in Python. Our Verify ran 800 s, so the timeouts must be raised. How a step already in progress reacts is not documented; the spike measures it.</td></tr>
-        <tr><td>A crash in the middle</td><td>A re-run resumes at the last finished step</td><td>Replay from the journal. Finished durable steps are not run again.</td></tr>
-        <tr><td>Running on this laptop</td><td>Nothing extra</td><td>One self-contained binary (<code>brew install restatedev/tap/restate-server</code>) plus our service process.</td></tr>
+        <tr><td>A run that waits days for a person</td><td>A run folder and a re-run</td><td>The run parked on the promise <code>verify-1</code>, and one HTTP call (<code>python -m factory restate answer</code>) released it. A parked run survived a restart of the service and of the Restate server.</td></tr>
+        <tr><td>Seeing what a run is doing</td><td><code>python -m factory status</code> and the records</td><td>The UI at <code>localhost:9070</code>. Each run's page lists the steps with their durations, and shows an open gate as the promise it waits on. In the list of runs, a run waiting for a person shows as Running, the same as a working one, for up to 30 minutes. Journals are kept 24 hours after completion by default.</td></tr>
+        <tr><td>Steps that run for minutes</td><td>No limit</td><td>Timeouts raised to 30 + 30 minutes, and a 16-minute Verify ran through. Measured with short timeouts: a step that outlives both is started again while the old copy still runs, so a lock per step now makes the new attempt wait.</td></tr>
+        <tr><td>A crash in the middle</td><td>A re-run resumes at the last finished step</td><td>The service was killed with <code>kill -9</code> 4 s into Verify. After the restart only Verify ran again, in the cloud and on the laptop.</td></tr>
+        <tr><td>Running on this laptop</td><td>Nothing extra</td><td>Two processes: the server (Homebrew, 1.7.13) and our service. The service ignores SIGTERM, so stopping it takes <code>kill -9</code>.</td></tr>
         <tr><td>License</td><td>Ours</td><td>Business Source License 1.1. Production use is allowed, except offering Restate as a public platform service. Each release becomes Apache 2.0 four years after it ships.</td></tr>
-        <tr><td>The QA evidence: tests, cases, verdicts, mutants</td><td>In the run folder</td><td>Not shown. The journal holds step inputs and outputs. A run report of our own is still needed for UC1.</td></tr>
+        <tr><td>The QA evidence: tests, cases, verdicts, mutants</td><td>In the run folder</td><td>Not shown. <code>python -m factory report &lt;run folder&gt;</code> writes that page: the tests and their verdicts on the old code, the readable cases, the surviving mutants, the rounds and the spend.</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note" style="margin-top:10px">Read today: the Restate repository README and LICENSE, and the docs pages on installation, service configuration, durable steps, awakeables and introspection. No Restate code has run here.</p>
+  <p class="note" style="margin-top:10px">Measured on 12 October with stand-in steps, in a cloud session and on the laptop, then with the bundles ticket for real on the laptop. The records are in <code>docs/runs/2026-10-12-*</code>.</p>
 </section>
 
 <section id="loop">
@@ -526,7 +527,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="plan">
   <div class="col">
     <div class="eyebrow">14 · Exploration plan</div>
-    <h2>Track 1 done on 10 October; track 2 runs next</h2>
+    <h2>Tracks 1 and 2 done; track 3 next</h2>
     <p class="answer">The old lab died doing exactly “explore for a while”. So each track ends with a command that runs on linkding and a measured number, inside a cap. A track that cannot show that is reported as not done, and nothing else gets scored.</p>
   </div>
   <div class="tracks">
@@ -537,10 +538,10 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
       <dl class="dl"><dt>Produced</dt><dd>Blind mode, the repair round and Fable 5.1's decisions in Verify, a run summary command, and four factory defects found and fixed.</dd><dt>Answered</dt><dd>Yes, when the ticket states the public contract.</dd><dt>Spent</dt><dd>13.96 USD of model calls, measured, against about 10 estimated</dd></dl>
     </div>
     <div class="card">
-      <div class="eyebrow">Track 2 · UC1</div>
+      <div class="eyebrow">Track 2 · UC1 · done</div>
       <h3>Watch it run</h3>
-      <p>The six steps as one Restate workflow per ticket, with the gate as a promise and the UI at <code>localhost:9070</code>. The plain driver stays the default. Add a run report generated from the run folder for the QA evidence Restate does not show.</p>
-      <dl class="dl"><dt>Produces</dt><dd>A run you can watch. The timeouts and resume-after-kill, measured.</dd><dt>Answers</dt><dd>Is Restate worth adopting here.</dd><dt>Cap</dt><dd>One session</dd></dl>
+      <p>Built in a cloud session, run on the laptop. The bundles ticket, written blind a second time, went through all six steps on Restate in 19 minutes and shipped. Killed in the middle of a step, the service ran only that step again. Section 12 has the details.</p>
+      <dl class="dl"><dt>Produced</dt><dd>The Restate workflow behind <code>--engine restate</code>, a lock per step, <code>python -m factory report</code>, and screenshots of the UI.</dd><dt>Answered</dt><dd>It works, and adds a crash-safe run and a page to watch it on. It does not show the QA evidence. Which engine is the default is your call.</dd><dt>Spent</dt><dd>5.44 USD of model calls on the Console API key, measured</dd></dl>
     </div>
     <div class="card">
       <div class="eyebrow">Track 3 · UC2</div>
@@ -555,12 +556,12 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="decide">
   <div class="col">
     <div class="eyebrow">15 · Yours to decide</div>
-    <h2>Two questions from track 1</h2>
+    <h2>Two questions</h2>
     <ol class="decide">
       <li>Will tickets at work state the public contract (field names, values, labels, routes) before coding starts? If not, Plan has to fix it first, or the blind lane will meet mismatches the two tickets here did not have.</li>
-      <li>Run the bundles ticket again from a fresh blind writer, as the run track 2 watches on Restate? About 5.5 USD (estimate): a Verify stopped at its cap cannot resume yet, and the new run would be a second blind sample of the same ticket. Recommended: yes.</li>
+      <li>Make Restate the default engine now, or keep it behind the flag through track 3? Recommended: keep it behind the flag and decide after track 3. The plain driver is simpler, and Restate's gains only matter once runs are long or many.</li>
     </ol>
-    <p style="margin-top:14px">Settled on 10 October: the first run is approved and shipped; the factory approves its own work when every check passes and will ask a stronger model before a person; nothing at work runs a factory yet, so the orchestrator is ours to choose from track 2; the old lab is kept and salvaged piece by piece; track 3 runs linkding from its Docker image on this laptop.</p>
+    <p style="margin-top:14px">Settled on 10 October: the first run is approved and shipped; the factory approves its own work when every check passes and will ask a stronger model before a person; nothing at work runs a factory yet, so the orchestrator is ours to choose from track 2; the old lab is kept and salvaged piece by piece; track 3 runs linkding from its Docker image on this laptop. Settled on 12 October: the bundles ticket ran again as track 2's real run, factory runs on the laptop bill the Console API key, and cloud sessions build.</p>
     <p class="note" style="margin-top:18px">The record behind this page is in the repository: <code>docs/status.md</code>, <code>docs/log.md</code>, <code>docs/decisions.md</code>, <code>docs/architecture.md</code>, <code>docs/exploration.md</code>, and what was salvaged from the lab in <code>docs/reference/lab.md</code>.</p>
   </div>
 </section>
