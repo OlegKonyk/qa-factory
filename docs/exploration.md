@@ -7,8 +7,86 @@ section 10 onward of https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
 | Track | State |
 |---|---|
 | 1 · The loop, measured | done 2026-10-10: results below |
-| 2 · Watch it run | next: `docs/next-session.md` |
+| 2 · Watch it run | build half done 2026-10-12 in a cloud session, results below; the real ticket runs on the laptop (`docs/status.md`, "Next, on the laptop") |
 | 3 · The deployed environment | after track 2 |
+
+## Track 2, the build half, 2026-10-12
+
+Run in a cloud session (Ubuntu 24.04 VM): no model calls, no linkding, stub steps only. The real
+ticket under Restate, the UI screenshots and the architecture page wait for the laptop. Every
+number below is measured here unless marked; the commands and their full output are in
+`docs/runs/2026-10-12-restate-stub/` (`proof.txt`, `timeouts.txt`).
+
+**What was built.** `factory/restate_service.py`, behind a flag (`python -m factory run <ticket>
+--engine restate`; the plain driver stays the default):
+
+- one Restate workflow, `factory`, per ticket, keyed by the ticket id (`--key` to pick another);
+- each of the six steps a durable step (`ctx.run`) calling `driver.run_step`, the per-step body the
+  plain driver now uses too, so both engines write the same records into the same run folder;
+- the person-gate (a ticket's `"gate": "person"`, or Verify's question for a person) a durable
+  promise, `verify-1`, `verify-2`..., resolved by `POST /factory/<key>/answer` with the same JSON
+  the answer file takes; `POST /factory/<key>/status` says which step runs and which gate is open;
+  an answer with no gate open gets HTTP 409;
+- inactivity and abort timeouts of 30 minutes each, set on the workflow (`FACTORY_RESTATE_INACTIVITY_S`
+  and `FACTORY_RESTATE_ABORT_S` override them);
+- a lock file per step in the run folder (below, finding 4);
+- `factory/stub_steps.py`: steps that sleep, log and pass, and ask at Verify like the real one;
+- `python -m factory report <run folder>`: the QA evidence page Restate does not show (tests and
+  their verdicts on the old code, readable cases, mutation and the surviving mutants, rounds, the
+  stronger model's decisions, time and spend), generated for the three committed runs as
+  `docs/runs/*/report.md`.
+
+**Install.** Restate 1.7.13 from npm (`npm install @restatedev/restate-server @restatedev/restate`,
+server and CLI, 8 s). Not needed after that, but checked: the Docker client is installed and no
+Docker daemon runs in this VM; the release binary on GitHub answered HTTP 200. On macOS, Homebrew
+(`brew install restatedev/tap/restate-server restatedev/tap/restate`). Python SDK `restate-sdk`
+1.0.5 and `hypercorn` 0.18.0 (the HTTP/2 server the SDK runs under) are dev dependencies.
+
+**What running it showed:**
+
+1. **Kill the service mid-step: it resumes from the journal, not from the start.** The service was
+   killed with `kill -9` 4 s into a 40 s Verify. Restate kept the invocation as `backing-off`
+   (5 retries in 18 s). After the restart, Frame, Plan and Implement were not run again (one
+   `start` line each in `stub_calls.log`); Verify, the step in flight, ran again from its start in
+   the new process. Restate's journal lists each step as `Run [04-verify]` and the gate as
+   `GetPromise key verify-1`. The service was back at 20:03:30 and Restate's next retry came at
+   20:03:45: the backoff, not the restart, set the delay.
+2. **Kill the Restate server while a run waits at the gate: nothing is lost.** Restarted on the same
+   data folder, the run was still at `verify-1`; the HTTP answer resumed it and it finished, the
+   answer consumed into `steps/04-verify.answer1.json` as under the plain driver.
+3. **A run parked at the gate suspends, but only after the inactivity timeout.** With a 5 s
+   inactivity timeout the invocation showed `suspended` within 10 s of parking and held no
+   connection; with the 30-minute setting a parked run keeps its connection to the service for up
+   to 30 minutes, then suspends (estimate from the scaled run). Suspended runs survive any restart.
+4. **A step longer than the timeouts runs twice at once, unless stopped.** With inactivity 5 s and
+   abort 5 s, Restate logged "Inactivity detected" 10 s into a 25 s step, closed the stream 5 s
+   later ("closed after the 'abort timeout' (5s) fired") and retried. The old attempt's thread kept
+   running in the service, so a second Verify started beside the first (`timeout-a`: Verify started
+   at 20:06:35 and again at 20:06:50, both finished). With the real steps that is two test writers in
+   one worktree and twice the spend. Fixed with a lock per step: the retried attempt waits for the
+   running one, then finds its record and skips (`timeout-a4`: one Verify, 25 s, then `skip  4
+   verify`). With inactivity 5 s and abort 60 s the same 25 s step finished on its first attempt.
+   Read from the 5 s + 5 s cut-off and the configuration's description, not measured at its edge:
+   the abort timeout is the hard limit on one step, counted after the inactivity timeout has fired
+   (where exactly a step longer than 60 s would be cut with 5 s + 60 s was not tried). On that
+   reading, 30 + 30 minutes leaves room for the longest Verify measured so far (818 s), and for one
+   with a repair round (about 25 minutes, estimate from the bundles run).
+5. **Restate retries a failing invocation 70 times, then pauses it** (`default-retry-policy` in
+   `restate-server --dump-config`: 500 ms doubling to 1 minute, `on-max-attempts = "pause"`; read
+   from the configuration, the pause not observed). A service left down for about an hour leaves the
+   run paused until someone resumes it with the CLI or the UI.
+6. **A workflow key runs once.** Restate keeps a finished workflow's result for a day by default
+   (`default-workflow-completion-retention = "1d"`); a second run of the same ticket needs another key
+   (`--key <id>.2`); its run folder is still found by the ticket id, so passed steps are skipped from
+   their records. Documentation and configuration only; a second submit of the same key was not tried.
+
+**Snags in this VM, not expected on the laptop:** no IPv6, so the server needs `--bind-ip
+127.0.0.1`; a long scratch path made the server's Unix socket path too long on restart, so
+`--listen-mode tcp`; the service ignores SIGTERM while a step thread runs, so stopping it took
+`kill -9`.
+
+**Not done here:** a real ticket under Restate, what the UI at `localhost:9070` shows (the CLI's
+`restate invocations describe` output is in `proof.txt`), and the architecture page.
 
 ## Track 1 results, 2026-10-10
 
@@ -133,7 +211,7 @@ Drawn from the sources below and from what the first run needed; item 5 is the o
 7. Lint, the suite and mutation on changed code runnable locally in minutes.
 8. Logs an agent can read when a test fails.
 
-## Restate, from its documentation (no Restate code has run here)
+## Restate, from its documentation (read 2026-10-10, before any Restate code ran; what running it showed is under "Track 2, the build half")
 
 Read on 2026-10-10: the repository README and LICENSE (github.com/restatedev/restate), and
 docs.restate.dev pages on installation, service configuration, durable steps (Python), awakeables

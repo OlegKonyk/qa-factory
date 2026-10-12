@@ -4,6 +4,12 @@ What factory sessions learned about Oleg's Claude Code plugins (`~/dev/konyklabs
 for him to carry into that project. Newest first. One entry per observation: the plugin, what was
 missing or wrong, what would have helped, and the run that showed it.
 
+## 2026-10-12 · All plugins: not available in a cloud session
+
+Cloud sessions (claude.ai/code) do not load Oleg's plugins, so the Restate build of track 2 used a
+general-purpose subagent with a written spec (`docs/specs/2026-10-12-restate-and-report/`) instead
+of `supervisor`, and no `py-testing` or `reviewing-diffs` skills.
+
 ## 2026-10-10 · supervisor: the builders and reviewers in one workflow, reviewers given the builders' reports
 
 **Plugin:** supervisor. **Run:** the escalation and blind-mode build (pull request 13).

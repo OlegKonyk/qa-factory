@@ -1,0 +1,15 @@
+20:03:03 frame start pid=2497
+20:03:04 frame end pid=2497
+20:03:04 plan start pid=2497
+20:03:05 plan end pid=2497
+20:03:05 implement start pid=2497
+20:03:06 implement end pid=2497
+20:03:06 verify start pid=2497
+20:03:45 verify start pid=3382
+20:04:25 verify asks a person pid=3382
+20:05:33 verify start pid=3382
+20:06:13 verify end pid=3382
+20:06:14 review start pid=3382
+20:06:15 review end pid=3382
+20:06:15 ship start pid=3382
+20:06:16 ship end pid=3382

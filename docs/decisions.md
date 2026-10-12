@@ -3,6 +3,28 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-12 · How the factory runs on Restate, by delegation
+
+Made by the cloud session that built track 2's service, from what the stub runs showed
+(`docs/exploration.md`, "Track 2, the build half"); each can be overturned by a later entry.
+
+1. **Both engines share one step body.** `driver.run_step` reads and writes the step records; the
+   plain driver loops over it, and the Restate workflow calls it inside each durable step. The run
+   folder stays the record a person and the run report read; Restate's journal adds the resume
+   inside one run. A side effect: `--until <step>` now also stops at a step that had already passed
+   on an earlier run, where it used to run on past it.
+2. **Inactivity and abort timeouts of 30 minutes each**, set on the workflow. The abort timeout is
+   the hard limit on one step after the inactivity timeout fires (read from a 5 s + 5 s cut-off and
+   the configuration, the edge not measured); 60 minutes in all covers a Verify with a repair round. A parked run holds a connection for up to 30 minutes before it suspends,
+   which costs nothing that matters on one laptop.
+3. **A lock per step in the run folder.** Restate retries a step it cut off while the old attempt
+   still runs; the new attempt waits for the old one and then skips from its record. Without it, a
+   step over the limit would run twice at once in one worktree.
+4. **The workflow key is the ticket id**, and `--key` names another for a second run of a ticket
+   (a key runs once). Answers go to `POST /factory/<key>/answer` with the answer file's JSON.
+5. **The plain driver stays the default** until a real ticket has run on Restate (step 3 of track 2,
+   on the laptop).
+
 ## 2026-10-10 · What the first blind runs changed in the checks, by delegation
 
 Made by the session that ran track 1, from what the run on linkding 573b6f5 showed; each can be

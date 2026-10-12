@@ -1,0 +1,162 @@
+$ FACTORY_RESTATE_INACTIVITY_S=5 FACTORY_RESTATE_ABORT_S=5 python -m factory restate serve --port 9081 --steps factory.stub_steps &
+factory workflow on :9081 (steps: factory.stub_steps, inactivity 5 s, abort 5 s)
+$ uv run --no-sync python -m factory restate register --uri http://127.0.0.1:9081 | python3 -c 'import json,sys; d=json.load(sys.stdin); print([(s["name"], s.get("inactivity_timeout"), s.get("abort_timeout")) for s in d["services"]])'
+[('factory', '5s', '5s')]
+$ date -u +%T
+20:06:34
+$ uv run --no-sync python -m factory run $S/tickets/timeout-a.json --engine restate --runs-root $S/runs
+{"key": "timeout-a", "invocationId": "inv_1dNsVVQuVBfX3P0e4JLTnl3LlF2A7spzL9", "status": "Accepted"}
+$ date -u +%T
+20:07:25
+$ cat $S/runs/timeout-a/stub_calls.log
+20:06:35 frame start pid=5473
+20:06:35 frame end pid=5473
+20:06:35 plan start pid=5473
+20:06:35 plan end pid=5473
+20:06:35 implement start pid=5473
+20:06:35 implement end pid=5473
+20:06:35 verify start pid=5473
+20:06:50 verify start pid=5473
+20:07:00 verify end pid=5473
+20:07:06 review start pid=5473
+20:07:06 review end pid=5473
+20:07:06 ship start pid=5473
+20:07:06 ship end pid=5473
+20:07:15 verify end pid=5473
+$ restate invocations list 2>/dev/null | grep -A3 'timeout-a/run'
+    restate.invocation.target: factory/timeout-a/run
+    restate.invocation.target: factory/timeout-a/run
+    restate.invocation.target: factory/timeout-a/run
+    restate.invocation.target: factory/timeout-a/run
+    restate.invocation.target: factory/timeout-a/run
+2026-10-12T20:06:45.277126Z WARN restate_invoker_impl::invocation_task::service_protocol_runner_v4
+  Inactivity detected, going to close invocation
+on rt:pp-18
+  in restate_invoker_impl::invocation_task::invoker_invocation_task
+    rpc.system: "restate"
+    rpc.service: factory
+    restate.invocation.id: inv_1dNsVVQuVBfX3P0e4JLTnl3LlF2A7spzL9
+--
+2026-10-12T20:06:50.278393Z WARN restate_invoker_impl::invocation_task::service_protocol_runner_v4
+  Response stream draining timeout!
+    restate.invocation.id: inv_1dNsVVQuVBfX3P0e4JLTnl3LlF2A7spzL9
+    deployment.id: dp_12c3YQabAyc93Bsq09cXqZb
+    deployment.service_protocol_version: 6
+on rt:pp-18
+  in restate_invoker_impl::invocation_task::invoker_invocation_task
+--
+2026-10-12T20:07:00.888999Z WARN restate_invoker_impl::invocation_task::service_protocol_runner_v4
+  Inactivity detected, going to close invocation
+on rt:pp-18
+  in restate_invoker_impl::invocation_task::invoker_invocation_task
+    rpc.system: "restate"
+    rpc.service: factory
+    restate.invocation.id: inv_1dNsVVQuVBfX3P0e4JLTnl3LlF2A7spzL9
+--- again with the per-step lock
+factory workflow on :9081 (steps: factory.stub_steps, inactivity 5 s, abort 5 s)
+$ uv run --no-sync python -m factory run $S/tickets/timeout-a2.json --engine restate --runs-root $S/runs
+{"key": "timeout-a2", "invocationId": "inv_10EVYbxFkiRK5TgmVidocN1Lh73ndGGUjs", "status": "Accepted"}
+$ cat $S/runs/timeout-a2/stub_calls.log
+20:08:12 frame start pid=5473
+20:08:12 frame end pid=5473
+20:08:12 plan start pid=5473
+20:08:12 plan end pid=5473
+20:08:12 implement start pid=5473
+20:08:12 implement end pid=5473
+20:08:12 verify start pid=5473
+20:08:27 verify start pid=5473
+20:08:37 verify end pid=5473
+20:08:44 review start pid=5473
+20:08:44 review end pid=5473
+20:08:44 ship start pid=5473
+20:08:44 ship end pid=5473
+20:08:52 verify end pid=5473
+$ curl -s localhost:8080/restate/workflow/factory/timeout-a2/output
+{"status": "pass", "step": null, "reason": "", "run_dir": "$S/runs/timeout-a2"}
+(the run above went to the old service, pid 5473, without the lock: the same double Verify as timeout-a)
+factory workflow on :9081 (steps: factory.stub_steps, inactivity 5 s, abort 5 s)
+$ uv run --no-sync python -m factory run $S/tickets/timeout-a3.json --engine restate --runs-root $S/runs
+{"key": "timeout-a3", "invocationId": "inv_14x5GmpjfdVw5KMxGgLXoJXvS4X18BDKDs", "status": "Accepted"}
+$ cat $S/runs/timeout-a3/stub_calls.log
+20:09:17 frame start pid=5473
+20:09:17 frame end pid=5473
+20:09:17 plan start pid=5473
+20:09:17 plan end pid=5473
+20:09:17 implement start pid=5473
+20:09:17 implement end pid=5473
+20:09:17 verify start pid=5473
+20:09:32 verify start pid=5473
+20:09:42 verify end pid=5473
+20:09:49 review start pid=5473
+20:09:49 review end pid=5473
+20:09:49 ship start pid=5473
+20:09:49 ship end pid=5473
+20:09:57 verify end pid=5473
+$ curl -s localhost:8080/restate/workflow/factory/timeout-a3/output
+{"status": "pass", "step": null, "reason": "", "run_dir": "$S/runs/timeout-a3"}
+$ ls $S/runs/timeout-a3/steps
+01-frame.json
+02-plan.json
+03-implement.json
+04-verify.json
+05-review.json
+06-ship.json
+(timeout-a3 also went to the old service, which ignored SIGTERM while a step thread slept; killed with -9)
+factory workflow on :9081 (steps: factory.stub_steps, inactivity 5 s, abort 5 s)
+[2026-10-12 20:10:21 +0000] [5712] [WARNING] ASGI Framework Lifespan error, continuing without Lifespan support
+[2026-10-12 20:10:21 +0000] [5712] [INFO] Running on http://127.0.0.1:9081 (CTRL + C to quit)
+$ uv run --no-sync python -m factory run $S/tickets/timeout-a4.json --engine restate --runs-root $S/runs
+{"key": "timeout-a4", "invocationId": "inv_11hedxIbqSuW7IiYdnKfNpV07P9k2dl0mn", "status": "Accepted"}
+$ cat $S/runs/timeout-a4/stub_calls.log
+20:10:26 frame start pid=5712
+20:10:26 frame end pid=5712
+20:10:26 plan start pid=5712
+20:10:26 plan end pid=5712
+20:10:26 implement start pid=5712
+20:10:26 implement end pid=5712
+20:10:26 verify start pid=5712
+20:10:51 verify end pid=5712
+20:10:51 review start pid=5712
+20:10:51 review end pid=5712
+20:10:51 ship start pid=5712
+20:10:51 ship end pid=5712
+$ curl -s localhost:8080/restate/workflow/factory/timeout-a4/output
+{"status": "pass", "step": null, "reason": "", "run_dir": "$S/runs/timeout-a4"}
+2026-10-12T20:10:36.353625Z WARN restate_invoker_impl::invocation_task::service_protocol_runner_v4
+  Inactivity detected, going to close invocation
+2026-10-12T20:10:41.354465Z WARN restate_invoker_impl::invocation_task::service_protocol_runner_v4
+  Response stream draining timeout!
+2026-10-12T20:10:41.354682Z WARN restate_invoker_impl
+    error: the invocation stream was closed after the 'abort timeout' (5s) fired.
+pass  4 verify  (25.001 s)
+skip  4 verify
+--- inactivity 5 s, abort 60 s, Verify 25 s, then a gate
+factory workflow on :9081 (steps: factory.stub_steps, inactivity 5 s, abort 60 s)
+$ uv run --no-sync python -m factory run $S/tickets/timeout-b.json --engine restate --runs-root $S/runs
+{"key": "timeout-b", "invocationId": "inv_11qkyw6EJVgy0BDk0KUrClkbG3hX8xY6vE", "status": "Accepted"}
+$ cat $S/runs/timeout-b/stub_calls.log
+20:11:41 frame start pid=5779
+20:11:41 frame end pid=5779
+20:11:41 plan start pid=5779
+20:11:41 plan end pid=5779
+20:11:41 implement start pid=5779
+20:11:41 implement end pid=5779
+20:11:41 verify start pid=5779
+20:12:06 verify asks a person pid=5779
+$ restate invocations list 2>/dev/null | grep -B1 -A3 'timeout-b/run'
+  ❯ [2026-10-12 20:11:41.841 +00:00] inv_11qkyw6EJVgy0BDk0KUrClkbG3hX8xY6vE
+     Target:      factory/timeout-b/run                                                                              
+     Status:      suspended  (10 seconds and 106 ms. The key will not be released until this invocation is complete) 
+     Deployment:  dp_12c3YQabAyc93Bsq09cXqZb [required]                                                              
+
+$ curl -s -X POST localhost:8080/factory/timeout-b/answer -H 'content-type: application/json' -d '{"approved": true, "by": "Oleg"}'
+{"resolved": "verify-1", "step": "verify"}
+$ curl -s localhost:8080/restate/workflow/factory/timeout-b/attach
+{"status": "pass", "step": null, "reason": "", "run_dir": "$S/runs/timeout-b"}
+$ tail -6 $S/runs/timeout-b/stub_calls.log
+20:12:28 verify start pid=5779
+20:12:53 verify end pid=5779
+20:12:53 review start pid=5779
+20:12:53 review end pid=5779
+20:12:53 ship start pid=5779
+20:12:53 ship end pid=5779

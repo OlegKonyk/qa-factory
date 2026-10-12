@@ -8,6 +8,65 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-12 · Track 2, the build half, in a cloud session: the factory on Restate, and the run report
+
+**Asked.** Steps 1, 2 and 4 of `docs/next-session.md` and the text of step 5, in a cloud session
+(claude.ai/code, an Ubuntu 24.04 x86_64 VM, a fresh clone): install Restate, build the workflow
+behind a flag, prove it with stub steps (end to end, kill mid-step, a gate answered over HTTP),
+build the run report. The real ticket, the UI screenshots and the architecture page stay for the
+laptop.
+
+**The cloud differences, as measured here** (the next cloud session starts from these):
+
+1. *No plugins.* None of Oleg's plugins is installed; the report was built by a general-purpose
+   subagent from a written spec (`docs/specs/2026-10-12-restate-and-report/r1-report.md`).
+2. *No `just`, no Homebrew.* `uv sync` then `scripts/check.sh` works. Tests that need the linkding
+   clone skip (`test_lint.py`: "the linkding clone is absent"), as does the slow mutation test.
+3. *No guard term list.* `hooks/guard.sh` prints "WARN: ... missing or empty, so the term scan was
+   skipped" and passes; `core.hooksPath` is not even set in a fresh clone. So the pull request is
+   opened and **not merged**: a laptop session rescans the branch with the real list and merges.
+4. *No GraphQL for GitHub.* The pull request was opened with the session's GitHub tool, not `gh pr`.
+5. *No model calls.* None was made: no `python -m factory run` on a real ticket, no `claude -p`.
+   Model spend of the factory in this session: 0 USD.
+6. *Network.* npm and PyPI reachable. The Restate server came from npm on the first try
+   (`@restatedev/restate-server` 1.7.13, 8 s); the Docker client is installed but no Docker daemon
+   runs (`failed to connect to the docker API at unix:///var/run/docker.sock`); the GitHub release
+   binary answered HTTP 200 but was not needed. The VM has no IPv6: the server's first start failed
+   binding `[::]:8080` ("Address family not supported by protocol") until `--bind-ip 127.0.0.1`.
+
+**Ran, in order** (all numbers measured; commands and output in `docs/runs/2026-10-12-restate-stub/`):
+
+1. *Install:* the npm packages for the server and CLI into `~/restate`; `uv add --dev restate-sdk
+   hypercorn` (1.0.5 and 0.18.0; the SDK does not pull in an HTTP server).
+2. *Build:* `driver.run_step` factored out of the driver's loop, unchanged in behaviour except
+   `--until` (decisions, 2026-10-12); `factory/restate_service.py`, `factory/stub_steps.py`, the
+   `--engine restate` flag and `python -m factory restate serve|register|answer`. In parallel, a
+   subagent built `python -m factory report` from its spec; reviewed and accepted as delivered.
+3. *First start of the service failed:* the SDK evaluates handler annotations at registration, so
+   `restate` has to be imported at module level, not inside a function.
+4. *End to end with a kill:* stub ticket, Verify 40 s, gate set. Killed the service 4 s into
+   Verify; restarted it; only Verify ran again. Killed the Restate server while the run waited at
+   the gate; its restart first failed on a Unix socket path too long for the scratch folder, then
+   came up with `--listen-mode tcp` and the run was still waiting. Answered over HTTP; Review and
+   Ship ran; result `pass`; a second answer got 409.
+5. *Timeouts at seconds scale:* inactivity 5 s and abort 5 s cut a 25 s step off at 15 s, and
+   Restate's retry ran a second Verify beside the first. Fixed with a lock per step and re-run: one
+   Verify. The fix was first "re-run" twice on the old service, which had ignored SIGTERM and kept
+   the port (the new one exited); `kill -9` and a check of the port fixed that. Inactivity 5 s and
+   abort 60 s: the 25 s step finished on its first attempt, and the parked run showed `suspended`.
+6. *Tests:* 11 with a fake Restate context (steps, gate and replay, a declined answer, a failing
+   step, a step that raises, the answer handler, the lock, the timeouts, the command line), one
+   against a real server (kill mid-step, gate, HTTP answer, 409; 9 s), 12 for the report, one for
+   `--until`. The lock test was checked to fail without the lock. 212 factory tests.
+7. *A mistake on the way:* `pkill -f 'factory restate serve'` matched the shell running it and
+   killed that too; the service died as intended, the transcript of that command was lost, and the
+   rest kills by process id.
+
+**Not done.** Step 3 (a real ticket under Restate), the UI screenshots, the architecture page's
+sections 12 and 14 and its republish: all need the laptop. The branch is
+`claude/restate-driver-k4pqfg`, not `feat/<slug>`: the cloud session may push only to the branch
+it was given.
+
 ## 2026-10-10 · Track 1: the feature loop measured, and what it found in the factory
 
 **Asked.** Track 1 of `docs/exploration.md`: can QA start as soon as the ticket is ready? Tests

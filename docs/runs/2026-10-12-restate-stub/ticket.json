@@ -1,0 +1,9 @@
+{
+  "id": "restate-stub-1",
+  "app": "docs/runs/2026-10-12-restate-stub/app.json",
+  "base": "none",
+  "head": "none",
+  "title": "Prove the Restate workflow with stub steps",
+  "gate": "person",
+  "stub": {"sleep_s": {"frame": 1, "plan": 1, "implement": 1, "verify": 40, "review": 1, "ship": 1}}
+}

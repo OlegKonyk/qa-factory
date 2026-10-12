@@ -7,7 +7,9 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "hypercorn>=0.17",
     "pytest>=9.0",
+    "restate-sdk[serde]>=1.0.5",
     "ruff>=0.14",
 ]
 
@@ -16,6 +18,7 @@ testpaths = ["tests"]
 addopts = "-p no:cacheprovider -q"
 markers = [
     "linkding: needs the factory's own linkding clone; skipped when it is absent",
+    "restate: needs restate-server (RESTATE_SERVER or on PATH); skipped when it is absent",
 ]
 
 [tool.ruff]
