@@ -1,0 +1,218 @@
+$ date -u +%T
+20:03:03
+$ uv run --no-sync python -m factory run docs/runs/2026-10-12-restate-stub/ticket.json --engine restate --runs-root $S/runs
+{"key": "restate-stub-1", "invocationId": "inv_10ALH3VwZM3D7KSceHEOxEv3eb9dtWTHKs", "status": "Accepted"}
+$ cat $S/runs/restate-stub-1/stub_calls.log
+20:03:03 frame start pid=2497
+20:03:04 frame end pid=2497
+20:03:04 plan start pid=2497
+20:03:05 plan end pid=2497
+20:03:05 implement start pid=2497
+20:03:06 implement end pid=2497
+20:03:06 verify start pid=2497
+$ curl -s -X POST localhost:8080/factory/restate-stub-1/status
+{"step": {"index": 4, "name": "verify", "attempt": 1}, "gate": null}$ restate invocations list --all 2>/dev/null | head -20
+  ❯ [2026-10-12 20:03:09.944 +00:00] inv_10ALH3VwZM3D5u3YpzMccOd2iCb9jsLC37
+     Target:      factory/restate-stub-1/status         
+     Status:      completed with success                
+     Deployment:  dp_12K4nbe17pHnt21IJu3p2W5 [required] 
+
+  ❯ [2026-10-12 20:03:03.859 +00:00] inv_10ALH3VwZM3D7KSceHEOxEv3eb9dtWTHKs
+     Target:      factory/restate-stub-1/run                                           
+     Status:      running  (6 seconds and 164 ms)                                      
+     Deployment:  dp_12K4nbe17pHnt21IJu3p2W5 [required] using restate-sdk-python/1.0.5 
+
+$ date -u +%T
+20:03:10
+$ pkill -9 -f 'factory restate serve'   # kill the service mid-Verify
+(the service was killed with kill -9 at 20:03:10, 4 s into Verify's 40 s)
+$ date -u +%T
+20:03:25
+$ restate invocations describe inv_10ALH3VwZM3D7KSceHEOxEv3eb9dtWTHKs 2>/dev/null | head -40
+
+ Invocation Information:
+――――――――――――――――――――――――
+ Created at:   2026-10-12 20:03:03.859 +00:00 (21 seconds ago)                                                                         
+ Target:       factory/restate-stub-1/run                                                                                              
+ Status:       backing-off  (18 seconds and 211 ms. Retried 5 time(s). Next retry in in 4 seconds and 17 ms))                          
+ Deployment:   dp_12K4nbe17pHnt21IJu3p2W5 [required] using restate-sdk-python/1.0.5                                                    
+ Error:        [2026-10-12 20:03:18.872 +00:00]                                                                                        
+               [500 Internal] error when calling 'http://127.0.0.1:9080/': h2 pool connection error: Connection refused (os error 111) 
+ Caused by:    UNKNOWN                                                                                                                 
+ Modified at:  2026-10-12 20:03:06.893 +00:00                                                                                          
+
+
+ Invocation Progress:
+―――――――――――――――――――――
+[Ingress]
+ └──(this)─> factory/restate-stub-1/run
+     ▸
+     ├──── #0 [2026-10-12 20:03:03.859 +00:00] Command: Input 
+     ├──── #1 [2026-10-12 20:03:03.867 +00:00] Command: Run [prepare] 
+     ├──── #2 [2026-10-12 20:03:03.870 +00:00] Notification: Run 
+     ├──── #3 [2026-10-12 20:03:03.873 +00:00] Command: SetState key step
+     ├──── #4 [2026-10-12 20:03:03.873 +00:00] Command: Run [01-frame] 
+     ├──── #5 [2026-10-12 20:03:04.876 +00:00] Notification: Run 
+     ├──── #6 [2026-10-12 20:03:04.883 +00:00] Command: SetState key step
+     ├──── #7 [2026-10-12 20:03:04.883 +00:00] Command: Run [02-plan] 
+     ├──── #8 [2026-10-12 20:03:05.885 +00:00] Notification: Run 
+     ├──── #9 [2026-10-12 20:03:05.888 +00:00] Command: SetState key step
+     ├──── #10 [2026-10-12 20:03:05.888 +00:00] Command: Run [03-implement] 
+     ├──── #11 [2026-10-12 20:03:06.890 +00:00] Notification: Run 
+     ├──── #12 [2026-10-12 20:03:06.893 +00:00] Command: SetState key step
+     ├──── #13 [2026-10-12 20:03:06.893 +00:00] Command: Run [04-verify] 
+     └────>> backing-off
+$ date -u +%T
+20:03:30
+$ uv run --no-sync python -m factory restate serve --steps factory.stub_steps &   # restart
+$ date -u +%T
+20:04:25
+$ cat $S/runs/restate-stub-1/stub_calls.log
+20:03:03 frame start pid=2497
+20:03:04 frame end pid=2497
+20:03:04 plan start pid=2497
+20:03:05 plan end pid=2497
+20:03:05 implement start pid=2497
+20:03:06 implement end pid=2497
+20:03:06 verify start pid=2497
+20:03:45 verify start pid=3382
+20:04:25 verify asks a person pid=3382
+$ curl -s -X POST localhost:8080/factory/restate-stub-1/status
+{"step": {"index": 4, "name": "verify", "attempt": 1}, "gate": {"promise": "verify-1", "step": "verify", "question": "Approve the stub tests?"}}
+$ restate invocations describe inv_10ALH3VwZM3D7KSceHEOxEv3eb9dtWTHKs 2>/dev/null | sed -n '3,9p;/Invocation Progress/,$p'
+――――――――――――――――――――――――
+ Created at:   2026-10-12 20:03:03.859 +00:00 (a minute ago)                        
+ Target:       factory/restate-stub-1/run                                           
+ Status:       running  (40 seconds and 162 ms)                                     
+ Deployment:   dp_12K4nbe17pHnt21IJu3p2W5 [required] using restate-sdk-python/1.0.5 
+ Modified at:  2026-10-12 20:04:25.366 +00:00                                       
+
+ Invocation Progress:
+―――――――――――――――――――――
+[Ingress]
+ └──(this)─> factory/restate-stub-1/run
+     ▸
+     ├──── #0 [2026-10-12 20:03:03.859 +00:00] Command: Input 
+     ├──── #1 [2026-10-12 20:03:03.867 +00:00] Command: Run [prepare] 
+     ├──── #2 [2026-10-12 20:03:03.870 +00:00] Notification: Run 
+     ├──── #3 [2026-10-12 20:03:03.873 +00:00] Command: SetState key step
+     ├──── #4 [2026-10-12 20:03:03.873 +00:00] Command: Run [01-frame] 
+     ├──── #5 [2026-10-12 20:03:04.876 +00:00] Notification: Run 
+     ├──── #6 [2026-10-12 20:03:04.883 +00:00] Command: SetState key step
+     ├──── #7 [2026-10-12 20:03:04.883 +00:00] Command: Run [02-plan] 
+     ├──── #8 [2026-10-12 20:03:05.885 +00:00] Notification: Run 
+     ├──── #9 [2026-10-12 20:03:05.888 +00:00] Command: SetState key step
+     ├──── #10 [2026-10-12 20:03:05.888 +00:00] Command: Run [03-implement] 
+     ├──── #11 [2026-10-12 20:03:06.890 +00:00] Notification: Run 
+     ├──── #12 [2026-10-12 20:03:06.893 +00:00] Command: SetState key step
+     ├──── #13 [2026-10-12 20:03:06.893 +00:00] Command: Run [04-verify] 
+     ├──── #14 [2026-10-12 20:04:25.357 +00:00] Notification: Run 
+     ├──── #15 [2026-10-12 20:04:25.366 +00:00] Command: SetState key gate
+     ├──── #16 [2026-10-12 20:04:25.366 +00:00] Command: GetPromise key verify-1
+     └────>> running
+$ ls $S/runs/restate-stub-1/steps/
+01-frame.json
+02-plan.json
+03-implement.json
+04-verify.json
+$ tail -4 $S/runs/restate-stub-1/question.md
+
+Under Restate, answer over HTTP instead of writing the file:
+
+    curl -X POST http://localhost:8080/factory/restate-stub-1/answer -H 'content-type: application/json' -d '{"approved": true, "by": "Oleg", "note": ""}'
+$ date -u +%T
+20:04:34
+$ kill -9 <restate-server pid>   # the server dies while the run is parked
+$ restate-server --base-dir $S/restate-data --bind-ip 127.0.0.1 &   # same data folder
+$ date -u +%T
+20:05:10
+$ curl -s -X POST localhost:8080/factory/restate-stub-1/status
+
+$ restate invocations list 2>/dev/null | head -8
+$ curl -s -X POST localhost:8080/factory/restate-stub-1/answer -H 'content-type: application/json' -d '{"approved": true, "by": "Oleg", "note": "stub run"}'
+
+$ curl -s localhost:8080/restate/workflow/factory/restate-stub-1/output
+
+$ date -u +%T
+20:05:16
+$ cat $S/runs/restate-stub-1/stub_calls.log
+20:03:03 frame start pid=2497
+20:03:04 frame end pid=2497
+20:03:04 plan start pid=2497
+20:03:05 plan end pid=2497
+20:03:05 implement start pid=2497
+20:03:06 implement end pid=2497
+20:03:06 verify start pid=2497
+20:03:45 verify start pid=3382
+20:04:25 verify asks a person pid=3382
+$ ls $S/runs/restate-stub-1/steps/
+01-frame.json
+02-plan.json
+03-implement.json
+04-verify.json
+$ uv run --no-sync python -m factory status $S/runs/restate-stub-1
+1 frame pass 1.001 s
+2 plan pass 1.0 s
+3 implement pass 1.0 s
+4 verify needs_person 40.001 s
+(the first restart failed: the Unix socket path under the scratch folder is too long; --listen-mode tcp fixes it)
+$ restate-server --base-dir $S/restate-data --bind-ip 127.0.0.1 --listen-mode tcp &   # same data folder
+$ date -u +%T
+20:05:29
+$ curl -s -X POST localhost:8080/factory/restate-stub-1/status
+{"step": {"index": 4, "name": "verify", "attempt": 1}, "gate": {"promise": "verify-1", "step": "verify", "question": "Approve the stub tests?"}}
+$ restate invocations list 2>/dev/null | head -8
+  ❯ [2026-10-12 20:03:03.859 +00:00] inv_10ALH3VwZM3D7KSceHEOxEv3eb9dtWTHKs
+     Target:      factory/restate-stub-1/run                                           
+     Status:      running  (3 seconds and 588 ms)                                      
+     Deployment:  dp_12K4nbe17pHnt21IJu3p2W5 [required] using restate-sdk-python/1.0.5 
+
+$ cat $S/runs/restate-stub-1/stub_calls.log
+20:03:03 frame start pid=2497
+20:03:04 frame end pid=2497
+20:03:04 plan start pid=2497
+20:03:05 plan end pid=2497
+20:03:05 implement start pid=2497
+20:03:06 implement end pid=2497
+20:03:06 verify start pid=2497
+20:03:45 verify start pid=3382
+20:04:25 verify asks a person pid=3382
+$ curl -s -X POST localhost:8080/factory/restate-stub-1/answer -H 'content-type: application/json' -d '{"approved": true, "by": "Oleg", "note": "stub run"}'
+{"resolved": "verify-1", "step": "verify"}
+$ curl -s localhost:8080/restate/workflow/factory/restate-stub-1/attach
+{"status": "pass", "step": null, "reason": "", "run_dir": "$S/runs/restate-stub-1"}
+$ date -u +%T
+20:06:16
+$ cat $S/runs/restate-stub-1/stub_calls.log
+20:03:03 frame start pid=2497
+20:03:04 frame end pid=2497
+20:03:04 plan start pid=2497
+20:03:05 plan end pid=2497
+20:03:05 implement start pid=2497
+20:03:06 implement end pid=2497
+20:03:06 verify start pid=2497
+20:03:45 verify start pid=3382
+20:04:25 verify asks a person pid=3382
+20:05:33 verify start pid=3382
+20:06:13 verify end pid=3382
+20:06:14 review start pid=3382
+20:06:15 review end pid=3382
+20:06:15 ship start pid=3382
+20:06:16 ship end pid=3382
+$ ls $S/runs/restate-stub-1/steps/
+01-frame.json
+02-plan.json
+03-implement.json
+04-verify.answer1.json
+04-verify.json
+05-review.json
+06-ship.json
+$ uv run --no-sync python -m factory status $S/runs/restate-stub-1
+1 frame pass 1.001 s
+2 plan pass 1.0 s
+3 implement pass 1.0 s
+4 verify pass 40.001 s
+5 review pass 1.001 s
+6 ship pass 1.001 s
+$ curl -s -X POST localhost:8080/factory/restate-stub-1/answer -H 'content-type: application/json' -d '{"approved": true}'
+{"code":409,"message":"this run is not waiting for a person","source":"invocation"}

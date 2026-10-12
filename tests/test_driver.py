@@ -233,3 +233,15 @@ def test_run_dir_is_absolute_and_an_answer_is_consumed_once(tmp_path, ticket_pat
         assert (run_dir / "steps" / "04-verify.answer1.json").exists()
     finally:
         shutil.rmtree(run_dir.parent, ignore_errors=True)
+
+
+def test_until_stops_at_a_step_that_already_passed(tmp_path, ticket_path):
+    driver.run(ticket_path, runs_root=tmp_path / "runs", steps=make_steps([]), until="plan")
+    calls = []
+    out = io.StringIO()
+    code = driver.run(
+        ticket_path, runs_root=tmp_path / "runs", steps=make_steps(calls), out=out, until="plan"
+    )
+    assert code == 0
+    assert calls == []
+    assert "skip  2 plan" in out.getvalue()

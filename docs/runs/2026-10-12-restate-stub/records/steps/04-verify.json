@@ -1,0 +1,55 @@
+{
+  "step": "verify",
+  "index": 4,
+  "status": "pass",
+  "input": {
+    "ticket": {
+      "id": "restate-stub-1",
+      "app": "docs/runs/2026-10-12-restate-stub/app.json",
+      "base": "none",
+      "head": "none",
+      "title": "Prove the Restate workflow with stub steps",
+      "gate": "person",
+      "stub": {
+        "sleep_s": {
+          "frame": 1,
+          "plan": 1,
+          "implement": 1,
+          "verify": 40,
+          "review": 1,
+          "ship": 1
+        }
+      }
+    },
+    "repo": {
+      "app": {
+        "name": "stub",
+        "worktrees": "/tmp/qa-factory-stub/worktrees"
+      },
+      "base": "none",
+      "head": "none",
+      "base_tree": "/tmp/qa-factory-stub/worktrees/restate-stub-1/base",
+      "head_tree": "/tmp/qa-factory-stub/worktrees/restate-stub-1/head"
+    },
+    "artifacts": {
+      "frame": "$S/runs/restate-stub-1/frame.stub",
+      "plan": "$S/runs/restate-stub-1/plan.stub",
+      "implement": "$S/runs/restate-stub-1/implement.stub",
+      "answer": "$S/runs/restate-stub-1/answer.json"
+    },
+    "round": 1,
+    "run_dir": "$S/runs/restate-stub-1"
+  },
+  "output": {
+    "status": "pass",
+    "artifacts": {
+      "verify": "$S/runs/restate-stub-1/verify.stub"
+    },
+    "reason": "",
+    "gate": null,
+    "metrics": {}
+  },
+  "started": "2026-10-12T20:05:34+00:00",
+  "finished": "2026-10-12T20:06:14+00:00",
+  "duration_s": 40.001
+}

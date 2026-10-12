@@ -104,6 +104,96 @@ def _call(fn: StepFn, step_input: StepInput) -> StepOutput:
         )
 
 
+def prepare(ticket_path, runs_root=".artifacts/runs") -> tuple[dict, dict, Path]:
+    """Read a ticket and make its run folder. Returns (ticket, repo, run_dir)."""
+    ticket = json.loads(Path(ticket_path).read_text())
+    repo = _load_repo(ticket)
+    root = Path(runs_root)
+    if not root.is_absolute():
+        root = repo_root() / root
+    run_dir = (root / ticket["id"]).resolve()
+    (run_dir / "steps").mkdir(parents=True, exist_ok=True)
+    if not (run_dir / "ticket.json").exists():
+        _write_json(run_dir / "ticket.json", ticket)
+    return ticket, repo, run_dir
+
+
+def run_step(
+    index: int,
+    name: str,
+    fn: StepFn,
+    ticket: dict,
+    repo: dict,
+    run_dir: Path,
+    artifacts: dict,
+    out: TextIO = sys.stdout,
+) -> StepOutput:
+    """Run one step, resumable from its record in the run folder; both engines call this.
+
+    A passed record is returned without running the step. A record waiting for a person is returned
+    as it is until `answer.json` exists; then the step runs with the answer, which is consumed once.
+    A failed record becomes an earlier round and the step runs again. Every run writes the record.
+    """
+    steps_dir = run_dir / "steps"
+    record_path = steps_dir / f"{index:02d}-{name}.json"
+    answer_path = run_dir / "answer.json"
+    old: StepRecord | None = None
+    if record_path.exists():
+        old = StepRecord.from_dict(json.loads(record_path.read_text()))
+
+    if old and old.status == "pass":
+        print(f"skip  {index} {name}", file=out)
+        return old.output
+
+    if old and old.status == "needs_person" and not answer_path.exists():
+        gate = old.output.gate
+        print(f"GATE  {index} {name}: {gate.question if gate else old.output.reason}", file=out)
+        print(f"question: {run_dir / 'question.md'}", file=out)
+        return old.output
+
+    earlier = len(list(steps_dir.glob(f"{index:02d}-{name}.round*.json")))
+    if old and old.status == "fail":
+        earlier += 1
+        record_path.rename(steps_dir / f"{index:02d}-{name}.round{earlier}.json")
+    round_no = earlier + 1
+
+    step_artifacts = dict(artifacts)
+    if old and old.status == "needs_person":
+        step_artifacts["answer"] = str(answer_path)
+
+    step_input = StepInput(
+        ticket=ticket, repo=repo, artifacts=step_artifacts, round=round_no, run_dir=str(run_dir)
+    )
+    started = now_iso()
+    t0 = time.monotonic()
+    output = _call(fn, step_input)
+    duration = round(time.monotonic() - t0, 3)
+    record = StepRecord(
+        step=name,
+        index=index,
+        status=output.status,
+        input=step_input,
+        output=output,
+        started=started,
+        finished=now_iso(),
+        duration_s=duration,
+    )
+    _write_json(record_path, record.to_dict())
+    if "answer" in step_artifacts and answer_path.exists():
+        answer_path.rename(steps_dir / f"{index:02d}-{name}.answer{round_no}.json")
+
+    if output.status == "fail":
+        print(f"FAIL  {index} {name}: {output.reason}", file=out)
+    elif output.status == "needs_person":
+        question = output.gate.question if output.gate else output.reason
+        print(f"GATE  {index} {name}: {question}", file=out)
+        _write_question(run_dir, name, index, output)
+        print(f"question: {run_dir / 'question.md'}", file=out)
+    else:
+        print(f"pass  {index} {name}  ({duration} s)", file=out)
+    return output
+
+
 def run(
     ticket_path,
     runs_root=".artifacts/runs",
@@ -117,80 +207,17 @@ def run(
     """
     if until is not None and until not in STEP_NAMES:
         raise ValueError(f"unknown step {until!r}; one of {STEP_NAMES}")
-    ticket = json.loads(Path(ticket_path).read_text())
-    repo = _load_repo(ticket)
+    ticket, repo, run_dir = prepare(ticket_path, runs_root)
     steps = steps if steps is not None else load_steps()
-
-    root = Path(runs_root)
-    if not root.is_absolute():
-        root = repo_root() / root
-    run_dir = (root / ticket["id"]).resolve()
-    steps_dir = run_dir / "steps"
-    steps_dir.mkdir(parents=True, exist_ok=True)
-    if not (run_dir / "ticket.json").exists():
-        _write_json(run_dir / "ticket.json", ticket)
 
     artifacts: dict[str, str] = {}
     for index, name in enumerate(STEP_NAMES, start=1):
-        record_path = steps_dir / f"{index:02d}-{name}.json"
-        answer_path = run_dir / "answer.json"
-        old: StepRecord | None = None
-        if record_path.exists():
-            old = StepRecord.from_dict(json.loads(record_path.read_text()))
-
-        if old and old.status == "pass":
-            print(f"skip  {index} {name}", file=out)
-            artifacts.update(old.output.artifacts)
-            continue
-
-        if old and old.status == "needs_person" and not answer_path.exists():
-            gate = old.output.gate
-            print(f"GATE  {index} {name}: {gate.question if gate else old.output.reason}", file=out)
-            print(f"question: {run_dir / 'question.md'}", file=out)
-            return 2
-
-        earlier = len(list(steps_dir.glob(f"{index:02d}-{name}.round*.json")))
-        if old and old.status == "fail":
-            earlier += 1
-            record_path.rename(steps_dir / f"{index:02d}-{name}.round{earlier}.json")
-        round_no = earlier + 1
-
-        step_artifacts = dict(artifacts)
-        if old and old.status == "needs_person":
-            step_artifacts["answer"] = str(answer_path)
-
-        step_input = StepInput(
-            ticket=ticket, repo=repo, artifacts=step_artifacts, round=round_no, run_dir=str(run_dir)
-        )
-        started = now_iso()
-        t0 = time.monotonic()
-        output = _call(steps[name], step_input)
-        duration = round(time.monotonic() - t0, 3)
-        record = StepRecord(
-            step=name,
-            index=index,
-            status=output.status,
-            input=step_input,
-            output=output,
-            started=started,
-            finished=now_iso(),
-            duration_s=duration,
-        )
-        _write_json(record_path, record.to_dict())
-        if "answer" in step_artifacts and answer_path.exists():
-            answer_path.rename(steps_dir / f"{index:02d}-{name}.answer{round_no}.json")
-
+        output = run_step(index, name, steps[name], ticket, repo, run_dir, artifacts, out)
         if output.status == "fail":
-            print(f"FAIL  {index} {name}: {output.reason}", file=out)
             print(f"run: {run_dir}", file=out)
             return 1
         if output.status == "needs_person":
-            question = output.gate.question if output.gate else output.reason
-            print(f"GATE  {index} {name}: {question}", file=out)
-            _write_question(run_dir, name, index, output)
-            print(f"question: {run_dir / 'question.md'}", file=out)
             return 2
-        print(f"pass  {index} {name}  ({duration} s)", file=out)
         artifacts.update(output.artifacts)
         if name == until:
             print(f"stopped after {name} as asked: {run_dir}", file=out)
