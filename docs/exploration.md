@@ -66,8 +66,10 @@ Docker daemon runs in this VM; the release binary on GitHub answered HTTP 200. O
    one worktree and twice the spend. Fixed with a lock per step: the retried attempt waits for the
    running one, then finds its record and skips (`timeout-a4`: one Verify, 25 s, then `skip  4
    verify`). With inactivity 5 s and abort 60 s the same 25 s step finished on its first attempt.
-   So the abort timeout is the hard limit on one step, counted after the inactivity timeout has
-   fired; 30 + 30 minutes leaves room for the longest Verify measured so far (818 s), and for one
+   Read from the 5 s + 5 s cut-off and the configuration's description, not measured at its edge:
+   the abort timeout is the hard limit on one step, counted after the inactivity timeout has fired
+   (where exactly a step longer than 60 s would be cut with 5 s + 60 s was not tried). On that
+   reading, 30 + 30 minutes leaves room for the longest Verify measured so far (818 s), and for one
    with a repair round (about 25 minutes, estimate from the bundles run).
 5. **Restate retries a failing invocation 70 times, then pauses it** (`default-retry-policy` in
    `restate-server --dump-config`: 500 ms doubling to 1 minute, `on-max-attempts = "pause"`; read

@@ -14,8 +14,8 @@ Made by the cloud session that built track 2's service, from what the stub runs 
    inside one run. A side effect: `--until <step>` now also stops at a step that had already passed
    on an earlier run, where it used to run on past it.
 2. **Inactivity and abort timeouts of 30 minutes each**, set on the workflow. The abort timeout is
-   the hard limit on one step after the inactivity timeout fires; 60 minutes in all covers a Verify
-   with a repair round. A parked run holds a connection for up to 30 minutes before it suspends,
+   the hard limit on one step after the inactivity timeout fires (read from a 5 s + 5 s cut-off and
+   the configuration, the edge not measured); 60 minutes in all covers a Verify with a repair round. A parked run holds a connection for up to 30 minutes before it suspends,
    which costs nothing that matters on one laptop.
 3. **A lock per step in the run folder.** Restate retries a step it cut off while the old attempt
    still runs; the new attempt waits for the old one and then skips from its record. Without it, a
