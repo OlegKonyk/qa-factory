@@ -7,12 +7,28 @@ Read this first. Update it last, in the same pull request as the work.
 1. Will tickets at work state the public contract (field names, values, labels, routes) before
    coding starts? Track 1's blind tests met the change with no mismatch, but both tickets were
    written from finished commits. If not, Plan has to fix the contract first.
-2. Run the bundles ticket again, from a fresh blind writer, as the run track 2 watches on
-   Restate? About 5.5 USD (estimate from the two blind runs). It stopped at its 8 USD cap after its
-   checks passed, and a failed Verify re-runs from the start: nothing resumes after a cap stop yet.
-   The new run would also give a second blind sample of the same ticket. Recommended: yes.
+2. Run the bundles ticket again, from a fresh blind writer, as the real ticket on Restate? About
+   5.5 USD (estimate from the two blind runs). It stopped at its 8 USD cap after its checks passed,
+   and a failed Verify re-runs from the start: nothing resumes after a cap stop yet. The new run
+   would also give a second blind sample of the same ticket. Its ticket is ready
+   (`targets/linkding/tickets/bundle-filters-blind-2.json`). Recommended: yes. If no, the laptop
+   session writes a third ticket from linkding's 2026 history instead.
 
-## Where things stand, 2026-10-10
+## Where things stand, 2026-10-12
+
+- **The factory runs on Restate, behind a flag, proven with stub steps** (cloud session,
+  `docs/exploration.md`, "Track 2, the build half"). One workflow per ticket, each step a durable
+  step calling the same step body as the plain driver, the gate a promise answered over HTTP. Killed
+  mid-step, it resumed with only the step in flight run again; the Restate server killed while a
+  run waited at the gate lost nothing. A step longer than Restate's timeouts ran twice at once
+  until a lock per step was added. All measured, with stub steps, no model calls.
+- **`python -m factory report <run folder>`** writes the QA evidence page of a run; generated for
+  the three committed runs (`docs/runs/*/report.md`).
+- **The pull request of this work is open, not merged**: the cloud session had no guard term list,
+  so the laptop rescans and merges it (below, "Next, on the laptop", step 0).
+- 212 factory tests; `scripts/check.sh` green (`docs/log.md`, 2026-10-12).
+
+## Where things stood, 2026-10-10
 
 - **The first ticket is finished.** On Oleg's approval, Review approved with three low findings
   (51 s, 0.47 USD) and Ship committed the tests and cases as `d1c4de7` on
@@ -34,6 +50,12 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Done
 
+- **Track 2, the build half** (2026-10-12, cloud session, `docs/runs/2026-10-12-restate-stub/`):
+  Restate 1.7.13 from npm, `restate-sdk` 1.0.5 and `hypercorn` 0.18.0 as dev dependencies;
+  `factory/restate_service.py` (`run --engine restate`, `restate serve|register|answer`),
+  `factory/stub_steps.py`, `driver.run_step` shared by both engines, timeouts 30 + 30 minutes, a
+  lock per step; `factory/report.py` (`report`). Tests: 11 with a fake Restate context, 1 against a
+  real server (skipped without `restate-server`), 12 for the report. 212 factory tests.
 - **Track 1** (2026-10-10, `docs/runs/2026-10-10-*`): the sort ticket blind, shipped as `737c758`
   on `qa/linkding-sort-by-modified-blind` (902 s, 5.48 USD); the bundles ticket blind, written from
   linkding 573b6f5 (`targets/linkding/tickets/bundle-filters*.json`), checks passed after a
@@ -102,8 +124,8 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Next
 
-0. From `docs/next-session.md`: exploration track 2 (the factory on Restate, and a run report),
-   then track 3 (the deployed environment, linkding's Docker image on this laptop).
+0. Track 2's laptop half (below, "Next, on the laptop"), then track 3 (the deployed environment,
+   linkding's Docker image on this laptop).
 
 1. From track 1: a Verify that stops at the spend cap after its checks passed has no way to
    resume with the readable cases; a re-run starts from a fresh writer (about 4 USD of the writer
@@ -117,3 +139,68 @@ Read this first. Update it last, in the same pull request as the work.
    and read the code instead of a diff, which is right for a real ticket but confused the prompt.
 3. After the loop runs twice: the agent-written Implement step, the Learn step, flaky quarantine
    and test selection, isso as the second application, and whether Temporal goes under the driver.
+
+## Next, on the laptop
+
+What the cloud session could not do. Run in `~/dev/qa-factory`, in this order.
+
+**0. Rescan, check and merge the cloud branch.** The cloud had no term list, so its guard passed
+everything.
+
+```
+git fetch origin claude/restate-driver-k4pqfg
+B=origin/claude/restate-driver-k4pqfg
+terms=$(mktemp); sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' ~/.config/konyklabs/blocklist.txt > "$terms"
+{ git diff -U0 main...$B | grep '^+'; git diff --name-only main...$B; git log --format=%B main..$B; } \
+  | grep -n -i -f "$terms" && echo BLOCKED || echo clean
+```
+
+Read the pull request's title and body for the same terms too. Then `git checkout
+claude/restate-driver-k4pqfg && uv sync && just check`, and squash-merge the pull request.
+
+**1. Install and start Restate on macOS.**
+
+```
+brew install restatedev/tap/restate-server restatedev/tap/restate
+restate-server --base-dir ~/Library/Caches/qa-factory/restate &      # UI at http://localhost:9070
+uv run python -m factory restate serve &                             # the real steps, port 9080
+uv run python -m factory restate register
+PATH=$(brew --prefix)/bin:$PATH just check                           # now runs the live Restate test too
+```
+
+The stub proof can be repeated first, at no model cost:
+`uv run python -m factory restate serve --port 9081 --steps factory.stub_steps`, register it with
+`--uri http://127.0.0.1:9081`, then `uv run python -m factory run docs/runs/2026-10-12-restate-stub/ticket.json
+--engine restate --key stub-laptop-1`. Register the real service on 9080 again afterwards.
+
+**2. The real ticket (step 3 of track 2), on question 2's answer.** If yes:
+
+```
+uv run python targets/linkding/fetch.py --ticket targets/linkding/tickets/bundle-filters-blind-2.json --prepare-e2e
+uv run python -m factory run targets/linkding/tickets/bundle-filters-blind-2.json --engine restate
+curl -s -X POST localhost:8080/factory/linkding-bundle-filters-blind-2/status
+```
+
+The ticket sets `"gate": "person"`, so the run parks after Verify even when its checks pass: that
+is the run waiting at a gate to screenshot. The session answers it itself over HTTP and records
+that it did (Oleg is not asked to approve passing work):
+`curl -X POST localhost:8080/factory/linkding-bundle-filters-blind-2/answer -H 'content-type: application/json' -d '{"approved": true, "by": "session", "note": "gate set for the Restate screenshot"}'`.
+Leave `.artifacts/runs/linkding-bundle-filters-blind/` as it is. If no, write a third ticket from
+linkding's 2026 history, without the gate field unless a screenshot still needs one.
+
+**3. What to measure.**
+
+- Screenshots of `localhost:9070`: the invocation while Verify runs, and while it waits at the gate
+  (`suspended` after 30 minutes, `running` before that).
+- Resume after a kill: kill the service (`kill -9 <pid>` of the python process, not `pkill -f`)
+  during Frame or Plan, which are cheap, restart it, and read `restate invocations describe <id>`:
+  the finished steps replay from the journal and only the step in flight runs again. Do not kill it
+  during Verify: that repeats the test writer's spend.
+- Time: each step's duration from its record, Verify's wall time against the 30 + 30 minute
+  timeouts, and the delay from the service coming back to the step restarting (15 s measured in the
+  cloud). Spend: `uv run python -m factory summary .artifacts/runs/linkding-bundle-filters-blind-2`.
+- The QA evidence: `uv run python -m factory report .artifacts/runs/linkding-bundle-filters-blind-2`.
+
+**4. Step 5's rest.** Add the laptop's results to `docs/exploration.md`; update the architecture
+page's sections 12 and 14 (`python3 docs/pages/architecture/build.py`), read
+https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa, then republish the built file to that URL.
