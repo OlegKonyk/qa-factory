@@ -7,26 +7,34 @@ Read this first. Update it last, in the same pull request as the work.
 1. Will tickets at work state the public contract (field names, values, labels, routes) before
    coding starts? Track 1's blind tests met the change with no mismatch, but both tickets were
    written from finished commits. If not, Plan has to fix the contract first.
-2. Run the bundles ticket again, from a fresh blind writer, as the real ticket on Restate? About
-   5.5 USD (estimate from the two blind runs). It stopped at its 8 USD cap after its checks passed,
-   and a failed Verify re-runs from the start: nothing resumes after a cap stop yet. The new run
-   would also give a second blind sample of the same ticket. Its ticket is ready
-   (`targets/linkding/tickets/bundle-filters-blind-2.json`). Recommended: yes. If no, the laptop
-   session writes a third ticket from linkding's 2026 history instead.
+2. Make Restate the default engine now, or keep it behind `--engine restate` through track 3?
+   Recommended: keep it behind the flag and decide after track 3. The plain driver is simpler, and
+   Restate's gains (resume after a crash, a page per run) matter once runs are long or many
+   (`docs/exploration.md`, "Track 2 results").
+3. Does the Console show today's factory spend (about 5.44 USD, 2026-10-12) against the Max plan's
+   API credits? Settings > Billing and the Cost page at platform.claude.com. Claude Code reported
+   the key as its credential (measured), but only the Console shows which balance paid.
 
 ## Where things stand, 2026-10-12
 
-- **The factory runs on Restate, behind a flag, proven with stub steps** (cloud session,
-  `docs/exploration.md`, "Track 2, the build half"). One workflow per ticket, each step a durable
-  step calling the same step body as the plain driver, the gate a promise answered over HTTP. Killed
-  mid-step, it resumed with only the step in flight run again; the Restate server killed while a
-  run waited at the gate lost nothing. A step longer than Restate's timeouts ran twice at once
-  until a lock per step was added. All measured, with stub steps, no model calls.
-- **`python -m factory report <run folder>`** writes the QA evidence page of a run; generated for
-  the three committed runs (`docs/runs/*/report.md`).
-- **The pull request of this work is open, not merged**: the cloud session had no guard term list,
-  so the laptop rescans and merges it (below, "Next, on the laptop", step 0).
-- 212 factory tests; `scripts/check.sh` green (`docs/log.md`, 2026-10-12).
+- **Track 2 is done.** The factory runs as a Restate workflow behind `--engine restate`. It was
+  built in a cloud session and run for real on the laptop.
+  - **The real run:** the bundles ticket, written blind a second time, went through all six steps
+    on Restate in 19 min 23 s for 5.44 USD and shipped as `bf01f41` on
+    `qa/linkding-bundle-filters-blind-2`. linkding's suite passed with the new tests (1280, plus 2
+    browser tests).
+  - **Resume after a crash:** killed mid-step, the service ran only the step in flight again (cloud
+    and laptop).
+  - **What Restate does not show:** its list shows a run waiting at the gate as "Running", like a
+    working one, and it holds none of the QA evidence. `python -m factory report` covers that.
+  - All measured (`docs/exploration.md`, "Track 2 results").
+- **Factory runs on the laptop bill the Console API key**, not the subscription
+  (`scripts/with-console-key.sh`, `docs/decisions.md` 2026-10-12). Cloud sessions build code;
+  tickets run on the laptop.
+- **Next: track 3**, the deployed environment (`docs/next-session.md`).
+- The architecture page is republished with sections 12, 14 and 15 updated (version 7):
+  https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
+- 213 factory tests; `just check` green with `restate-server` installed.
 
 ## Where things stood, 2026-10-10
 
@@ -49,6 +57,15 @@ Read this first. Update it last, in the same pull request as the work.
   is https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa; its tables are in `docs/architecture.md`.
 
 ## Done
+
+- **Track 2 on the laptop** (2026-10-12, `docs/runs/2026-10-12-restate-laptop/`,
+  `docs/runs/2026-10-12-linkding-bundle-filters-blind-2/`):
+  - The cloud branch was rescanned and merged (pull request 16).
+  - Restate 1.7.13 was installed from Homebrew, and the stand-in proof was repeated, including a
+    `kill -9` mid-Verify.
+  - Screenshots of the UI were taken.
+  - The bundles ticket ran for real on Restate, billed to the Console API key, and shipped.
+  - `scripts/with-console-key.sh` was added.
 
 - **Track 2, the build half** (2026-10-12, cloud session, `docs/runs/2026-10-12-restate-stub/`):
   Restate 1.7.13 from npm, `restate-sdk` 1.0.5 and `hypercorn` 0.18.0 as dev dependencies;
@@ -113,19 +130,26 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## What lives only on this machine
 
-- `.artifacts/runs/<ticket id>/`, the run folders: what a resume needs. Three exist:
-  `linkding-sort-by-modified` and `linkding-sort-by-modified-blind` (finished),
-  `linkding-bundle-filters-blind` (stopped at its cap, resumable). Gitignored, so
-  `git clean -fdx` deletes them. If one is lost, its run starts over (about 5 USD and 13 minutes
-  for the first ticket, estimated from its run). The evidence is copied to `docs/runs/`.
+- `.artifacts/runs/<ticket id>/`, the run folders: what a resume needs. Gitignored, so
+  `git clean -fdx` deletes them; the evidence is copied to `docs/runs/`.
+  - Finished: `linkding-sort-by-modified`, `linkding-sort-by-modified-blind` and
+    `linkding-bundle-filters-blind-2`.
+  - Stopped at its cap, resumable: `linkding-bundle-filters-blind`.
+  - The Restate stand-ins: `restate-stub-1` and `restate-stub-laptop-2`.
+  - If one is lost, its run starts over (about 5 USD and 15 to 20 minutes per ticket, estimated
+    from the runs so far).
 - `~/Library/Caches/qa-factory/linkding/`: the clone, its environment and one worktree pair per
   ticket. `targets/linkding/fetch.py --ticket <ticket> [--prepare-e2e]` rebuilds them; Review and
   Ship put the generated tests back from the run folder.
+- `~/Library/Caches/qa-factory/restate/`: the Restate server's data (journals, kept a day after a
+  run ends) and the service logs. Losing it loses only the journals of runs in flight.
+- The Console API key, in this Mac's Keychain as `anthropic-console-key` (never in a file).
 
 ## Next
 
-0. Track 2's laptop half (below, "Next, on the laptop"), then track 3 (the deployed environment,
-   linkding's Docker image on this laptop).
+0. Track 3, the deployed environment: linkding's Docker image on this laptop, a feature's readable
+   cases as a thin suite run against it (`docs/next-session.md`). Docker runs here through colima
+   (server 29.5.2, checked 2026-10-12).
 
 1. From track 1: a Verify that stops at the spend cap after its checks passed has no way to
    resume with the readable cases; a re-run starts from a fresh writer (about 4 USD of the writer
@@ -139,68 +163,3 @@ Read this first. Update it last, in the same pull request as the work.
    and read the code instead of a diff, which is right for a real ticket but confused the prompt.
 3. After the loop runs twice: the agent-written Implement step, the Learn step, flaky quarantine
    and test selection, isso as the second application, and whether Temporal goes under the driver.
-
-## Next, on the laptop
-
-What the cloud session could not do. Run in `~/dev/qa-factory`, in this order.
-
-**0. Rescan, check and merge the cloud branch.** The cloud had no term list, so its guard passed
-everything.
-
-```
-git fetch origin claude/restate-driver-k4pqfg
-B=origin/claude/restate-driver-k4pqfg
-terms=$(mktemp); sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' ~/.config/konyklabs/blocklist.txt > "$terms"
-{ git diff -U0 main...$B | grep '^+'; git diff --name-only main...$B; git log --format=%B main..$B; } \
-  | grep -n -i -f "$terms" && echo BLOCKED || echo clean
-```
-
-Read the pull request's title and body for the same terms too. Then `git checkout
-claude/restate-driver-k4pqfg && uv sync && just check`, and squash-merge the pull request.
-
-**1. Install and start Restate on macOS.**
-
-```
-brew install restatedev/tap/restate-server restatedev/tap/restate
-restate-server --base-dir ~/Library/Caches/qa-factory/restate &      # UI at http://localhost:9070
-uv run python -m factory restate serve &                             # the real steps, port 9080
-uv run python -m factory restate register
-PATH=$(brew --prefix)/bin:$PATH just check                           # now runs the live Restate test too
-```
-
-The stub proof can be repeated first, at no model cost:
-`uv run python -m factory restate serve --port 9081 --steps factory.stub_steps`, register it with
-`--uri http://127.0.0.1:9081`, then `uv run python -m factory run docs/runs/2026-10-12-restate-stub/ticket.json
---engine restate --key stub-laptop-1`. Register the real service on 9080 again afterwards.
-
-**2. The real ticket (step 3 of track 2), on question 2's answer.** If yes:
-
-```
-uv run python targets/linkding/fetch.py --ticket targets/linkding/tickets/bundle-filters-blind-2.json --prepare-e2e
-uv run python -m factory run targets/linkding/tickets/bundle-filters-blind-2.json --engine restate
-curl -s -X POST localhost:8080/factory/linkding-bundle-filters-blind-2/status
-```
-
-The ticket sets `"gate": "person"`, so the run parks after Verify even when its checks pass: that
-is the run waiting at a gate to screenshot. The session answers it itself over HTTP and records
-that it did (Oleg is not asked to approve passing work):
-`curl -X POST localhost:8080/factory/linkding-bundle-filters-blind-2/answer -H 'content-type: application/json' -d '{"approved": true, "by": "session", "note": "gate set for the Restate screenshot"}'`.
-Leave `.artifacts/runs/linkding-bundle-filters-blind/` as it is. If no, write a third ticket from
-linkding's 2026 history, without the gate field unless a screenshot still needs one.
-
-**3. What to measure.**
-
-- Screenshots of `localhost:9070`: the invocation while Verify runs, and while it waits at the gate
-  (`suspended` after 30 minutes, `running` before that).
-- Resume after a kill: kill the service (`kill -9 <pid>` of the python process, not `pkill -f`)
-  during Frame or Plan, which are cheap, restart it, and read `restate invocations describe <id>`:
-  the finished steps replay from the journal and only the step in flight runs again. Do not kill it
-  during Verify: that repeats the test writer's spend.
-- Time: each step's duration from its record, Verify's wall time against the 30 + 30 minute
-  timeouts, and the delay from the service coming back to the step restarting (15 s measured in the
-  cloud). Spend: `uv run python -m factory summary .artifacts/runs/linkding-bundle-filters-blind-2`.
-- The QA evidence: `uv run python -m factory report .artifacts/runs/linkding-bundle-filters-blind-2`.
-
-**4. Step 5's rest.** Add the laptop's results to `docs/exploration.md`; update the architecture
-page's sections 12 and 14 (`python3 docs/pages/architecture/build.py`), read
-https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa, then republish the built file to that URL.

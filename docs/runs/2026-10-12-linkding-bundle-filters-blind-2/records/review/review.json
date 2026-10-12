@@ -1,0 +1,58 @@
+{
+  "structured": {
+    "findings": [
+      {
+        "file": "bookmarks/tests/test_bundle_filters_blind_2_api.py",
+        "line": 76,
+        "severity": "low",
+        "summary": "The contract lists PUT on /api/bundles/<id>/ as carrying the new fields, but only POST, GET and PATCH are tested.",
+        "failure_scenario": "Say the serializer marks filter_unread/filter_shared read-only for full updates, or a custom update() drops them on PUT. Then PUT {name, filter_unread: 'yes', ...} would silently keep 'off', and every test here would still pass."
+      },
+      {
+        "file": "bookmarks/tests/test_bundle_filters_blind_2_api.py",
+        "line": 248,
+        "severity": "low",
+        "summary": "The combination test covers search, all_tags and excluded_tags, but never any_tags.",
+        "failure_scenario": "Suppose a refactor of _filter_bundle applies the unread/shared filters inside the any_tags branch, or replaces the any_tags Exists condition when a state filter is set. A bundle with any_tags plus filter_unread='yes' would then return the wrong set, and no test would notice."
+      },
+      {
+        "file": "bookmarks/tests/test_bundle_filters_blind_2_api.py",
+        "line": 41,
+        "severity": "low",
+        "summary": "Nothing checks that values outside \"off\"/\"yes\"/\"no\" are rejected, though the contract says each field is one of those strings.",
+        "failure_scenario": "Say the model loses its choices, or the serializer field becomes a plain CharField. POST {filter_unread: 'maybe'} would then be stored and returned as 'maybe', and the bundle would quietly act as 'off'. Every test still passes."
+      },
+      {
+        "file": "bookmarks/tests/test_bundle_filters_blind_2_api.py",
+        "line": 285,
+        "severity": "low",
+        "summary": "On the HTML /bookmarks?bundle= page, only the yes/yes and no/no bundles are checked. 'off' and mixed combinations are only checked through the API.",
+        "failure_scenario": "Suppose the index view handled the bundle filter with its own code path that treats 'off' wrongly, for example as filter(unread=False). The unread_any_sharing bundle would be wrong on the page but right in the API, and nothing would catch it."
+      },
+      {
+        "file": "bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py",
+        "line": 141,
+        "severity": "low",
+        "summary": "assertVisibleBookmarks uses count_bookmarks(), which counts once and does not retry. It is only safe because a waiting assertion on the preview count always runs first, in the same turbo-frame swap.",
+        "failure_scenario": "If someone calls assertVisibleBookmarks right after select_option without assertPreviewCount first, the count is read before the debounced preview reloads. It sees the stale list of 7, so the test flakes or passes against the old content."
+      },
+      {
+        "file": "bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py",
+        "line": 101,
+        "severity": "low",
+        "summary": "The test gets the bundle id from the ORM (BookmarkBundle.objects.get) instead of the UI, so it never checks that saving leads the user to a place where the bundle can be opened.",
+        "failure_scenario": "Say saving the new bundle stores it but the bundles index or sidebar link to it is broken. The test still opens /bookmarks?bundle=<id> straight from the database lookup and passes. This is outside the ticket's main criteria, so the impact is small."
+      }
+    ],
+    "verdict": "approve"
+  },
+  "text": "{\"findings\":[{\"file\":\"bookmarks/tests/test_bundle_filters_blind_2_api.py\",\"line\":76,\"severity\":\"low\",\"summary\":\"The contract lists PUT on /api/bundles/<id>/ as carrying the new fields, but only POST, GET and PATCH are tested.\",\"failure_scenario\":\"Say the serializer marks filter_unread/filter_shared read-only for full updates, or a custom update() drops them on PUT. Then PUT {name, filter_unread: 'yes', ...} would silently keep 'off', and every test here would still pass.\"},{\"file\":\"bookmarks/tests/test_bundle_filters_blind_2_api.py\",\"line\":248,\"severity\":\"low\",\"summary\":\"The combination test covers search, all_tags and excluded_tags, but never any_tags.\",\"failure_scenario\":\"Suppose a refactor of _filter_bundle applies the unread/shared filters inside the any_tags branch, or replaces the any_tags Exists condition when a state filter is set. A bundle with any_tags plus filter_unread='yes' would then return the wrong set, and no test would notice.\"},{\"file\":\"bookmarks/tests/test_bundle_filters_blind_2_api.py\",\"line\":41,\"severity\":\"low\",\"summary\":\"Nothing checks that values outside \\\"off\\\"/\\\"yes\\\"/\\\"no\\\" are rejected, though the contract says each field is one of those strings.\",\"failure_scenario\":\"Say the model loses its choices, or the serializer field becomes a plain CharField. POST {filter_unread: 'maybe'} would then be stored and returned as 'maybe', and the bundle would quietly act as 'off'. Every test still passes.\"},{\"file\":\"bookmarks/tests/test_bundle_filters_blind_2_api.py\",\"line\":285,\"severity\":\"low\",\"summary\":\"On the HTML /bookmarks?bundle= page, only the yes/yes and no/no bundles are checked. 'off' and mixed combinations are only checked through the API.\",\"failure_scenario\":\"Suppose the index view handled the bundle filter with its own code path that treats 'off' wrongly, for example as filter(unread=False). The unread_any_sharing bundle would be wrong on the page but right in the API, and nothing would catch it.\"},{\"file\":\"bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py\",\"line\":141,\"severity\":\"low\",\"summary\":\"assertVisibleBookmarks uses count_bookmarks(), which counts once and does not retry. It is only safe because a waiting assertion on the preview count always runs first, in the same turbo-frame swap.\",\"failure_scenario\":\"If someone calls assertVisibleBookmarks right after select_option without assertPreviewCount first, the count is read before the debounced preview reloads. It sees the stale list of 7, so the test flakes or passes against the old content.\"},{\"file\":\"bookmarks/tests_e2e/e2e_test_bundle_filters_blind_2.py\",\"line\":101,\"severity\":\"low\",\"summary\":\"The test gets the bundle id from the ORM (BookmarkBundle.objects.get) instead of the UI, so it never checks that saving leads the user to a place where the bundle can be opened.\",\"failure_scenario\":\"Say saving the new bundle stores it but the bundles index or sidebar link to it is broken. The test still opens /bookmarks?bundle=<id> straight from the database lookup and passes. This is outside the ticket's main criteria, so the impact is small.\"}],\"verdict\":\"approve\"}",
+  "metrics": {
+    "cost_usd": 0.4002935999999999,
+    "model": "claude-opus-5-5",
+    "turns": 11,
+    "duration_ms": 80720,
+    "input_tokens": 14,
+    "output_tokens": 7999
+  }
+}

@@ -7,8 +7,58 @@ section 10 onward of https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
 | Track | State |
 |---|---|
 | 1 · The loop, measured | done 2026-10-10: results below |
-| 2 · Watch it run | build half done 2026-10-12 in a cloud session, results below; the real ticket runs on the laptop (`docs/status.md`, "Next, on the laptop") |
+| 2 · Watch it run | done 2026-10-12: built in a cloud session, the real ticket run on the laptop; results below |
 | 3 · The deployed environment | after track 2 |
+
+## Track 2 results, 2026-10-12
+
+**The question.** Is Restate worth running the factory on? **The answer from one real ticket and
+the stand-in runs: it works, and it adds two things the plain driver lacks, a crash-safe run and a
+page to watch it on. It does not show the QA evidence; the run report does that.** The plain driver
+stays the default until Oleg says otherwise (question below). All numbers are measured. Records:
+`docs/runs/2026-10-12-linkding-bundle-filters-blind-2/` and `docs/runs/2026-10-12-restate-laptop/`.
+
+**The real ticket ran end to end on Restate.** The bundles ticket was written again by a fresh
+blind writer and run with `--engine restate` on the laptop. Frame, Plan, Implement, Verify (16 min
+7 s), the person-gate, Review and Ship all passed. Ship committed the tests as `bf01f41`, and
+linkding's suite passed with them (1280, plus 2 browser tests). It took 19 min 23 s from submit to
+the end and 5.44 USD, billed to the Console API key (`docs/decisions.md`, 2026-10-12). The 30 + 30
+minute timeouts held a 16-minute Verify without a cut-off.
+
+**What it gave:**
+
+- **Resume after a crash.** A service killed with `kill -9` mid-Verify ran only Verify again after
+  the restart, in the cloud and on the laptop. The plain driver gets the same result only after
+  someone re-runs it by hand.
+- **A gate that waits safely.** The run parked on `promise("verify-1")` and was answered with one
+  HTTP call. It survives a restart of the service or of the Restate server, from the cloud tests.
+- **A page per run.** The UI's journal lists every step with its duration and shows an open gate as
+  the promise it waits on (screenshots in `docs/runs/2026-10-12-restate-laptop/`).
+
+**What it did not give, or got wrong:**
+
+- **The list view hides the gate.** A run parked at the person-gate shows as "Running", the same as
+  a run that is working, for up to the 30-minute inactivity timeout. Only the run's own page shows
+  the open promise. A person scanning the list cannot tell which runs need them.
+- **No QA evidence.** Tests, verdicts on the old code, mutants and readable cases are not in
+  Restate. `python -m factory report <run folder>` covers them, and was generated for this run.
+- **Stopping the service takes `kill -9`.** It ignores SIGTERM (seen in the cloud and on the
+  laptop).
+- **One more process pair to keep running.** That is the server and the service. A service left
+  down for about an hour pauses the run until someone resumes it (from the configuration, not
+  observed).
+
+**The second blind sample.** The same ticket, written blind a second time, came out at 7 tests
+instead of 13. Both suites killed all 16 mutants on the changed lines. The second killed fewer on
+the rest of the function: 62 % against 78 %. Blind writers vary run to run. One pair is not a trend.
+
+**Questions this leaves for Oleg** (also in `docs/status.md`):
+
+1. Make Restate the default engine, or keep it behind the flag until track 3? Recommended: keep it
+   behind the flag through track 3, then decide. The plain driver is simpler, and Restate's gains
+   only matter once runs are long or many.
+2. A run waiting at the gate looks like a working run in Restate's list. Recommended: no change
+   now. The gate is rare now that passing work is approved automatically.
 
 ## Track 2, the build half, 2026-10-12
 

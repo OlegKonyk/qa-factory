@@ -1,0 +1,124 @@
+{
+  "step": "ship",
+  "index": 6,
+  "status": "pass",
+  "input": {
+    "ticket": {
+      "id": "linkding-bundle-filters-blind-2",
+      "app": "targets/linkding/app.json",
+      "base": "460b435110ac98dba42548f84f3bb3798fe108a6",
+      "head": "573b6f5411eaaa18ccc9524544fa27bb594c532b",
+      "qa_mode": "blind",
+      "caps": {
+        "usd": 8.0
+      },
+      "gate": "person",
+      "source": "linkding pull request #1308, upstream commit 573b6f5; base is its parent 460b435",
+      "title": "Filter bundles by reading or sharing state",
+      "description": "Bundles are saved filters for the bookmark list: a bundle has a search phrase and tag conditions, and opening a bundle shows the bookmarks that match it. Add two more conditions to a bundle: its reading state and its sharing state. The reading state limits a bundle's matches to unread or to read bookmarks; the sharing state limits them to shared or to unshared bookmarks. Both default to off, so existing bundles match what they matched before.",
+      "contract": [
+        "REST API: the bundle endpoints (`GET`, `POST` on `/api/bundles/`; `GET`, `PUT`, `PATCH` on `/api/bundles/<id>/`) carry two new fields, `filter_unread` and `filter_shared`. Each is one of the strings \"off\", \"yes\", \"no\". Both default to \"off\" when not given.",
+        "`filter_unread`: \"off\" matches read and unread bookmarks, \"yes\" only unread bookmarks, \"no\" only read bookmarks (a bookmark's `unread` field in the bookmarks API).",
+        "`filter_shared`: \"off\" matches shared and unshared bookmarks, \"yes\" only shared bookmarks, \"no\" only unshared bookmarks (a bookmark's `shared` field in the bookmarks API).",
+        "Bookmarks matching a bundle: `GET /api/bookmarks/?bundle=<id>` and the bookmark list page `/bookmarks?bundle=<id>` apply both conditions, together with the bundle's search and tag conditions.",
+        "Bundle form, on `/bundles/new` and `/bundles/<id>/edit`: two dropdowns, labelled \"Reading State\" with the options \"All\", \"Unread\", \"Read\", and \"Sharing State\" with the options \"All\", \"Shared\", \"Unshared\". Saving the form stores the choice. The form's preview of matching bookmarks (\"Found N bookmarks matching this bundle.\") follows the selected states."
+      ],
+      "acceptance_criteria": [
+        "Creating a bundle with POST /api/bundles/ with filter_unread and filter_shared stores them, and GET /api/bundles/<id>/ returns them; a bundle created without them returns \"off\" for both",
+        "PATCH /api/bundles/<id>/ changes filter_unread and filter_shared",
+        "With filter_unread \"yes\", GET /api/bookmarks/?bundle=<id> returns only the unread bookmarks that match the bundle; with \"no\" only the read ones; with \"off\" both",
+        "With filter_shared \"yes\", GET /api/bookmarks/?bundle=<id> returns only the shared bookmarks that match the bundle; with \"no\" only the unshared ones; with \"off\" both",
+        "The reading and sharing conditions combine with each other and with the bundle's search and tag conditions",
+        "The new-bundle and edit-bundle forms show a \"Reading State\" dropdown (All, Unread, Read) and a \"Sharing State\" dropdown (All, Shared, Unshared); saving the form stores the selection, and the bundle's bookmark list then shows only the matching bookmarks"
+      ]
+    },
+    "repo": {
+      "app": {
+        "name": "linkding",
+        "repo": "/Users/oleg/Library/Caches/qa-factory/linkding/repo",
+        "worktrees": "/Users/oleg/Library/Caches/qa-factory/linkding/wt",
+        "python": "/Users/oleg/Library/Caches/qa-factory/linkding/repo/.venv/bin/python",
+        "source_package": "bookmarks",
+        "pytest_args": [
+          "-p",
+          "no:cacheprovider"
+        ],
+        "api_tests_dir": "bookmarks/tests",
+        "browser_tests_dir": "bookmarks/tests_e2e",
+        "browser_test_files": "e2e_test_*.py",
+        "test_support": [
+          "bookmarks/tests/helpers.py",
+          "bookmarks/tests_e2e/helpers.py"
+        ],
+        "exclude_copy": [
+          ".git",
+          "node_modules",
+          ".venv",
+          "mutants",
+          "__pycache__",
+          ".pytest_cache"
+        ],
+        "mutmut": {
+          "pytest_add_cli_args": [
+            "-p",
+            "no:cacheprovider",
+            "-o",
+            "django_find_project=false"
+          ],
+          "pre_create_dirs": [
+            "data/assets",
+            "data/favicons",
+            "data/previews"
+          ]
+        },
+        "suite": [
+          [
+            "-n",
+            "auto",
+            "bookmarks/tests"
+          ],
+          [
+            "-o",
+            "python_files=e2e_test_*.py",
+            "bookmarks/tests_e2e"
+          ]
+        ],
+        "strategy": "targets/linkding/strategy.md"
+      },
+      "base": "460b435110ac98dba42548f84f3bb3798fe108a6",
+      "head": "573b6f5411eaaa18ccc9524544fa27bb594c532b",
+      "base_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-bundle-filters-blind-2/base",
+      "head_tree": "/Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-bundle-filters-blind-2/head"
+    },
+    "artifacts": {
+      "frame": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/frame/frame.json",
+      "plan": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/plan/plan.json",
+      "change_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/implement/change.diff",
+      "change_full_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/implement/change_full.diff",
+      "changed_source": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/implement/changed_source.json",
+      "changed_tests": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/implement/changed_tests.json",
+      "tests_manifest": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/verify/tests_manifest.json",
+      "tests_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/verify/tests",
+      "verify_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/verify/report.json",
+      "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases",
+      "review": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/review/review.json"
+    },
+    "round": 1,
+    "run_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2"
+  },
+  "output": {
+    "status": "pass",
+    "artifacts": {
+      "ship_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/ship/report.json"
+    },
+    "reason": "committed bf01f41 on qa/linkding-bundle-filters-blind-2 in /Users/oleg/Library/Caches/qa-factory/linkding/wt/linkding-bundle-filters-blind-2/head; suite green: ============================ 1280 passed in 24.43s =============================; ============================== 2 passed in 5.05s ===============================",
+    "gate": null,
+    "metrics": {
+      "wall_s": 30.7,
+      "commit": "bf01f41bb9edc9e4cc2defa17fd4a28f74dabeb2"
+    }
+  },
+  "started": "2026-10-12T21:33:38+00:00",
+  "finished": "2026-10-12T21:34:09+00:00",
+  "duration_s": 30.77
+}

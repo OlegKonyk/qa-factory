@@ -3,6 +3,26 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-12 · Factory runs on the laptop bill the Console API key; cloud sessions build
+
+**Decided, his words:** "Yeah, hey, let's keep going." He was answering the recommendation to run
+the bundles ticket on Restate, billed to the Max plan's monthly API credits (200 USD) through a
+Console API key, not to the subscription.
+
+- **The factory's model calls are headless `claude -p` runs, so the API credits cover them.**
+  Anthropic's Help Center (support.claude.com/en/articles/17154008) says: "API credits cover
+  `claude -p` and the Claude Agent SDK when you run them yourself with an API key". The same page
+  says the credits do not cover interactive Claude Code.
+- **How:** `scripts/with-console-key.sh <command>` takes the key from this Mac's Keychain and adds
+  the workspace header the key needs. With it, `claude auth status` reports `api_key` (measured).
+  The Restate service runs the steps, so the service is started under the script.
+- **Cloud sessions build; the laptop runs.** The one-time cloud-session credit (250 USD, until
+  2026-11-05) pays for Claude Code cloud sessions, which build and test factory code. Real tickets
+  run on the laptop, because they need the linkding worktrees and the run folders. It is also
+  unverified whether a `claude -p` started inside a cloud VM authenticates and bills correctly.
+- **The bundles ticket ran this way** (`docs/runs/2026-10-12-linkding-bundle-filters-blind-2/`,
+  5.44 USD). Whether the Console shows that spend against the credits is for Oleg to confirm.
+
 ## 2026-10-12 · How the factory runs on Restate, by delegation
 
 Made by the cloud session that built track 2's service, from what the stub runs showed

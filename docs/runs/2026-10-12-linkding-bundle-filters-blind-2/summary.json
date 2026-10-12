@@ -1,0 +1,185 @@
+{
+  "ticket": "linkding-bundle-filters-blind-2",
+  "qa_mode": "blind",
+  "first_round": {
+    "round": 1,
+    "tests": 7,
+    "tests_api": 5,
+    "tests_browser": 2,
+    "pass_at_head": 7,
+    "fail_at_base_on_assertion": 7,
+    "pass_on_both": 0,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 82,
+        "killed": 51,
+        "score": 0.6219512195121951,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 82,
+        "killed": 77,
+        "score": 0.9390243902439024,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      },
+      "developers": {
+        "checked": 82,
+        "killed": 77,
+        "score": 0.9390243902439024,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      }
+    }
+  },
+  "final_round": {
+    "round": 1,
+    "tests": 7,
+    "tests_api": 5,
+    "tests_browser": 2,
+    "pass_at_head": 7,
+    "fail_at_base_on_assertion": 7,
+    "pass_on_both": 0,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 82,
+        "killed": 51,
+        "score": 0.6219512195121951,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 82,
+        "killed": 77,
+        "score": 0.9390243902439024,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      },
+      "developers": {
+        "checked": 82,
+        "killed": 77,
+        "score": 0.9390243902439024,
+        "changed_lines": {
+          "checked": 16,
+          "killed": 16,
+          "score": 1.0
+        }
+      }
+    }
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "kind": "write",
+      "failure": null
+    }
+  ],
+  "decisions": [],
+  "stages": {
+    "frame": {
+      "status": "pass",
+      "duration_s": 14.143,
+      "work_s": null,
+      "cost_usd": 0.0440529,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "plan": {
+      "status": "pass",
+      "duration_s": 12.926,
+      "work_s": null,
+      "cost_usd": 0.051513199999999995,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "implement": {
+      "status": "pass",
+      "duration_s": 0.065,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "verify": {
+      "status": "pass",
+      "duration_s": 0.002,
+      "work_s": 967.9,
+      "cost_usd": 4.9392,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "review": {
+      "status": "pass",
+      "duration_s": 81.76,
+      "work_s": null,
+      "cost_usd": 0.4002935999999999,
+      "model": "claude-opus-5-5",
+      "earlier_runs": 0
+    },
+    "ship": {
+      "status": "pass",
+      "duration_s": 30.77,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    }
+  },
+  "verify_parts": {
+    "time_s": {
+      "write_tests": 448.3,
+      "lint": 0.1,
+      "revert": 20.4,
+      "mutation.generated": 17.1,
+      "mutation.generated_and_developers": 81.7,
+      "mutation.developers": 85.3,
+      "mutation": 184.1,
+      "suite": 97.3,
+      "test_cases": 217.7
+    },
+    "cost_usd": {
+      "write_tests": 3.4287004000000003,
+      "test_cases": 1.5105431999999999
+    }
+  },
+  "spend_usd": 5.4351,
+  "ledger": {
+    "caps": {
+      "writer_rounds": 3,
+      "advice": 2,
+      "usd": 8.0
+    },
+    "spent_usd": 5.3395,
+    "writer_rounds_used": 0,
+    "advice_used": 0,
+    "calls": 3
+  },
+  "blind_audit": {
+    "tool_calls": 26,
+    "flagged": [],
+    "clean": true,
+    "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/linkding-bundle-filters-blind-2/verify/rounds/1/writer.jsonl"
+  }
+}

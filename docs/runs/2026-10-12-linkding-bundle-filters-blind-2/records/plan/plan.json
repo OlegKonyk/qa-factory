@@ -1,0 +1,70 @@
+{
+  "structured": {
+    "tests": [
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bundle_reading_sharing_filters_api.py",
+        "name": "test_create_and_get_bundle_with_filter_unread_and_filter_shared",
+        "covers": [
+          "AC1"
+        ],
+        "reason": "POST with explicit values must persist and be returned by GET detail; a bundle posted without them returns \"off\" for both. Fails before the change because the fields are absent."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bundle_reading_sharing_filters_api.py",
+        "name": "test_patch_bundle_changes_filter_fields_and_keeps_others",
+        "covers": [
+          "AC2"
+        ],
+        "reason": "PATCH changes one or both fields, a following GET shows them, and name/search/tags remain unchanged; a PATCH of only one field leaves the other as it was."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bundle_reading_sharing_filters_api.py",
+        "name": "test_bookmarks_by_bundle_filter_unread_yes_no_off",
+        "covers": [
+          "AC3"
+        ],
+        "reason": "Fixture has read and unread bookmarks that all match the bundle's search. The test asserts the exact result set for \"yes\", \"no\" and \"off\" on GET /api/bookmarks/?bundle=<id>. Before the change the filter is ignored, so \"yes\" and \"no\" fail."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bundle_reading_sharing_filters_api.py",
+        "name": "test_bookmarks_by_bundle_filter_shared_yes_no_off",
+        "covers": [
+          "AC4"
+        ],
+        "reason": "Same as above for shared and unshared bookmarks, with the unread state kept constant so only sharing varies."
+      },
+      {
+        "surface": "api",
+        "file": "bookmarks/tests/test_bundle_reading_sharing_filters_api.py",
+        "name": "test_bookmarks_by_bundle_combines_unread_shared_search_and_tags",
+        "covers": [
+          "AC5"
+        ],
+        "reason": "Bookmarks cover all four unread/shared combinations. Some fail only the search or only the tag condition. Only the one that meets every condition may be returned. The same bundle is also loaded through /bookmarks?bundle=<id> and the page's bookmark list is checked."
+      },
+      {
+        "surface": "browser",
+        "file": "bookmarks/tests_e2e/e2e_test_bundle_reading_sharing_filters.py",
+        "name": "test_create_and_edit_bundle_with_reading_and_sharing_state",
+        "covers": [
+          "AC6"
+        ],
+        "reason": "One user path. On /bundles/new the test checks the \"Reading State\" (All, Unread, Read) and \"Sharing State\" (All, Shared, Unshared) dropdowns, picks Unread and Shared, and sees the \"Found N bookmarks\" preview change. It saves, opens /bookmarks?bundle=<id> to check that only matching bookmarks are listed, then reopens the edit form to confirm both selections are preselected. Fixtures make the counts differ between All and the filtered choices."
+      }
+    ],
+    "placement_reason": "The criteria are about data and filtering, so AC1\u2013AC5 go in one new API test file, bookmarks/tests/test_bundle_reading_sharing_filters_api.py, per the strategy (API level is most of the coverage). It uses LinkdingApiTestCase and BookmarkFactoryMixin. AC5's page half is checked with self.client against /bookmarks?bundle=<id>, which avoids a browser test. AC6 is the only user-visible form flow, so it gets a single new e2e file, bookmarks/tests_e2e/e2e_test_bundle_reading_sharing_filters.py, using LinkdingE2ETestCase. No developer tests were visible and the diff was empty. I did not plan tests for the ambiguities (invalid values, PUT semantics, interaction with q), because the ticket does not define the expected behaviour. Unit tests are left to the implementer."
+  },
+  "text": "{\"tests\":[{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bundle_reading_sharing_filters_api.py\",\"name\":\"test_create_and_get_bundle_with_filter_unread_and_filter_shared\",\"covers\":[\"AC1\"],\"reason\":\"POST with explicit values must persist and be returned by GET detail; a bundle posted without them returns \\\"off\\\" for both. Fails before the change because the fields are absent.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bundle_reading_sharing_filters_api.py\",\"name\":\"test_patch_bundle_changes_filter_fields_and_keeps_others\",\"covers\":[\"AC2\"],\"reason\":\"PATCH changes one or both fields, a following GET shows them, and name/search/tags remain unchanged; a PATCH of only one field leaves the other as it was.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bundle_reading_sharing_filters_api.py\",\"name\":\"test_bookmarks_by_bundle_filter_unread_yes_no_off\",\"covers\":[\"AC3\"],\"reason\":\"Fixture has read and unread bookmarks that all match the bundle's search. The test asserts the exact result set for \\\"yes\\\", \\\"no\\\" and \\\"off\\\" on GET /api/bookmarks/?bundle=<id>. Before the change the filter is ignored, so \\\"yes\\\" and \\\"no\\\" fail.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bundle_reading_sharing_filters_api.py\",\"name\":\"test_bookmarks_by_bundle_filter_shared_yes_no_off\",\"covers\":[\"AC4\"],\"reason\":\"Same as above for shared and unshared bookmarks, with the unread state kept constant so only sharing varies.\"},{\"surface\":\"api\",\"file\":\"bookmarks/tests/test_bundle_reading_sharing_filters_api.py\",\"name\":\"test_bookmarks_by_bundle_combines_unread_shared_search_and_tags\",\"covers\":[\"AC5\"],\"reason\":\"Bookmarks cover all four unread/shared combinations. Some fail only the search or only the tag condition. Only the one that meets every condition may be returned. The same bundle is also loaded through /bookmarks?bundle=<id> and the page's bookmark list is checked.\"},{\"surface\":\"browser\",\"file\":\"bookmarks/tests_e2e/e2e_test_bundle_reading_sharing_filters.py\",\"name\":\"test_create_and_edit_bundle_with_reading_and_sharing_state\",\"covers\":[\"AC6\"],\"reason\":\"One user path. On /bundles/new the test checks the \\\"Reading State\\\" (All, Unread, Read) and \\\"Sharing State\\\" (All, Shared, Unshared) dropdowns, picks Unread and Shared, and sees the \\\"Found N bookmarks\\\" preview change. It saves, opens /bookmarks?bundle=<id> to check that only matching bookmarks are listed, then reopens the edit form to confirm both selections are preselected. Fixtures make the counts differ between All and the filtered choices.\"}],\"placement_reason\":\"The criteria are about data and filtering, so AC1\u2013AC5 go in one new API test file, bookmarks/tests/test_bundle_reading_sharing_filters_api.py, per the strategy (API level is most of the coverage). It uses LinkdingApiTestCase and BookmarkFactoryMixin. AC5's page half is checked with self.client against /bookmarks?bundle=<id>, which avoids a browser test. AC6 is the only user-visible form flow, so it gets a single new e2e file, bookmarks/tests_e2e/e2e_test_bundle_reading_sharing_filters.py, using LinkdingE2ETestCase. No developer tests were visible and the diff was empty. I did not plan tests for the ambiguities (invalid values, PUT semantics, interaction with q), because the ticket does not define the expected behaviour. Unit tests are left to the implementer.\"}",
+  "metrics": {
+    "cost_usd": 0.051513199999999995,
+    "model": "claude-sonnet-5-5",
+    "turns": 3,
+    "duration_ms": 11700,
+    "input_tokens": 4,
+    "output_tokens": 1505
+  }
+}
