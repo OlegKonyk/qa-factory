@@ -3,6 +3,28 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-12 · From the konyklabs workspace session: use the credits on the factory, continue in the cloud, keep going
+
+Given in a session started in the konyklabs workspace, not in this repository; filed here after
+the work, not before it, which breaks this file's rule once.
+
+> Okay, what kind of useful work can we do for those $250? One of my main topics that I want to make progress on is this factory, right? QA factory, SDC factory, software factory. Can we make some progress on that using those credits?
+
+> Do you see we have the project already locally for this? Could you locate it, and maybe we can set up the continuation up there in the cloud?
+
+> Yeah, hey, let's keep going.
+
+How it was read:
+
+- **First message:** spend the one-time cloud-session credit (250 USD, until 2026-11-05) on this
+  factory.
+- **Second message:** continue track 2 from this repository in a Claude Code cloud session. That
+  became pull request 16. The kickoff told it to build only, make no model calls, and leave the
+  merge to the laptop, because the guard's term list exists only here.
+- **Third message:** a yes to running the bundles ticket for real on Restate, billed to the Max
+  plan's monthly API credits through a Console API key. That became pull request 17 and the
+  2026-10-12 entry in `docs/decisions.md`.
+
 ## 2026-10-10 · A check-in during the runs
 
 > While I'm here, just wanted to check if everything is going well and if you need any help from me.
