@@ -28,17 +28,29 @@ Counts (round 1):
 | crash | 0 |
 | head_fails | 0 |
 
+## The developers' own tests, written with the change
+
+0 of 5 new tests by the developers fail on the old code on an assertion; 5 fail only for a missing name
+
+| file | test | with the change | without the change | failure on the old code |
+|---|---|---|---|---|
+| bookmarks/tests/test_bundles_preview_view.py | BundlePreviewViewTestCase::test_preview_with_filter_shared | pass | fails on the old code only for a name the change adds | type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES' |
+| bookmarks/tests/test_bundles_preview_view.py | BundlePreviewViewTestCase::test_preview_with_filter_unread | pass | fails on the old code only for a name the change adds | type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES' |
+| bookmarks/tests/test_queries.py | QueriesBasicTestCase::test_query_bookmarks_with_bundle_filter_shared | pass | fails on the old code only for a name the change adds | type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES' |
+| bookmarks/tests/test_queries.py | QueriesBasicTestCase::test_query_bookmarks_with_bundle_filter_unread | pass | fails on the old code only for a name the change adds | type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES' |
+| bookmarks/tests/test_queries.py | QueriesBasicTestCase::test_query_bookmarks_with_bundle_unread_shared_filters_combined | pass | fails on the old code only for a name the change adds | type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES' |
+
 ## Readable test cases
 
 | case | title | link |
 |---|---|---|
-| bookmarks/TC-bookmarks-001.md | TC-bookmarks-001: A bundle created through the API stores its reading and sharing state, and both default to off | [TC-bookmarks-001.md](testcases/TC-bookmarks-001.md) |
-| bookmarks/TC-bookmarks-002.md | TC-bookmarks-002: PATCH on a bundle changes its reading and sharing state and leaves its other conditions alone | [TC-bookmarks-002.md](testcases/TC-bookmarks-002.md) |
-| bookmarks/TC-bookmarks-003.md | TC-bookmarks-003: A bundle's reading state limits its bookmarks to unread, to read, or to both | [TC-bookmarks-003.md](testcases/TC-bookmarks-003.md) |
-| bookmarks/TC-bookmarks-004.md | TC-bookmarks-004: A bundle's sharing state limits its bookmarks to shared, to unshared, or to both | [TC-bookmarks-004.md](testcases/TC-bookmarks-004.md) |
-| bookmarks/TC-bookmarks-005.md | TC-bookmarks-005: Reading state, sharing state, search and tag conditions of a bundle all apply together | [TC-bookmarks-005.md](testcases/TC-bookmarks-005.md) |
-| bookmarks/TC-bookmarks-006.md | TC-bookmarks-006: The new-bundle form offers reading and sharing state, previews the matches and saves the choice | [TC-bookmarks-006.md](testcases/TC-bookmarks-006.md) |
-| bookmarks/TC-bookmarks-007.md | TC-bookmarks-007: The edit-bundle form changes reading and sharing state, previews the matches and saves the choice | [TC-bookmarks-007.md](testcases/TC-bookmarks-007.md) |
+| bookmarks/TC-bookmarks-001.md | TC-bookmarks-001: A bundle created through the API stores its reading and sharing state, and both default to off | [TC-bookmarks-001.md](../../../.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases/bookmarks/TC-bookmarks-001.md) |
+| bookmarks/TC-bookmarks-002.md | TC-bookmarks-002: PATCH on a bundle changes its reading and sharing state and leaves its other conditions alone | [TC-bookmarks-002.md](../../../.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases/bookmarks/TC-bookmarks-002.md) |
+| bookmarks/TC-bookmarks-003.md | TC-bookmarks-003: A bundle's reading state limits its bookmarks to unread, to read, or to both | [TC-bookmarks-003.md](../../../.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases/bookmarks/TC-bookmarks-003.md) |
+| bookmarks/TC-bookmarks-004.md | TC-bookmarks-004: A bundle's sharing state limits its bookmarks to shared, to unshared, or to both | [TC-bookmarks-004.md](../../../.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases/bookmarks/TC-bookmarks-004.md) |
+| bookmarks/TC-bookmarks-005.md | TC-bookmarks-005: Reading state, sharing state, search and tag conditions of a bundle all apply together | [TC-bookmarks-005.md](../../../.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases/bookmarks/TC-bookmarks-005.md) |
+| bookmarks/TC-bookmarks-006.md | TC-bookmarks-006: The new-bundle form offers reading and sharing state, previews the matches and saves the choice | [TC-bookmarks-006.md](../../../.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases/bookmarks/TC-bookmarks-006.md) |
+| bookmarks/TC-bookmarks-007.md | TC-bookmarks-007: The edit-bundle form changes reading and sharing state, previews the matches and saves the choice | [TC-bookmarks-007.md](../../../.artifacts/runs/linkding-bundle-filters-blind-2/verify/testcases/bookmarks/TC-bookmarks-007.md) |
 
 ## Mutation
 

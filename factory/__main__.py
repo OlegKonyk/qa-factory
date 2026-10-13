@@ -33,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
     report_p = sub.add_parser("report", help="write the Markdown QA evidence page of one run")
     report_p.add_argument("run_dir", help="path to a run folder")
     report_p.add_argument("--out", default=None, help="write the page here (default <run_dir>/report.md)")
+    dev_p = sub.add_parser("devtests", help="the revert check on the developers' own tests of a finished run")
+    dev_p.add_argument("run_dir", help="path to a run folder")
     restate_p = sub.add_parser("restate", help="the factory as a Restate workflow")
     restate_sub = restate_p.add_subparsers(dest="action", required=True)
     serve_p = restate_sub.add_parser("serve", help="serve the workflow for the Restate server")
@@ -65,6 +67,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "summary":
         return summary.main(args.run_dirs, args.json)
+    if args.command == "devtests":
+        from factory.checks import devtests
+
+        return devtests.main(args.run_dir)
     if args.command == "report":
         return report.main(args.run_dir, args.out)
     return driver.status(args.run_dir)

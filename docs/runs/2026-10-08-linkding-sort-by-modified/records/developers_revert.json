@@ -1,0 +1,44 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "ran",
+  "reason": "0 of 2 new tests by the developers fail on the old code on an assertion; 2 fail only for a missing name",
+  "files": [
+   "bookmarks/tests/test_queries.py"
+  ],
+  "new_test_ids": {
+   "bookmarks/tests/test_queries.py": [
+    "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_sort_by_date_modified_asc",
+    "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_sort_by_date_modified_desc"
+   ]
+  },
+  "tests": {
+   "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_sort_by_date_modified_asc": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkSearch' has no attribute 'SORT_MODIFIED_ASC'"
+   },
+   "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_sort_by_date_modified_desc": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkSearch' has no attribute 'SORT_MODIFIED_DESC'"
+   }
+  },
+  "counts": {
+   "new_tests": 2,
+   "ran": 2,
+   "proves-behaviour": 0,
+   "passes-without-change": 0,
+   "missing-name": 2,
+   "crash": 0,
+   "head-fails": 0,
+   "skip": 0
+  },
+  "wall_s": {
+   "head": 23.78,
+   "reverted": 23.83
+  }
+ }
+}

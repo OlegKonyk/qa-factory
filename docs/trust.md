@@ -96,12 +96,26 @@ mutants that survived, the cases, the rounds and the spend on one page per ticke
 
 ## The scenarios Oleg raised
 
-**Tests in the implementing session.** The answer above: keep them as the developer's unit tests,
-and let the factory's checks judge them like any other test. Today the revert check judges only
-the generated tests, and mutation testing reports the developers' tests as their own set. Running
-the revert check on the developers' tests too is a small change and would answer "do their tests
-prove the behaviour" per ticket. Not built; recommended as the next check if the team's tests are
-written in the same session as the code.
+**Tests in the implementing session.** Keep them as the developer's unit tests, and let the
+factory's checks judge them like any other test. Since 2026-10-13 the revert check runs on the
+developers' own new tests too, as a report (`python -m factory devtests <run folder>` on a
+finished run; `verify/developers_revert.json` in a new one). Measured on the three tickets whose
+worktrees are on this laptop, all written by the applications' own developers with the change:
+
+| Ticket | Developers' new tests | Fail on the old code on an assertion | Fail only for a missing name | What they reach for |
+|---|---|---|---|---|
+| linkding, sort by modified date | 2 | 0 | 2 | `BookmarkSearch.SORT_MODIFIED_ASC`, a constant the change adds |
+| linkding, filter bundles by state | 5 | 0 | 5 | `BookmarkBundle.FILTER_STATE_YES`, a constant the change adds |
+| isso, no-cache headers | 2 | 0 | 2 | `NO_CACHE_HEADERS`, imported from the code under test |
+| The factory's blind tests on the same three tickets | 4, 7, 6 | 3, 7, 3 | 0, 0, 0 | the public surface: query strings, JSON fields, header values spelled out |
+
+Nine of nine developers' tests fail on the old code before any assertion runs, because they use
+names the change introduces. They do check behaviour once the names exist (they pass with the
+change, and they kill mutants: 98 of 108 and 77 of 82 on the linkding functions). What they cannot
+do is tell "the feature is missing" from "the feature is wrong", and a reviewer reading them
+cannot tell either without running them against the old code. That is the measured content of
+"tests written with the code share its blind spots". Three tickets, two applications, nine tests:
+a pattern, not yet a law.
 
 **Develop on mocks, validate on the deployed environment.** Read as two verification points for
 one set of acceptance tests:
@@ -136,11 +150,12 @@ skipped.
 | A change with no HTTP surface (a library, a job) | mutation and the revert check work on any pytest suite | a strategy rule for unit-level tests; the writer prompt assumes an API folder |
 | A service with external dependencies | the suite runs as it is, mocks included | the deployed run; a mock-freshness check |
 | A TypeScript or other non-Python service | nothing | the checks read pytest tracebacks and run mutmut; a second toolchain |
-| Tests the team wrote by hand | mutation testing reports them as a set | the revert check on them |
+| Tests the team wrote by hand | mutation testing reports them as a set; the revert check reports their verdicts | a run on the team's own tickets |
 
 ## What to take to the meeting
 
-1. Tests from the implementing session prove the code is new, not what it does. Measured.
+1. Tests from the implementing session prove the code is new, not what it does. Measured: 9 of 9
+   developers' tests on three tickets fail on the old code only for a name the change adds.
 2. Trust comes from a separate session plus deterministic checks: fails without the change on an
    assertion, kills mutants on the changed lines, the suite stays green, a readable case per test.
 3. On four runs the blind tests met the real change with no mismatch and were as strong as tests

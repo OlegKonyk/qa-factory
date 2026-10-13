@@ -27,16 +27,25 @@ Counts (round 1):
 | crash | 0 |
 | head_fails | 0 |
 
+## The developers' own tests, written with the change
+
+0 of 2 new tests by the developers fail on the old code on an assertion; 2 fail only for a missing name
+
+| file | test | with the change | without the change | failure on the old code |
+|---|---|---|---|---|
+| bookmarks/tests/test_queries.py | QueriesBasicTestCase::test_sort_by_date_modified_asc | pass | fails on the old code only for a name the change adds | type object 'BookmarkSearch' has no attribute 'SORT_MODIFIED_ASC' |
+| bookmarks/tests/test_queries.py | QueriesBasicTestCase::test_sort_by_date_modified_desc | pass | fails on the old code only for a name the change adds | type object 'BookmarkSearch' has no attribute 'SORT_MODIFIED_DESC' |
+
 ## Readable test cases
 
 | case | title | link |
 |---|---|---|
-| bookmarks/TC-bookmarks-001.md | TC-bookmarks-001: API lists bookmarks least recently modified first when sorted by modified ascending | [TC-bookmarks-001.md](testcases/TC-bookmarks-001.md) |
-| bookmarks/TC-bookmarks-002.md | TC-bookmarks-002: API lists bookmarks most recently modified first when sorted by modified descending | [TC-bookmarks-002.md](testcases/TC-bookmarks-002.md) |
-| bookmarks/TC-bookmarks-003.md | TC-bookmarks-003: Archived bookmarks API sorts by modified date in both directions and leaves out unarchived bookmarks | [TC-bookmarks-003.md](testcases/TC-bookmarks-003.md) |
-| bookmarks/TC-bookmarks-004.md | TC-bookmarks-004: API falls back to newest-added-first order when the sort value is unknown | [TC-bookmarks-004.md](testcases/TC-bookmarks-004.md) |
-| bookmarks/TC-bookmarks-005.md | TC-bookmarks-005: Bookmark list offers Modified ↑ and Modified ↓ sorting and reorders the list for each | [TC-bookmarks-005.md](testcases/TC-bookmarks-005.md) |
-| bookmarks/TC-bookmarks-006.md | TC-bookmarks-006: Archived bookmark list can be sorted by Modified ↓ from the sort dropdown | [TC-bookmarks-006.md](testcases/TC-bookmarks-006.md) |
+| bookmarks/TC-bookmarks-001.md | TC-bookmarks-001: API lists bookmarks least recently modified first when sorted by modified ascending | [TC-bookmarks-001.md](../../../.artifacts/runs/linkding-sort-by-modified/verify/testcases/bookmarks/TC-bookmarks-001.md) |
+| bookmarks/TC-bookmarks-002.md | TC-bookmarks-002: API lists bookmarks most recently modified first when sorted by modified descending | [TC-bookmarks-002.md](../../../.artifacts/runs/linkding-sort-by-modified/verify/testcases/bookmarks/TC-bookmarks-002.md) |
+| bookmarks/TC-bookmarks-003.md | TC-bookmarks-003: Archived bookmarks API sorts by modified date in both directions and leaves out unarchived bookmarks | [TC-bookmarks-003.md](../../../.artifacts/runs/linkding-sort-by-modified/verify/testcases/bookmarks/TC-bookmarks-003.md) |
+| bookmarks/TC-bookmarks-004.md | TC-bookmarks-004: API falls back to newest-added-first order when the sort value is unknown | [TC-bookmarks-004.md](../../../.artifacts/runs/linkding-sort-by-modified/verify/testcases/bookmarks/TC-bookmarks-004.md) |
+| bookmarks/TC-bookmarks-005.md | TC-bookmarks-005: Bookmark list offers Modified ↑ and Modified ↓ sorting and reorders the list for each | [TC-bookmarks-005.md](../../../.artifacts/runs/linkding-sort-by-modified/verify/testcases/bookmarks/TC-bookmarks-005.md) |
+| bookmarks/TC-bookmarks-006.md | TC-bookmarks-006: Archived bookmark list can be sorted by Modified ↓ from the sort dropdown | [TC-bookmarks-006.md](../../../.artifacts/runs/linkding-sort-by-modified/verify/testcases/bookmarks/TC-bookmarks-006.md) |
 
 ## Mutation
 

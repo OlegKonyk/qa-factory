@@ -81,6 +81,30 @@ def _test_lines(revert: dict | None, final: dict) -> list[str]:
     ]
 
 
+def _developers_lines(run: Path) -> list[str]:
+    entry = _load(run / "verify" / "developers_revert.json")
+    result = (entry or {}).get("result") if isinstance(entry, dict) else None
+    if not result:
+        return ["Not run for this ticket (`python -m factory devtests <run folder>` runs it afterwards)."]
+    tests = result.get("tests") or {}
+    if not tests:
+        return [_md(result.get("reason") or "no result")]
+    rows = []
+    for node, t in tests.items():
+        file, _, name = node.partition("::")
+        rows.append(
+            [
+                _md(file),
+                _md(name or "-"),
+                t.get("at_head"),
+                VERDICT_WORDS.get(t.get("verdict"), t.get("verdict")),
+                _md(_first_line(t.get("message"))),
+            ]
+        )
+    header = ["file", "test", "with the change", "without the change", "failure on the old code"]
+    return [_md(result.get("reason") or ""), "", *_table(header, rows)]
+
+
 def _case_title(path: Path) -> str | None:
     try:
         text = path.read_text()
@@ -220,6 +244,10 @@ def render(run_dir, out_dir=None) -> str:
         "## Tests",
         "",
         *_test_lines(last["revert"], final),
+        "",
+        "## The developers' own tests, written with the change",
+        "",
+        *_developers_lines(run),
         "",
         "## Readable test cases",
         "",

@@ -1,238 +1,159 @@
 {
- "ticket": "linkding-sort-by-modified",
- "steps": {
-  "frame": {
-   "status": "pass",
-   "duration_s": 13.264,
-   "metrics": {
-    "cost_usd": 0.030818800000000004,
-    "model": "claude-sonnet-5-5",
-    "turns": 3,
-    "duration_ms": 11128,
-    "input_tokens": 4,
-    "output_tokens": 1448
-   }
+  "ticket": "linkding-sort-by-modified",
+  "developers": {
+    "new_tests": 2,
+    "ran": 2,
+    "proves-behaviour": 0,
+    "passes-without-change": 0,
+    "missing-name": 2,
+    "crash": 0,
+    "head-fails": 0,
+    "skip": 0
   },
-  "plan": {
-   "status": "pass",
-   "duration_s": 13.942,
-   "metrics": {
-    "cost_usd": 0.0668524,
-    "model": "claude-sonnet-5-5",
-    "turns": 4,
-    "duration_ms": 12072,
-    "input_tokens": 4,
-    "output_tokens": 1545
-   }
-  },
-  "implement": {
-   "status": "pass",
-   "duration_s": 0.058,
-   "metrics": {
-    "changed_source": 3,
-    "changed_tests": 1
-   }
-  },
-  "verify": {
-   "status": "needs_person",
-   "duration_s": 799.751,
-   "metrics": {
-    "cost_usd": 4.9005,
-    "time_s": {
-     "write_tests": 413.8,
-     "lint": 0.1,
-     "revert": 17.9,
-     "mutation.generated": 21.3,
-     "mutation.generated_and_developers": 137.8,
-     "mutation": 159.2,
-     "suite": 93.3,
-     "test_cases": 115.5
-    },
-    "costs": {
-     "write_tests": {
-      "cost_usd": 3.6169034,
-      "model": "claude-opus-5-5",
-      "turns": 39,
-      "duration_ms": 412282,
-      "input_tokens": 64,
-      "output_tokens": 20060
-     },
-     "test_cases": {
-      "cost_usd": 1.2836172,
-      "model": "claude-opus-5-5",
-      "turns": 17,
-      "duration_ms": 114656,
-      "input_tokens": 20,
-      "output_tokens": 8113
-     }
-    },
-    "mutation_score.generated": 0.25,
-    "mutation_score_changed_lines.generated": 1.0,
-    "mutation_score.generated_and_developers": 0.9074074074074074,
-    "mutation_score_changed_lines.generated_and_developers": 1.0
-   }
-  }
- },
- "review_dry_run": {
-  "verdict": "approve",
-  "findings": [
-   {
-    "file": "bookmarks/tests/test_sort_by_modified_api.py",
-    "line": 16,
-    "severity": "low",
-    "summary": "API fixture leaves titles random (setup_bookmark default), so title order is not controlled and a wrong sort mapping could pass by chance",
-    "failure_scenario": "Suppose an implementation wrongly maps modified_asc to order_by('title'). The three titles come from get_random_string, so 1 run in 6 sorts them as b, c, a. When that happens, test_list_bookmarks_sort_modified_asc passes even though the code is broken. Giving the bookmarks fixed titles whose order differs from every expected order (as the e2e fixture does with Alpha/Bravo/Charlie) removes the chance."
-   },
-   {
-    "file": "bookmarks/tests/test_sort_by_modified_api.py",
-    "line": 77,
-    "severity": "low",
-    "summary": "The unknown-sort fallback test also passes on the code before the change, which the strategy says every test must not do",
-    "failure_scenario": "On base 0837b51, ?sort=bogus already falls back to -date_added, so this test is green both before and after the change. That is expected for a 'still falls back' regression criterion, but it should be labelled as a regression guard and not counted as evidence that the feature works. Its fixture does separate the default order from added_asc and both modified orders, so a fallback that silently switched to one of those would be caught."
-   }
-  ],
-  "metrics": {
-   "cost_usd": 0.5818587999999999,
-   "model": "claude-opus-5-5",
-   "turns": 19,
-   "duration_ms": 53246,
-   "input_tokens": 18,
-   "output_tokens": 6080
-  }
- },
- "verify": {
-  "timings_s": {
-   "write_tests": 413.8,
-   "lint": 0.1,
-   "revert": 17.9,
-   "mutation.generated": 21.3,
-   "mutation.generated_and_developers": 137.8,
-   "mutation": 159.2,
-   "suite": 93.3,
-   "test_cases": 115.5
-  },
-  "costs": {
-   "write_tests": {
-    "cost_usd": 3.6169034,
-    "model": "claude-opus-5-5",
-    "turns": 39,
-    "duration_ms": 412282,
-    "input_tokens": 64,
-    "output_tokens": 20060
-   },
-   "test_cases": {
-    "cost_usd": 1.2836172,
-    "model": "claude-opus-5-5",
-    "turns": 17,
-    "duration_ms": 114656,
-    "input_tokens": 20,
-    "output_tokens": 8113
-   }
-  },
-  "metrics": {
-   "cost_usd": 4.9005,
-   "time_s": {
-    "write_tests": 413.8,
-    "lint": 0.1,
-    "revert": 17.9,
-    "mutation.generated": 21.3,
-    "mutation.generated_and_developers": 137.8,
-    "mutation": 159.2,
-    "suite": 93.3,
-    "test_cases": 115.5
-   },
-   "costs": {
-    "write_tests": {
-     "cost_usd": 3.6169034,
-     "model": "claude-opus-5-5",
-     "turns": 39,
-     "duration_ms": 412282,
-     "input_tokens": 64,
-     "output_tokens": 20060
-    },
-    "test_cases": {
-     "cost_usd": 1.2836172,
-     "model": "claude-opus-5-5",
-     "turns": 17,
-     "duration_ms": 114656,
-     "input_tokens": 20,
-     "output_tokens": 8113
+  "qa_mode": "sequential",
+  "first_round": {
+    "round": 1,
+    "tests": 6,
+    "tests_api": 4,
+    "tests_browser": 2,
+    "pass_at_head": 6,
+    "fail_at_base_on_assertion": 5,
+    "pass_on_both": 1,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 108,
+        "killed": 27,
+        "score": 0.25,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 108,
+        "killed": 98,
+        "score": 0.9074074074074074,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      }
     }
-   },
-   "mutation_score.generated": 0.25,
-   "mutation_score_changed_lines.generated": 1.0,
-   "mutation_score.generated_and_developers": 0.9074074074074074,
-   "mutation_score_changed_lines.generated_and_developers": 1.0
   },
-  "revert": {
-   "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_archived_bookmarks_sort_modified_asc_and_desc": "proves-behaviour",
-   "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_bookmarks_sort_modified_asc": "proves-behaviour",
-   "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_bookmarks_sort_modified_desc": "proves-behaviour",
-   "bookmarks/tests/test_sort_by_modified_api.py::SortByModifiedApiTestCase::test_list_bookmarks_unknown_sort_falls_back_to_default_order": "passes-without-change",
-   "bookmarks/tests_e2e/e2e_test_sort_by_modified.py::SortByModifiedE2ETestCase::test_sort_archived_bookmarks_by_modified": "proves-behaviour",
-   "bookmarks/tests_e2e/e2e_test_sort_by_modified.py::SortByModifiedE2ETestCase::test_sort_bookmarks_by_modified_asc_and_desc": "proves-behaviour"
+  "final_round": {
+    "round": 1,
+    "tests": 6,
+    "tests_api": 4,
+    "tests_browser": 2,
+    "pass_at_head": 6,
+    "fail_at_base_on_assertion": 5,
+    "pass_on_both": 1,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 108,
+        "killed": 27,
+        "score": 0.25,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 108,
+        "killed": 98,
+        "score": 0.9074074074074074,
+        "changed_lines": {
+          "checked": 10,
+          "killed": 10,
+          "score": 1.0
+        }
+      }
+    }
   },
-  "mutation": {
-   "generated": {
-    "generated": 454,
-    "checked": 108,
-    "killed": 27,
-    "survived": 81,
-    "no_tests": 0,
-    "timeout": 0,
-    "score": 0.25,
-    "on_changed_lines": {
-     "checked": 10,
-     "killed": 10,
-     "survived": 0,
-     "score": 1.0
-    },
-    "wall_s": 13.69,
-    "test_files": [
-     "bookmarks/tests/test_sort_by_modified_api.py"
-    ]
-   },
-   "generated_and_developers": {
-    "generated": 454,
-    "checked": 108,
-    "killed": 98,
-    "survived": 10,
-    "no_tests": 0,
-    "timeout": 0,
-    "score": 0.9074074074074074,
-    "on_changed_lines": {
-     "checked": 10,
-     "killed": 10,
-     "survived": 0,
-     "score": 1.0
-    },
-    "wall_s": 130.2,
-    "test_files": [
-     "bookmarks/tests/test_sort_by_modified_api.py",
-     "bookmarks/tests/test_queries.py"
-    ]
-   }
-  },
-  "mutation_globs": [
-   "bookmarks.queries.x__base_bookmarks_query__mutmut_*"
+  "rounds": [
+    {
+      "round": 1,
+      "kind": "write",
+      "failure": null
+    }
   ],
-  "changed_lines": {
-   "bookmarks/queries.py": [
-    301,
-    302,
-    303,
-    304
-   ]
+  "decisions": [],
+  "stages": {
+    "frame": {
+      "status": "pass",
+      "duration_s": 13.264,
+      "work_s": null,
+      "cost_usd": 0.030818800000000004,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "plan": {
+      "status": "pass",
+      "duration_s": 13.942,
+      "work_s": null,
+      "cost_usd": 0.0668524,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "implement": {
+      "status": "pass",
+      "duration_s": 0.058,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "verify": {
+      "status": "pass",
+      "duration_s": 0.001,
+      "work_s": 799.8,
+      "cost_usd": 4.9005,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "review": {
+      "status": "pass",
+      "duration_s": 50.712,
+      "work_s": null,
+      "cost_usd": 0.4713728,
+      "model": "claude-opus-5-5",
+      "earlier_runs": 0
+    },
+    "ship": {
+      "status": "pass",
+      "duration_s": 31.56,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    }
   },
-  "suite": [
-   {
-    "summary": "============================ 1294 passed in 24.18s =============================",
-    "wall_s": 24.7
-   },
-   {
-    "summary": "=================== 83 passed, 1 skipped in 68.13s (0:01:08) ===================",
-    "wall_s": 68.63
-   }
-  ]
- }
+  "verify_parts": {
+    "time_s": {
+      "write_tests": 413.8,
+      "lint": 0.1,
+      "revert": 17.9,
+      "mutation.generated": 21.3,
+      "mutation.generated_and_developers": 137.8,
+      "mutation": 159.2,
+      "suite": 93.3,
+      "test_cases": 115.5
+    },
+    "cost_usd": {
+      "write_tests": 3.6169034,
+      "test_cases": 1.2836172
+    }
+  },
+  "spend_usd": 5.4695,
+  "ledger": null,
+  "blind_audit": null
 }

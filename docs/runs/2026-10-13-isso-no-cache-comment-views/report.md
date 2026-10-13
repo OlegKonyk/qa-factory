@@ -27,6 +27,15 @@ Counts (round 3):
 | crash | 0 |
 | head_fails | 0 |
 
+## The developers' own tests, written with the change
+
+0 of 2 new tests by the developers fail on the old code on an assertion; 2 fail only for a missing name
+
+| file | test | with the change | without the change | failure on the old code |
+|---|---|---|---|---|
+| isso/tests/test_comments.py | TestComments::testFetchAddsNoCacheHeaders | pass | fails on the old code only for a name the change adds | cannot import name 'NO_CACHE_HEADERS' from 'isso.utils' (/Users/oleg/dev/qa-factory/.artifacts/runs/ |
+| isso/tests/test_comments.py | TestComments::testViewAddsNoCacheHeaders | pass | fails on the old code only for a name the change adds | cannot import name 'NO_CACHE_HEADERS' from 'isso.utils' (/Users/oleg/dev/qa-factory/.artifacts/runs/ |
+
 ## Readable test cases
 
 | case | title | link |

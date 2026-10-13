@@ -1,0 +1,68 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "ran",
+  "reason": "0 of 5 new tests by the developers fail on the old code on an assertion; 5 fail only for a missing name",
+  "files": [
+   "bookmarks/tests/test_bundles_preview_view.py",
+   "bookmarks/tests/test_queries.py"
+  ],
+  "new_test_ids": {
+   "bookmarks/tests/test_bundles_preview_view.py": [
+    "bookmarks/tests/test_bundles_preview_view.py::BundlePreviewViewTestCase::test_preview_with_filter_unread",
+    "bookmarks/tests/test_bundles_preview_view.py::BundlePreviewViewTestCase::test_preview_with_filter_shared"
+   ],
+   "bookmarks/tests/test_queries.py": [
+    "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_query_bookmarks_with_bundle_filter_unread",
+    "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_query_bookmarks_with_bundle_filter_shared",
+    "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_query_bookmarks_with_bundle_unread_shared_filters_combined"
+   ]
+  },
+  "tests": {
+   "bookmarks/tests/test_bundles_preview_view.py::BundlePreviewViewTestCase::test_preview_with_filter_shared": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES'"
+   },
+   "bookmarks/tests/test_bundles_preview_view.py::BundlePreviewViewTestCase::test_preview_with_filter_unread": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES'"
+   },
+   "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_query_bookmarks_with_bundle_filter_shared": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES'"
+   },
+   "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_query_bookmarks_with_bundle_filter_unread": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES'"
+   },
+   "bookmarks/tests/test_queries.py::QueriesBasicTestCase::test_query_bookmarks_with_bundle_unread_shared_filters_combined": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "type object 'BookmarkBundle' has no attribute 'FILTER_STATE_YES'"
+   }
+  },
+  "counts": {
+   "new_tests": 5,
+   "ran": 5,
+   "proves-behaviour": 0,
+   "passes-without-change": 0,
+   "missing-name": 5,
+   "crash": 0,
+   "head-fails": 0,
+   "skip": 0
+  },
+  "wall_s": {
+   "head": 25.6,
+   "reverted": 25.54
+  }
+ }
+}

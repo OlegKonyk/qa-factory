@@ -164,7 +164,19 @@
   <h2>The scenarios raised</h2>
 
   <h3>Tests in the implementing session</h3>
-  <p>Keep them as the developer's unit tests and let the checks judge them like any other test. Today the revert check judges only the generated tests; mutation testing reports the developers' tests as their own set. Running the revert check on the developers' tests too is a small change and answers "do their tests prove the behaviour" per ticket. <span class="pill no">not built</span></p>
+  <p>Keep them as the developer's unit tests and let the checks judge them like any other test. The revert check now runs on the developers' own new tests too, as a report per ticket. <span class="pill ok">built · measured</span> Measured on the three tickets on this laptop, all written by the applications' own developers with the change:</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Ticket</th><th>Developers' new tests</th><th>Fail on old code, on an assertion</th><th>Fail only for a missing name</th><th>What they reach for</th></tr></thead>
+    <tbody>
+      <tr><td>linkding, sort by modified date</td><td class="num">2</td><td class="num">0</td><td class="num">2</td><td>a sort constant the change adds</td></tr>
+      <tr><td>linkding, filter bundles by state</td><td class="num">5</td><td class="num">0</td><td class="num">5</td><td>a filter constant the change adds</td></tr>
+      <tr><td>isso, no-cache headers</td><td class="num">2</td><td class="num">0</td><td class="num">2</td><td>the header constant, imported from the code under test</td></tr>
+      <tr><td>The factory's blind tests, same tickets</td><td class="num">4 · 7 · 6</td><td class="num">3 · 7 · 3</td><td class="num">0 · 0 · 0</td><td>the public surface, values spelled out</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Nine of nine fail on the old code before any assertion runs. They do check behaviour once the names exist (they pass with the change and kill mutants), but they cannot tell "the feature is missing" from "the feature is wrong", and a reviewer cannot tell either without running them on the old code. Three tickets, two applications, nine tests: a pattern, not yet a law.</p>
 
   <h3>Develop on mocks, validate on the deployed environment</h3>
   <p>Read as two verification points for one set of acceptance tests.</p>
@@ -187,14 +199,14 @@
       <tr><td>A service with external dependencies</td><td>the suite runs as it is, mocks included</td><td>the deployed run; a mock-freshness check</td></tr>
       <tr><td>A service with no Python browser tests</td><td>API-only recipes; isso shipped one ticket on 13 October (6 tests, 3 prove the change, 3 guards)</td><td>nothing; mutation was not applicable there (decorated functions)</td></tr>
       <tr><td>A non-Python service</td><td>nothing</td><td>the checks read pytest tracebacks and run mutmut</td></tr>
-      <tr><td>Tests the team wrote by hand</td><td>mutation testing reports them as a set</td><td>the revert check on them</td></tr>
+      <tr><td>Tests the team wrote by hand</td><td>mutation testing reports them as a set; the revert check reports their verdicts</td><td>a run on the team's own tickets</td></tr>
     </tbody>
   </table>
   </div>
 
   <h2>Four lines for the meeting</h2>
   <ol>
-    <li>Tests from the implementing session prove the code is new, not what it does. Measured.</li>
+    <li>Tests from the implementing session prove the code is new, not what it does. Measured: 9 of 9 developers' tests on three tickets fail on the old code only for a name the change adds.</li>
     <li>Trust comes from a separate session plus deterministic checks: fails without the change on an assertion, kills mutants on the changed lines, the suite stays green, a readable case per test.</li>
     <li>On four runs the blind tests met the real change with no mismatch and were as strong as tests written with the change in view. Limits: one application, four runs, contracts stated.</li>
     <li>The deployed-environment run and anything about mocks are not built. The adoption guide says what is ready and what a service needs to use it.</li>

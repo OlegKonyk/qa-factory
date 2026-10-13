@@ -262,6 +262,10 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   all and on the changed lines, for the generated tests alone, with the developers' tests, and
   the developers' alone. Scores are reported, not thresholded; the check fails only when mutmut
   could not run, no mutant was checked, or the generated tests kill no mutant on the changed lines.
+- **The developers' own tests** (`verify/developers_revert.json`): the same revert check on the
+  tests the change itself added, reported with the same verdicts and never a failure. It answers,
+  per ticket, whether the tests written with the code prove the behaviour. On a finished run,
+  `python -m factory devtests <run folder>` runs it alone, with no model call.
 - **Mutation not applicable**: when mutmut makes no mutant for any changed function (decorated
   functions, section 5), the report says so under `skipped` and the run goes on; the revert check
   is then the only proof the tests exercise the change. This is not a test failure; do not retry.

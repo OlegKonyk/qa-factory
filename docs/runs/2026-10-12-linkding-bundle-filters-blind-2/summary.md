@@ -57,6 +57,12 @@
 | final_round mutation developers changed lines checked | 16 |
 | final_round mutation developers changed lines killed | 16 |
 | final_round mutation developers changed lines score | 1.0 |
+| developers tests new_tests | 5 |
+| developers tests proves-behaviour | 0 |
+| developers tests passes-without-change | 0 |
+| developers tests missing-name | 5 |
+| developers tests crash | 0 |
+| developers tests head-fails | 0 |
 | spend_usd | 5.4351 |
 
 ### linkding-bundle-filters-blind-2: stages

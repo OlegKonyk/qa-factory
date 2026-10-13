@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import TextIO
 
+from factory.checks import devtests
+
 STEP_NAMES = ["frame", "plan", "implement", "verify", "review", "ship"]
 SET_NAMES = ["generated", "generated_and_developers", "developers"]
 VERDICT_KEYS = {
@@ -201,8 +203,10 @@ def summarize(run_dir) -> dict:
     costs = [s["cost_usd"] for n, s in stages.items() if s["cost_usd"] is not None and n not in in_ledger]
     if ledger:
         costs.append(ledger.get("spent_usd") or 0.0)
+    developers = _result(_load(verify / "developers_revert.json")) or {}
     return {
         "ticket": ticket.get("id") or run.name,
+        "developers": developers.get("counts") or {},
         "qa_mode": ticket.get("qa_mode") or "sequential",
         "first_round": first,
         "final_round": final,
@@ -257,6 +261,8 @@ def _number_rows(summaries: list[dict]) -> list[list]:
                         ],
                     ]
                 )
+    for key in ("new_tests", *devtests.VERDICTS[:5]):
+        rows.append([f"developers tests {key}", *[(s.get("developers") or {}).get(key) for s in summaries]])
     rows.append(["spend_usd", *[s["spend_usd"] for s in summaries]])
     return rows
 

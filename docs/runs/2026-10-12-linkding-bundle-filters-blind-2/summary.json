@@ -1,5 +1,15 @@
 {
   "ticket": "linkding-bundle-filters-blind-2",
+  "developers": {
+    "new_tests": 5,
+    "ran": 5,
+    "proves-behaviour": 0,
+    "passes-without-change": 0,
+    "missing-name": 5,
+    "crash": 0,
+    "head-fails": 0,
+    "skip": 0
+  },
   "qa_mode": "blind",
   "first_round": {
     "round": 1,

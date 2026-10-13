@@ -33,7 +33,7 @@ import sys
 import time
 
 from factory import blind, escalate, headless, rounds
-from factory.checks import lint, mutants, revert, suite
+from factory.checks import devtests, lint, mutants, revert, suite
 from factory.steps.ship import restore_tests
 
 WRITER_MODEL = os.environ.get("QA_FACTORY_WRITER_MODEL", "claude-opus-5-5")
@@ -475,6 +475,30 @@ def run_revert(ctx):
     return report
 
 
+def run_developers_revert(ctx):
+    """The revert check on the developers' own new tests: reported, never a failure, once per run."""
+    if "developers_revert" in ctx:
+        return ctx["developers_revert"]
+    app = ctx["app"]
+    with open(ctx["artifacts"]["changed_source"]) as f:
+        changed_source = json.load(f)
+    with open(ctx["artifacts"]["changed_tests"]) as f:
+        changed_tests = json.load(f)
+    ctx["developers_revert"] = devtests.run(
+        ctx["head_tree"],
+        ctx["base_tree"],
+        changed_source,
+        changed_tests,
+        os.path.join(ctx["out"], "developers_revert"),
+        app["python"],
+        app["pytest_args"],
+        app["test_support"],
+        app.get("browser_test_files") if browser_dir(app) else None,
+        app["exclude_copy"],
+    )
+    return ctx["developers_revert"]
+
+
 def run_mutation(ctx):
     app, head_tree, base_tree = ctx["app"], ctx["head_tree"], ctx["base_tree"]
     with open(ctx["artifacts"]["changed_source"]) as f:
@@ -689,6 +713,7 @@ ATTEMPT_CHECKS = [
     ("write_tests", write_tests),
     ("lint", run_lint),
     ("revert", run_revert),
+    ("developers_revert", run_developers_revert),
     ("mutation", run_mutation),
     ("suite", run_suite),
 ]
