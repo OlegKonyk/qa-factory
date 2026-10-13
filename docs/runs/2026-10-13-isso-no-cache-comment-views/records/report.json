@@ -1,0 +1,370 @@
+{
+ "checks": {
+  "write_tests": {
+   "status": "pass",
+   "result": {
+    "files": [
+     "isso/tests/test_no_cache_comment_views_api.py"
+    ],
+    "api_files": [
+     "isso/tests/test_no_cache_comment_views_api.py"
+    ],
+    "notes": "I wrote one new file, isso/tests/test_no_cache_comment_views_api.py, with 6 tests. I changed no app code and no existing tests. On this commit the 3 tests for the new behaviour fail with AssertionError, and the 3 guard tests pass.\n\n**Why API level:** the strategy puts all coverage at API level in a new `test_<feature>_api.py`. Every criterion is about routes, status codes, headers and JSON bodies. The setup is copied from test_comments.py: temp database per test, guard off, `hash=none`, `latest-enabled=true`, `App(Isso, core.Mixin)`, `FakeIP`, `JSONClient`, and the module-level `http.curl = curl`.\n\n**The tests:**\n- `testListingOfThreadWithCommentIsNoStore` (AC1): posts a comment, then `GET /?uri=%2Fpath%2F` must return 200 with exactly one `Cache-Control` header, value `no-store`. It uses `headers.getlist`, so a duplicated or combined header also fails.\n- `testListingWithEachQueryParameterIsNoStore` (AC1 and the contract's parameter list): a root comment plus a reply, so `parent` and `nested_limit` actually take their code paths. It requests the listing with each of these:\n  - `sort=oldest`, `sort=newest`, `sort=upvotes`\n  - `limit=1`, `limit=0` (the early-return path)\n  - `limit=1&offset=1`\n  - `parent=1`\n  - `nested_limit=0`, `nested_limit=1`\n  - `plain=1`, `after=0`\n  - all parameters together\n  - a thread with no comments\n  \n  It checks one dict of query \u2192 (status, Cache-Control values) against (200, ['no-store']) for every query, so an implementation that only covers the main path fails.\n- `testViewWithEditCookieIsNoStoreWithAndWithoutPlain` (AC2): the author's client sends back the edit cookie from `POST /new`. `GET /id/1` and `GET /id/1?plain=1` must each return 200 with `Cache-Control: no-store`.\n- `testErrorResponsesCarryNoCacheControl` (AC3, AC4, the 403 case): `sort=bogus` gives 400, `/id/99` gives 404, and `/id/1` from a new client with no cookie gives 403. Each asserts the status and that there is no `Cache-Control` header at all. The contract says these responses get no `Cache-Control` from this change, and the current code sends none, so checking for absence is the literal check. This test already passes; it guards against setting the header unconditionally.\n- `testListingAndViewBodiesAreUnchanged` (AC5): checks literal values in the listing body (id, total_replies, hidden_replies, the root comment and its reply, the config key). It also checks `/id/1`: rendered text by default, raw text with `plain=1`, plus author and website. Every key is checked with `assertIn` before it is read. It deliberately makes no header assertion, so it should pass both before and after the change. It already passes.\n- `testOtherRoutesDoNotGetNoStore` (contract: no other route changes): `POST /new`, `PUT /id/1`, `POST /count`, `GET /latest`, `GET /config`, then `DELETE /id/1` last because it clears the cookie. Each asserts its status and no `Cache-Control`, matching current behaviour. It already passes; it catches the header being added globally.\n\n**Two departures from the plan:**\n- Test names are camelCase (`testX`) to match every existing test file, instead of the plan's snake_case.\n- The parameter and view tests check a single dict instead of using `subTest`. With `subTest`, pytest reported the parent test as PASSED while its subtests failed.\n\n**Results** (venv python, run from the worktree root):\n- `python -m pytest -p no:cacheprovider isso/tests/test_no_cache_comment_views_api.py` \u2192 `3 failed, 3 passed`. The failures are `AssertionError: Lists differ: [] != ['no-store']`, `{'/id/1': (200, []), '/id/1?plain=1': (200, [])} != {'/id/1': (200, ['no-store']), ...}`, and the same dict mismatch for the listing queries. There are no import, name or server errors.\n- `python -m pytest -p no:cacheprovider --doctest-modules isso` \u2192 `3 failed, 123 passed`. The only failures are the 3 above.\n- `ruff check` \u2192 `All checks passed!`; `ruff format` \u2192 `1 file left unchanged`.\n\n**Wrong-code warning:** a standalone script run with the venv interpreter, outside `python -m pytest` from the worktree root, loads the venv's installed `isso`. That is a different checkout, not this worktree. My first probe script hit this by accident; I didn't look into that copy any further. I confirmed the pytest runs load `.../wt/isso-no-cache-comment-views/base/isso/__init__.py`. The tests expect only the header value the ticket states.\n\n**Left behind:** deleting my scratch script was denied, so `/tmp/isso-probe/probe.py` (outside the repo) is still there."
+   }
+  },
+  "lint": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "findings": []
+   }
+  },
+  "revert": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "reason": "3 of 6 tests fail on an assertion without the change",
+    "tests": {
+     "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testErrorResponsesCarryNoCacheControl": {
+      "at_head": "pass",
+      "reverted": "pass",
+      "verdict": "passes-without-change",
+      "message": ""
+     },
+     "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingAndViewBodiesAreUnchanged": {
+      "at_head": "pass",
+      "reverted": "pass",
+      "verdict": "passes-without-change",
+      "message": ""
+     },
+     "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingOfThreadWithCommentIsNoStore": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "Lists differ: [] != ['no-store']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'no-store'\n\n- []\n+ ['no-store']"
+     },
+     "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingWithEachQueryParameterIsNoStore": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "{'/?u[30 chars]00, []), '/?uri=%2Fpath%2F&sort=newest': (200,[503 chars] [])} != {'/?u[30 chars]00, ['no-store']), '/?uri=%2Fpath%2F&sort=newe[633 chars]e'])}\n- {'/?uri=%2Fempty%2F': (200, []),\n+ {'/?uri=%2Fempty%2F': (200, ['no-store']),\n?                              ++++++++++\n\n-  '/?uri=%2Fpath%"
+     },
+     "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testOtherRoutesDoNotGetNoStore": {
+      "at_head": "pass",
+      "reverted": "pass",
+      "verdict": "passes-without-change",
+      "message": ""
+     },
+     "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testViewWithEditCookieIsNoStoreWithAndWithoutPlain": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "{'/id/1': (200, []), '/id/1?plain=1': (200, [])} != {'/id/1': (200, ['no-store']), '/id/1?plain=1': (200, ['no-store'])}\n- {'/id/1': (200, []), '/id/1?plain=1': (200, [])}\n+ {'/id/1': (200, ['no-store']), '/id/1?plain=1': (200, ['no-store'])}\n?                  ++++++++++                            "
+     }
+    },
+    "wall_s": {
+     "head": 0.35,
+     "reverted": 0.28
+    },
+    "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/revert/reverted"
+   }
+  },
+  "mutation": {
+   "status": "pass",
+   "result": {
+    "globs": [
+     "isso.views.comments.x_no_cache_headers__mutmut_*",
+     "isso.views.comments.x\u01c1API\u01c1view__mutmut_*",
+     "isso.views.comments.x\u01c1API\u01c1fetch__mutmut_*"
+    ],
+    "only_mutate": [
+     "isso/views/comments.py"
+    ],
+    "changed_lines": {
+     "isso/views/comments.py": [
+      12,
+      28,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      529,
+      973
+     ]
+    },
+    "runs": {
+     "generated": {
+      "status": "pass",
+      "reason": "mutmut made no mutant for any changed function (it skips some shapes)",
+      "no_mutants": true,
+      "wall_s": 2.75,
+      "returncode": 1,
+      "generated": 1039,
+      "checked": 0,
+      "killed": 0,
+      "survived": 0,
+      "no_tests": 0,
+      "timeout": 0,
+      "other": 0,
+      "score": null,
+      "on_changed_lines": {
+       "checked": 0,
+       "killed": 0,
+       "survived": 0,
+       "score": null
+      },
+      "mutants": {},
+      "stdout_tail": [
+       "    done",
+       "Traceback (most recent call last):",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/bin/mutmut\", line 10, in <module>",
+       "    sys.exit(cli())",
+       "             ~~~^^",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 1631, in __call__",
+       "    return self.main(*args, **kwargs)",
+       "           ~~~~~~~~~^^^^^^^^^^^^^^^^^",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 1552, in main",
+       "    rv = self.invoke(ctx)",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 2032, in invoke",
+       "    return _process_result(sub_ctx.command.invoke(sub_ctx))",
+       "                           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 1415, in invoke",
+       "    return ctx.invoke(self.callback, **ctx.params)",
+       "           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 910, in invoke",
+       "    return callback(*args, **kwargs)",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/mutmut/__main__.py\", line 941, in run",
+       "    _run(mutant_names, max_children)",
+       "    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/mutmut/__main__.py\", line 983, in _run",
+       "    mutants, source_file_mutation_data_by_path = collect_source_file_mutation_data(mutant_names=mutant_names)",
+       "                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+       "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/mutmut/__main__.py\", line 815, in collect_source_file_mutation_data",
+       "    assert filtered_mutants, f\"Filtered for specific mutants, but nothing matches\\n\\nFilter: {mutant_names}\"",
+       "           ^^^^^^^^^^^^^^^^",
+       "AssertionError: Filtered for specific mutants, but nothing matches",
+       "",
+       "Filter: ('isso.views.comments.x_no_cache_headers__mutmut_*', 'isso.views.comments.x\u01c1API\u01c1view__mutmut_*', 'isso.views.comments.x\u01c1API\u01c1fetch__mutmut_*')"
+      ],
+      "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/mutation/generated/mutation",
+      "test_files": [
+       "isso/tests/test_no_cache_comment_views_api.py"
+      ]
+     }
+    },
+    "skipped": "mutmut made no mutant for any changed function (it skips some shapes): isso.views.comments.x_no_cache_headers__mutmut_*, isso.views.comments.x\u01c1API\u01c1view__mutmut_*, isso.views.comments.x\u01c1API\u01c1fetch__mutmut_*"
+   }
+  },
+  "suite": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "runs": [
+     {
+      "args": [
+       "/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/bin/python",
+       "-m",
+       "pytest",
+       "-p",
+       "no:cacheprovider",
+       "--doctest-modules",
+       "isso"
+      ],
+      "returncode": 0,
+      "summary": "======================= 128 passed, 14 warnings in 2.07s =======================",
+      "wall_s": 2.18,
+      "tail": [
+       "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id",
+       "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id_workaround",
+       "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id_workaround",
+       "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id_workaround",
+       "  /Users/oleg/Library/Caches/qa-factory/isso/wt/isso-no-cache-comment-views/head/isso/migrate.py:111: DeprecationWarning: Testing an element's truth value will always return True in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.",
+       "    if not thread_id:",
+       "",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "isso/tests/test_migration.py::TestMigration::test_wordpress",
+       "  /Users/oleg/Library/Caches/qa-factory/isso/wt/isso-no-cache-comment-views/head/isso/migrate.py:225: DeprecationWarning: 'count' is passed as positional argument",
+       "    text = re.sub(r\"(?!^\\n)\\n(?!^\\n)\", \"  \\n\", text, 0)",
+       "",
+       "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+       "======================= 128 passed, 14 warnings in 2.07s ======================="
+      ]
+     }
+    ]
+   }
+  },
+  "test_cases": {
+   "status": "pass",
+   "result": {
+    "dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/testcases",
+    "files": [
+     "isso/TC-isso-001.md",
+     "isso/TC-isso-002.md",
+     "isso/TC-isso-003.md",
+     "isso/TC-isso-004.md",
+     "isso/TC-isso-005.md",
+     "isso/TC-isso-006.md"
+    ],
+    "test_ids": 6,
+    "lint_rc": 0,
+    "lint": "6 cases checked, 0 findings",
+    "metrics": {
+     "cost_usd": 1.1031652,
+     "model": "claude-opus-5-5",
+     "turns": 14,
+     "duration_ms": 167834,
+     "input_tokens": 20,
+     "output_tokens": 7397
+    },
+    "repair_metrics": null
+   }
+  }
+ },
+ "timings": {
+  "write_tests": 275.7,
+  "lint": 0.2,
+  "revert": 0.7,
+  "mutation.generated": 2.8,
+  "mutation": 2.9,
+  "suite": 2.2,
+  "test_cases": 169.0
+ },
+ "costs": {
+  "write_tests": {
+   "cost_usd": 2.120152,
+   "model": "claude-opus-5-5",
+   "turns": 28,
+   "duration_ms": 273656,
+   "input_tokens": 44,
+   "output_tokens": 15711
+  },
+  "test_cases": {
+   "cost_usd": 1.1031652,
+   "model": "claude-opus-5-5",
+   "turns": 14,
+   "duration_ms": 167834,
+   "input_tokens": 20,
+   "output_tokens": 7397
+  }
+ },
+ "artifacts": {
+  "tests_manifest": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/tests_manifest.json",
+  "tests_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/tests",
+  "verify_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/report.json",
+  "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/testcases",
+  "approval": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/approval.json"
+ },
+ "metrics": {
+  "cost_usd": 3.2233,
+  "time_s": {
+   "write_tests": 275.7,
+   "lint": 0.2,
+   "revert": 0.7,
+   "mutation.generated": 2.8,
+   "mutation": 2.9,
+   "suite": 2.2,
+   "test_cases": 169.0
+  },
+  "costs": {
+   "write_tests": {
+    "cost_usd": 2.120152,
+    "model": "claude-opus-5-5",
+    "turns": 28,
+    "duration_ms": 273656,
+    "input_tokens": 44,
+    "output_tokens": 15711
+   },
+   "test_cases": {
+    "cost_usd": 1.1031652,
+    "model": "claude-opus-5-5",
+    "turns": 14,
+    "duration_ms": 167834,
+    "input_tokens": 20,
+    "output_tokens": 7397
+   }
+  },
+  "rounds": 1,
+  "ticket_spent_usd": 5.0996,
+  "mutation_score.generated": null,
+  "mutation_score_changed_lines.generated": null
+ },
+ "rounds": [
+  {
+   "round": 3,
+   "kind": "write",
+   "checks": {
+    "write_tests": {
+     "status": "pass",
+     "s": 275.7
+    },
+    "lint": {
+     "status": "pass",
+     "s": 0.2
+    },
+    "revert": {
+     "status": "pass",
+     "s": 0.7
+    },
+    "mutation": {
+     "status": "pass",
+     "s": 2.9
+    },
+    "suite": {
+     "status": "pass",
+     "s": 2.2
+    }
+   },
+   "failure": null
+  }
+ ],
+ "history": [
+  {
+   "round": 3,
+   "kind": "write",
+   "failure": null
+  }
+ ],
+ "advice": [],
+ "ledger": {
+  "caps": {
+   "writer_rounds": 3,
+   "advice": 2,
+   "usd": 10.0
+  },
+  "spent_usd": 5.0996,
+  "writer_rounds_used": 0,
+  "advice_used": 0,
+  "calls": 3
+ },
+ "blind": true,
+ "blind_audit": {
+  "tool_calls": 18,
+  "flagged": [],
+  "clean": true,
+  "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/rounds/1/writer.jsonl"
+ },
+ "gate_kind": null,
+ "last_failure": null,
+ "status": "pass"
+}

@@ -1,7 +1,8 @@
 """The Verify step: the QA step, built fully.
 
 One round, each check able to stop it:
-1. A fresh headless Claude Code session writes the API tests and the browser tests for the change,
+1. A fresh headless Claude Code session writes the API tests, and the browser tests when the recipe
+   has a browser folder, for the change,
    placed by the application's strategy rule (`factory/prompts/write_tests.md`). In blind mode
    (`"qa_mode": "blind"`) it writes them in the base worktree, without the change, and the files
    are moved into the head worktree (`factory/prompts/write_tests_blind.md`).
@@ -116,8 +117,50 @@ def _dump(path, data):
 
 
 def _prompt(name, values):
+    values = {"browser_section": "", **values}
     with open(os.path.join(FACTORY_ROOT, "factory", "prompts", name + ".md")) as f:
         return f.read().format_map(values)
+
+
+NO_BROWSER_SECTION = "This application has no browser tests in Python: write API tests only."
+
+_PYTEST = '`{python} -m pytest -p no:cacheprovider{flags} -o "python_files={browser_glob}" '
+_BROWSER_FILE = "{browser_tests_dir}/{browser_test_file}`."
+
+_BROWSER_COMMON = """Browser tests.
+
+- Also read `{browser_tests_dir}/helpers.py` and one existing test file in that folder.
+- Write the browser test(s) into `{browser_tests_dir}/{browser_test_file}`. New file only, that name
+  exactly."""
+
+_BROWSER_SECTIONS = {
+    "fresh": _BROWSER_COMMON
+    + """
+- In the browser test, first assert the new control is present, then use it and assert the visible
+  result.
+- Run it and make it pass:
+  """
+    + _PYTEST.replace("{flags}", "")
+    + _BROWSER_FILE,
+    "blind": _BROWSER_COMMON
+    + """
+- The browser test cannot run here (the assets are not built). Check that it collects:
+  """
+    + _PYTEST.replace("{flags}", " --collect-only -q")
+    + _BROWSER_FILE
+    + """
+- In it, first assert the new control is present, then use it and assert the visible result.""",
+    "repair": "Browser tests. Run the browser test file too and make it pass:\n"
+    + _PYTEST.replace("{flags}", "")
+    + _BROWSER_FILE,
+}
+
+
+def _browser_section(app, mode, values):
+    """The writer prompt's browser instructions for `mode`, or the one line that says there are none."""
+    if not browser_dir(app):
+        return NO_BROWSER_SECTION
+    return _BROWSER_SECTIONS[mode].format_map(values)
 
 
 def _structured_of(artifact_path):
@@ -128,8 +171,18 @@ def _structured_of(artifact_path):
         return text
 
 
+def browser_dir(app):
+    """The recipe's browser test folder, or None for an application with no browser tests in Python."""
+    return app.get("browser_tests_dir") or None
+
+
+def test_dirs(app):
+    """The folders that hold tests: the API folder, then the browser folder when there is one."""
+    return [d for d in (app["api_tests_dir"], browser_dir(app)) if d]
+
+
 def _in_test_dirs(path, app):
-    return path.startswith(app["api_tests_dir"] + "/") or path.startswith(app["browser_tests_dir"] + "/")
+    return any(path.startswith(d + "/") for d in test_dirs(app))
 
 
 def _test_ids(tree, relpath):
@@ -170,7 +223,7 @@ def _record(ctx, key, ledger_kind, metrics):
 # ------------------------------------------------------------------ the checks
 def _clean_tests(tree, app):
     """Drop whatever an earlier round left in the test folders; keep everything else as it is."""
-    dirs = [app["api_tests_dir"], app["browser_tests_dir"]]
+    dirs = test_dirs(app)
     _git(tree, "clean", "-fdq", "--", *dirs)
     tracked = [d for d in dirs if _git(tree, "ls-files", "--", d).strip()]  # checkout fails on others
     if tracked:
@@ -251,12 +304,18 @@ def _writer_prompt(ctx):
     values = {
         "strategy": _read(os.path.join(FACTORY_ROOT, app["strategy"])),
         "api_tests_dir": app["api_tests_dir"],
-        "browser_tests_dir": app["browser_tests_dir"],
+        "api_helpers": app.get("test_helpers") or app["api_tests_dir"] + "/helpers.py",
         "api_test_file": f"test_{ctx['slug']}_api.py",
-        "browser_test_file": app["browser_test_files"].replace("*", ctx["slug"]),
-        "browser_glob": app["browser_test_files"],
         "python": app["python"],
     }
+    if browser_dir(app):
+        values.update(
+            browser_tests_dir=browser_dir(app),
+            browser_test_file=app["browser_test_files"].replace("*", ctx["slug"]),
+            browser_glob=app["browser_test_files"],
+        )
+    mode = "repair" if ctx["mode"] == "repair" else "blind" if ctx["blind"] else "fresh"
+    values["browser_section"] = _browser_section(app, mode, values)
     ticket = blind.public_ticket(ctx["ticket"]) if ctx["blind"] else ctx["ticket"]
     diff = _read(ctx["artifacts"].get("change_diff", ""))
     plan = _structured_of(ctx["artifacts"]["plan"]) if "plan" in ctx["artifacts"] else "(no plan)"
@@ -281,9 +340,7 @@ def _writer_prompt(ctx):
     values.update(
         ticket_json=json.dumps(ticket, indent=1),
         diff=diff,
-        dev_tests_diff=_git(
-            head_tree, "diff", base, head, "--", app["api_tests_dir"], app["browser_tests_dir"]
-        ),
+        dev_tests_diff=_git(head_tree, "diff", base, head, "--", *test_dirs(app)),
         plan_json=plan,
     )
     return _prompt("write_tests", values)
@@ -407,7 +464,7 @@ def run_revert(ctx):
         app["python"],
         app["pytest_args"],
         app["test_support"],
-        app["browser_test_files"],
+        app.get("browser_test_files") if browser_dir(app) else None,
         app["exclude_copy"],
     )
     if report["status"] != "pass":
@@ -476,6 +533,9 @@ def run_mutation(ctx):
         )
         report["runs"][name]["test_files"] = files
         ctx["timings"][f"mutation.{name}"] = round(time.time() - t0, 1)
+        if name == "generated" and report["runs"][name].get("no_mutants"):
+            report["skipped"] = f"{report['runs'][name]['reason']}: {', '.join(globs)}"
+            return report
         if name == "developers":
             ctx["developers_mutation"] = report["runs"][name]
     gen = report["runs"]["generated"]

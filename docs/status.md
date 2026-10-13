@@ -4,16 +4,38 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg
 
-1. Will tickets at work state the public contract (field names, values, labels, routes) before
-   coding starts? Track 1's blind tests met the change with no mismatch, but both tickets were
-   written from finished commits. If not, Plan has to fix the contract first.
-2. Make Restate the default engine now, or keep it behind `--engine restate` through track 3?
-   Recommended: keep it behind the flag and decide after track 3. The plain driver is simpler, and
-   Restate's gains (resume after a crash, a page per run) matter once runs are long or many
-   (`docs/exploration.md`, "Track 2 results").
-3. Does the Console show today's factory spend (about 5.44 USD, 2026-10-12) against the Max plan's
-   API credits? Settings > Billing and the Cost page at platform.claude.com. Claude Code reported
-   the key as its credential (measured), but only the Console shows which balance paid.
+1. Delete the three stale remote branches (the squash-merged heads of pull requests 16, 17, 18):
+   `git push origin --delete claude/restate-driver-k4pqfg docs/inputs-2026-10-12 docs/track2-real-run`.
+   The session's permission rules refused it.
+2. Will tickets at work state the public contract (field names, values, labels, routes) before
+   coding starts? Both linkding blind tickets and the isso ticket had it written from finished
+   commits. If not, Plan has to fix the contract first.
+3. Make Restate the default engine now, or keep it behind `--engine restate`? Recommended: keep it
+   behind the flag; the plain driver is what the adoption guide uses.
+4. Does the Console show the factory's spend (about 5.44 USD on 2026-10-12 and 5.4 USD on
+   2026-10-13) against the Max plan's API credits?
+
+## Where things stand, 2026-10-13
+
+- **Ready for a real project.** `docs/adopt.md` is the procedure an agent follows on a fresh
+  machine; it was tested by an agent that read nothing else and onboarded isso, and its 23
+  findings are folded in. Section 1 is the table of what is ready, measured, and not built.
+- **Second application shipped.** isso (werkzeug, API only, tests inside the source package):
+  the no-cache ticket, blind, shipped as `59a58be` on `qa/isso-no-cache-comment-views`; 6 tests,
+  3 prove the change on the old code, 3 regression guards, 0 missing names; 6 readable cases;
+  suite 128 passed; 5.69 USD recorded (`docs/runs/2026-10-13-isso-no-cache-comment-views/`).
+  Mutation could not run: mutmut 3.8.0 makes no mutant for the three changed functions
+  (decorated), and the factory skips `__init__.py`, where the new function lives. The factory
+  now records that as "not applicable" instead of sending the writer into a repair round that
+  cannot pass (which the first attempt did, 2.2 USD and a kill).
+- **The trust answer** for his meetings: `docs/trust.md` and
+  https://claude.ai/artifact/JEQNo6pu9zVp6xbAR98HEt.
+- **Factory changes:** browser tests optional in a recipe; `test_helpers` recipe field; mutation
+  "no mutants" is a skip, not a failure. 227 factory tests, `just check` green.
+- **Not built, said plainly:** the deployed-environment run (track 3), anything for mocks, mutation
+  of code in `__init__.py`, the revert check on the developers' own tests.
+- **Next:** `docs/next-session.md` has two kickoffs: A, onboard another application (his
+  microservice on his side, or a public one); B, track 3.
 
 ## Where things stand, 2026-10-12
 
@@ -34,7 +56,7 @@ Read this first. Update it last, in the same pull request as the work.
 - **Next: track 3**, the deployed environment (`docs/next-session.md`).
 - The architecture page is republished with sections 12, 14 and 15 updated (version 7):
   https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
-- 213 factory tests; `just check` green with `restate-server` installed.
+- 213 factory tests at that point; `just check` green with `restate-server` installed.
 
 ## Where things stood, 2026-10-10
 
@@ -57,6 +79,11 @@ Read this first. Update it last, in the same pull request as the work.
   is https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa; its tables are in `docs/architecture.md`.
 
 ## Done
+
+- **Adoption** (2026-10-13, `docs/log.md`): `docs/adopt.md`; isso onboarded from it by an agent
+  and one ticket shipped; `docs/trust.md` and its page; browser folder optional, `test_helpers`,
+  mutation "no mutants" recorded as a skip (`factory/checks/mutants.py`, `factory/steps/verify.py`,
+  13 new tests). 227 factory tests.
 
 - **Track 2 on the laptop** (2026-10-12, `docs/runs/2026-10-12-restate-laptop/`,
   `docs/runs/2026-10-12-linkding-bundle-filters-blind-2/`):
@@ -147,7 +174,11 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Next
 
-0. Track 3, the deployed environment: linkding's Docker image on this laptop, a feature's readable
+0. Adoption of a third application by `docs/adopt.md` (kickoff A in `docs/next-session.md`), or
+   track 3 (kickoff B). Then: mutate non-empty `__init__.py` files; the revert check on the
+   developers' own tests.
+
+0a. Track 3, the deployed environment: linkding's Docker image on this laptop, a feature's readable
    cases as a thin suite run against it (`docs/next-session.md`). Docker runs here through colima
    (server 29.5.2, checked 2026-10-12).
 

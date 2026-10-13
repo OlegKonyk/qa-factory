@@ -97,3 +97,12 @@ def test_ship_restores_tests_missing_from_a_recreated_worktree(world, tmp_path):
     report = json.load(open(out["artifacts"]["ship_report"]))
     assert report["restored_from_run_folder"] == ["tests/test_new.py"]
     assert "tests/test_new.py" in git(world["head"], "show", "--name-only", "--format=", "HEAD").split()
+
+
+def test_ship_without_browser_keys_makes_one_suite_invocation(world):
+    for key in ("browser_tests_dir", "browser_test_files"):
+        del world["inp"]["repo"]["app"][key]
+    out = ship.run(world["inp"])
+    assert out["status"] == "pass", out["reason"]
+    report = json.load(open(out["artifacts"]["ship_report"]))
+    assert len(report["suite"]["runs"]) == 1

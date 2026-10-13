@@ -1,0 +1,47 @@
+{
+ "approved": true,
+ "by": "factory",
+ "rule": "every Verify check passed",
+ "context": {
+  "tests": [
+   "isso/tests/test_no_cache_comment_views_api.py"
+  ],
+  "test_files_copy": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/tests",
+  "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/testcases",
+  "revert_check": {
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testErrorResponsesCarryNoCacheControl": "passes-without-change",
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingAndViewBodiesAreUnchanged": "passes-without-change",
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingOfThreadWithCommentIsNoStore": "proves-behaviour",
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingWithEachQueryParameterIsNoStore": "proves-behaviour",
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testOtherRoutesDoNotGetNoStore": "passes-without-change",
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testViewWithEditCookieIsNoStoreWithAndWithoutPlain": "proves-behaviour"
+  },
+  "mutation": {
+   "generated": {
+    "checked": 0,
+    "killed": 0,
+    "survived": 0,
+    "score": null,
+    "on_changed_lines": {
+     "checked": 0,
+     "killed": 0,
+     "survived": 0,
+     "score": null
+    }
+   }
+  },
+  "suite": [
+   "======================= 128 passed, 14 warnings in 2.07s ======================="
+  ],
+  "cost_usd": 3.2233,
+  "time_s": {
+   "write_tests": 275.7,
+   "lint": 0.2,
+   "revert": 0.7,
+   "mutation.generated": 2.8,
+   "mutation": 2.9,
+   "suite": 2.2,
+   "test_cases": 169.0
+  }
+ }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "isso",
+  "repo": "~/Library/Caches/qa-factory/isso/repo",
+  "worktrees": "~/Library/Caches/qa-factory/isso/wt",
+  "python": "~/Library/Caches/qa-factory/isso/repo/.venv/bin/python",
+  "source_package": "isso",
+  "pytest_args": [
+    "-p",
+    "no:cacheprovider"
+  ],
+  "api_tests_dir": "isso/tests",
+  "test_helpers": "isso/tests/fixtures.py",
+  "test_support": [
+    "isso/tests/fixtures.py"
+  ],
+  "exclude_copy": [
+    ".git",
+    "node_modules",
+    ".venv",
+    "mutants",
+    "__pycache__",
+    ".pytest_cache"
+  ],
+  "mutmut": {
+    "pytest_add_cli_args": [
+      "-p",
+      "no:cacheprovider"
+    ],
+    "pre_create_dirs": []
+  },
+  "suite": [
+    [
+      "--doctest-modules",
+      "isso"
+    ]
+  ],
+  "strategy": "targets/isso/strategy.md"
+}

@@ -132,6 +132,26 @@ def _first_difference(orig: list[str], mutant: list[str]) -> int | None:
     return None
 
 
+NOTHING_MATCHES = "Filtered for specific mutants, but nothing matches"
+
+
+def classify_exit(timed_out, returncode, found_meta, output, timeout) -> tuple[str, str, bool]:
+    """(status, reason, no_mutants) for one mutmut run.
+
+    mutmut 3.8.0 makes no mutant for some function shapes (measured on isso 7e91d59: a decorator and
+    the two functions it decorates got none); asked for those by name it aborts with NOTHING_MATCHES
+    and exit code 1. That is not a failure of the tests, so it is reported as "no mutants" and the
+    caller skips the mutation verdict instead of sending the writer into a repair round.
+    """
+    if timed_out:
+        return "fail", f"mutmut did not finish within {timeout} seconds", False
+    if returncode != 0 and NOTHING_MATCHES in output:
+        return "pass", "mutmut made no mutant for any changed function (it skips some shapes)", True
+    if returncode != 0 and not found_meta:
+        return "fail", f"mutmut exited with code {returncode} and wrote no results", False
+    return "pass", "mutmut ran", False
+
+
 def status_of(code) -> str:
     if code is None:
         return "not_checked"
@@ -275,15 +295,11 @@ def run(
     ck = sum(m["status"] == "killed" for m in on_changed)
     cs = sum(m["status"] == "survived" for m in on_changed)
 
-    if timed_out:
-        status, reason = "fail", f"mutmut did not finish within {timeout} seconds"
-    elif returncode != 0 and not found_meta:
-        status, reason = "fail", f"mutmut exited with code {returncode} and wrote no results"
-    else:
-        status, reason = "pass", "mutmut ran"
+    status, reason, no_mutants = classify_exit(timed_out, returncode, found_meta, output, timeout)
     return {
         "status": status,
         "reason": reason,
+        "no_mutants": no_mutants,
         "wall_s": wall_s,
         "returncode": returncode,
         **{

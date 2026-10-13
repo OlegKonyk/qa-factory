@@ -3,6 +3,64 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-13 · Wrap up for adoption by a real project; answer "how can we trust the tests"; mocks as a verification point
+
+> For QA factory and software factory in general, because this is still software factory with the
+> heavy QA slice, the way I see it, there was some work done remotely. Let's make sure everything
+> is merged. This is my goal.
+>
+> I have meetings coming up at work where we're going to be discussing some of this stuff. What I
+> would like to do is wrap up work on our end here, so factory can be taken by a more-or-less real
+> project, right? I will have a little microservice on my end. I want the microservice to adopt the
+> QA factory on the other end. The setup will be done by agents, so make sure we have clear
+> instructions, tested instructions, and clear expectations in terms of what is ready at this
+> point. The team is pushing me to answer the main question: How can we trust tests that were
+> written as part of the session where a feature or bug fix was implemented? This is actually a
+> thought that I wanted to drop. I am a big fan of mocks, reliable mocks. We can get reliable mocks
+> these days with AI and ways to maintain them.
+>
+> I was thinking about doing all the development and fixes on top of mocks, and then the real run
+> on the deployed environment sort of validates the true implementation. One of the mechanisms.
+> More mechanisms like this, or clear acceptance criteria on the input that become our
+> verification points. We need to be ready for different scenarios like that.
+
+> Also, we need to move fast. This is all POC-mode development, so let's get shit going fast.
+
+How it was read:
+
+- **"Everything merged."** The remote work is the cloud session's track 2 branch, merged as pull
+  request 16; pull requests 17 and 18 followed on the laptop. All 18 pull requests are merged. The
+  three remote branches still on GitHub are the merged heads of 16, 17 and 18 and hold nothing
+  `main` lacks (checked with `git diff` against `main`); deleting them is a chore left for him,
+  because the session's permission rules refuse `git push --delete`.
+- **"Wrap up so a real project can adopt it, set up by agents."** The deliverable is a written
+  procedure an agent can follow on a fresh machine (`docs/adopt.md`), proved by an agent that
+  follows nothing but that procedure to onboard a second real application and run one ticket
+  through to Ship. The second application is isso, decided on 2026-10-08. His microservice stays
+  on his side: pointing the factory at an employer repository is his call (`CLAUDE.md`,
+  boundary). The guide is written for that case: a small Python service, possibly with no browser
+  tests at all, which the factory required until today.
+- **"Clear expectations of what is ready."** A table in `docs/adopt.md`: what is built and measured,
+  what is built and not measured, what is not built.
+- **"How can we trust tests written in the session that implemented the change?"** The factory's
+  answer, with the four runs' numbers and the limits, in `docs/trust.md` and on a page he can
+  present. The short form: the factory never trusts them; a fresh session writes the tests (blind
+  when the ticket allows it), and deterministic tools decide whether they prove anything.
+- **Mocks, then the deployed run.** Read as two verification points for one set of acceptance
+  tests: first inside the service's own suite with its dependencies mocked, where the revert check
+  and mutation testing already run; then the same cases against the deployed environment with
+  the real dependencies. The first point is what the factory does today; the second is track 3,
+  not built. No mock machinery is built now: which dependencies his microservice has, and what a
+  mock of them should be kept from (a recorded exchange, an OpenAPI document, the dependency's own
+  test double), is not known here, and rule 3 says machinery waits for a run that needs it.
+  Recorded as a recommendation he can overturn (`docs/decisions.md`).
+- **"Clear acceptance criteria on the input that become our verification points."** Already the
+  factory's shape: Frame restates each criterion as something a test can check and names its
+  surface; track 1 showed the blind lane works when the ticket states the public contract. The
+  guide makes that a requirement on the ticket.
+- **"Move fast, POC mode."** One session: the guide, the isso run, the trust page, the records,
+  one pull request. Track 3 is not started unless the isso run leaves room.
+
 ## 2026-10-12 · From the konyklabs workspace session: use the credits on the factory, continue in the cloud, keep going
 
 Given in a session started in the konyklabs workspace, not in this repository; filed here after

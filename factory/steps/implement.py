@@ -44,8 +44,12 @@ def _name_status(head_tree, base, head):
     return rows
 
 
+def _test_dirs(app):
+    return [d for d in (app["api_tests_dir"], app.get("browser_tests_dir") or None) if d]
+
+
 def _is_test(path, app):
-    return path.startswith(app["api_tests_dir"] + "/") or path.startswith(app["browser_tests_dir"] + "/")
+    return any(path.startswith(d + "/") for d in _test_dirs(app))
 
 
 def run(inp):
@@ -64,7 +68,7 @@ def run(inp):
     rows = _name_status(repo["head_tree"], base, head)
     changed_source = [r for r in rows if not _is_test(r["path"], app)]
     changed_tests = [r for r in rows if _is_test(r["path"], app)]
-    excludes = [f":!{app['api_tests_dir']}", f":!{app['browser_tests_dir']}"]
+    excludes = [f":!{d}" for d in _test_dirs(app)]
     source_diff = _git(repo["head_tree"], "diff", base, head, "--", ".", *excludes)
     full_diff = _git(repo["head_tree"], "diff", base, head)
 

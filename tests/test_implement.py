@@ -95,3 +95,23 @@ def test_implement_refuses_a_missing_worktree(repo, tmp_path):
     }
     with pytest.raises(RuntimeError, match="not a git worktree"):
         implement.run(inp)
+
+
+def test_implement_without_a_browser_folder_counts_a_folder_named_like_one_as_source(repo, tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    app = {"name": "demo", "api_tests_dir": "tests"}
+    out = implement.run(
+        {
+            "repo": {"app": app, **repo},
+            "ticket": {"id": "demo-add"},
+            "artifacts": {},
+            "round": 1,
+            "run_dir": str(run_dir),
+        }
+    )
+    changed_source = json.load(open(out["artifacts"]["changed_source"]))
+    changed_tests = json.load(open(out["artifacts"]["changed_tests"]))
+    assert sorted(r["path"] for r in changed_source) == ["app.py", "e2e/e2e_test_x.py"]
+    assert [r["path"] for r in changed_tests] == ["tests/test_new.py"]
+    assert "e2e_test_x" in open(out["artifacts"]["change_diff"]).read()

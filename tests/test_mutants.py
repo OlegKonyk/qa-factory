@@ -183,3 +183,19 @@ def test_mutant_lines_finds_method_mutants_inside_the_class():
         "        return a - 1\n"
     )
     assert mutants.mutant_lines(src, "xǁCǁm") == {"xǁCǁm__mutmut_1": 1}
+
+
+def test_classify_exit_reports_no_mutants_when_mutmut_matched_nothing():
+    out = "...\nAssertionError: " + mutants.NOTHING_MATCHES + "\n\nFilter: ('m.x_f__mutmut_*',)"
+    assert mutants.classify_exit(False, 1, True, out, 10) == (
+        "pass",
+        "mutmut made no mutant for any changed function (it skips some shapes)",
+        True,
+    )
+    assert mutants.classify_exit(False, 1, False, "boom", 10) == (
+        "fail",
+        "mutmut exited with code 1 and wrote no results",
+        False,
+    )
+    assert mutants.classify_exit(True, None, False, "", 10)[0] == "fail"
+    assert mutants.classify_exit(False, 0, True, "done", 10) == ("pass", "mutmut ran", False)

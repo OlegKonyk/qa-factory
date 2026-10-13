@@ -1,6 +1,9 @@
 """The parts of the Verify step that run without a model or an application."""
 
 import json
+import subprocess
+
+import pytest
 
 from factory.steps import verify
 
@@ -74,6 +77,7 @@ def test_prompts_have_every_placeholder_the_step_fills():
         "dev_tests_diff": "",
         "plan_json": "",
         "api_tests_dir": "a",
+        "api_helpers": "a/helpers.py",
         "browser_tests_dir": "b",
         "api_test_file": "c",
         "browser_test_file": "d",
@@ -141,3 +145,76 @@ def test_a_ticket_can_still_ask_for_a_person(tmp_path, monkeypatch):
     out = verify.run(_inp(tmp_path, {"gate": "person"}))
     assert out["status"] == "needs_person"
     assert out["gate"]["who"] == "Oleg"
+
+
+def _writer_ctx(tmp_path, app_extra, mode, blind):
+    strategy = tmp_path / "strategy.md"
+    strategy.write_text("STRATEGY")
+    app = {
+        "api_tests_dir": "tests",
+        "python": "py",
+        "strategy": str(strategy),
+        **app_extra,
+    }
+    return {
+        "app": app,
+        "head_tree": str(tmp_path),
+        "slug": "sort",
+        "ticket": {"id": "t", "title": "sort"},
+        "artifacts": {},
+        "mode": mode,
+        "blind": blind,
+        "files": ["tests/test_sort_api.py"],
+        "findings": "F",
+        "guidance": "G",
+        "repo": {"base": "b", "head": "h"},
+    }
+
+
+@pytest.mark.parametrize(
+    "mode,blind",
+    [("fresh", False), ("fresh", True), ("repair", False), ("repair", True)],
+)
+def test_writer_prompt_without_browser_keys_asks_for_api_tests_only(tmp_path, monkeypatch, mode, blind):
+    monkeypatch.setattr(verify, "_git", lambda *a, **k: "")
+    prompt = verify._writer_prompt(_writer_ctx(tmp_path, {}, mode, blind))
+    assert "API tests only" in prompt
+    assert "{browser" not in prompt and "None" not in prompt
+    assert "browser_" not in prompt and "e2e" not in prompt
+
+
+@pytest.mark.parametrize("mode,blind", [("fresh", False), ("fresh", True), ("repair", False)])
+def test_writer_prompt_with_browser_keys_keeps_the_browser_instructions(tmp_path, monkeypatch, mode, blind):
+    monkeypatch.setattr(verify, "_git", lambda *a, **k: "")
+    extra = {"browser_tests_dir": "e2e", "browser_test_files": "e2e_test_*.py"}
+    prompt = verify._writer_prompt(_writer_ctx(tmp_path, extra, mode, blind))
+    assert "API tests only" not in prompt
+    assert "e2e/e2e_test_sort.py" in prompt and "python_files=e2e_test_*.py" in prompt
+    assert "{browser" not in prompt and "None" not in prompt
+
+
+@pytest.mark.parametrize("mode,blind", [("fresh", False), ("fresh", True)])
+def test_writer_prompt_names_the_recipe_helper_file_or_helpers_py(tmp_path, monkeypatch, mode, blind):
+    monkeypatch.setattr(verify, "_git", lambda *a, **k: "")
+    default = verify._writer_prompt(_writer_ctx(tmp_path, {}, mode, blind))
+    assert "Read `tests/helpers.py`" in default
+    named = verify._writer_prompt(_writer_ctx(tmp_path, {"test_helpers": "tests/fixtures.py"}, mode, blind))
+    assert "Read `tests/fixtures.py`" in named and "tests/helpers.py" not in named
+
+
+def test_a_recipe_without_browser_keys_touches_only_the_api_folder(tmp_path):
+    app = {"api_tests_dir": "tests", "browser_tests_dir": None}
+    assert verify.browser_dir(app) is None and verify.browser_dir({"api_tests_dir": "tests"}) is None
+    assert verify._in_test_dirs("tests/test_x.py", app)
+    assert not verify._in_test_dirs("e2e/e2e_test_x.py", app)
+    tree = tmp_path / "tree"
+    tree.mkdir()
+    for cmd in (["init", "-q"],):
+        subprocess.run(["git", "-C", str(tree), *cmd], check=True)
+    (tree / "tests").mkdir()
+    (tree / "e2e").mkdir()
+    (tree / "tests" / "test_new.py").write_text("x = 1\n")
+    (tree / "e2e" / "keep.py").write_text("x = 1\n")
+    verify._clean_tests(str(tree), {"api_tests_dir": "tests"})
+    assert not (tree / "tests" / "test_new.py").exists()
+    assert (tree / "e2e" / "keep.py").exists()
