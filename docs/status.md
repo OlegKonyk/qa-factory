@@ -29,11 +29,15 @@ Read this first. Update it last, in the same pull request as the work.
   now records that as "not applicable" instead of sending the writer into a repair round that
   cannot pass (which the first attempt did, 2.2 USD and a kill).
 - **The trust answer** for his meetings: `docs/trust.md` and
-  https://claude.ai/artifact/JEQNo6pu9zVp6xbAR98HEt.
+  https://claude.ai/artifact/JEQNo6pu9zVp6xbAR98HEt. Its sharpest number is new: the revert check
+  now runs on the developers' own tests too (`python -m factory devtests <run folder>`), and on
+  the three tickets here 9 of 9 developers' tests fail on the old code only for a name the change
+  adds, 0 on an assertion; the factory's blind tests: 13 on an assertion, 0 missing names.
 - **Factory changes:** browser tests optional in a recipe; `test_helpers` recipe field; mutation
-  "no mutants" is a skip, not a failure. 227 factory tests, `just check` green.
+  "no mutants" is a skip, not a failure; the developers' tests check. 231 factory tests,
+  `just check` green.
 - **Not built, said plainly:** the deployed-environment run (track 3), anything for mocks, mutation
-  of code in `__init__.py`, the revert check on the developers' own tests.
+  of code in `__init__.py`.
 - **Next:** `docs/next-session.md` has two kickoffs: A, onboard another application (his
   microservice on his side, or a public one); B, track 3.
 

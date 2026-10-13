@@ -31,6 +31,11 @@ tested instructions; move fast); each can be overturned by a later entry.
    function names and the run goes on; before, the factory blamed the writer and spent a repair
    round that could not pass. The factory also still skips every `__init__.py`; isso keeps real
    code there. Mutating non-empty `__init__.py` files is the next fix, not done this session.
+7. **The developers' own tests get the revert check too, as a report.** Verify runs it on the test
+   files the change added or modified, for the tests new at head, and records the verdicts in
+   `verify/developers_revert.json`; it never fails a run. `python -m factory devtests <run folder>`
+   runs it on a finished run. Reason: it is the per-ticket answer to the team's question
+   (`docs/trust.md`), measured on their own tests rather than argued.
 
 ## 2026-10-12 · Factory runs on the laptop bill the Console API key; cloud sessions build
 

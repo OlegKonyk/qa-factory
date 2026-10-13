@@ -33,6 +33,12 @@
 | final_round mutation generated changed lines checked | 0 |
 | final_round mutation generated changed lines killed | 0 |
 | final_round mutation generated changed lines score | - |
+| developers tests new_tests | 2 |
+| developers tests proves-behaviour | 0 |
+| developers tests passes-without-change | 0 |
+| developers tests missing-name | 2 |
+| developers tests crash | 0 |
+| developers tests head-fails | 0 |
 | spend_usd | 5.6925 |
 
 ### isso-no-cache-comment-views: stages

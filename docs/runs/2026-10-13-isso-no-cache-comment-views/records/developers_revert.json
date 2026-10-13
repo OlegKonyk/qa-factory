@@ -1,0 +1,44 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "ran",
+  "reason": "0 of 2 new tests by the developers fail on the old code on an assertion; 2 fail only for a missing name",
+  "files": [
+   "isso/tests/test_comments.py"
+  ],
+  "new_test_ids": {
+   "isso/tests/test_comments.py": [
+    "isso/tests/test_comments.py::TestComments::testFetchAddsNoCacheHeaders",
+    "isso/tests/test_comments.py::TestComments::testViewAddsNoCacheHeaders"
+   ]
+  },
+  "tests": {
+   "isso/tests/test_comments.py::TestComments::testFetchAddsNoCacheHeaders": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "cannot import name 'NO_CACHE_HEADERS' from 'isso.utils' (/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/developers_revert/reverted/isso/utils/__init__.py)"
+   },
+   "isso/tests/test_comments.py::TestComments::testViewAddsNoCacheHeaders": {
+    "at_head": "pass",
+    "reverted": "missing-name",
+    "verdict": "missing-name",
+    "message": "cannot import name 'NO_CACHE_HEADERS' from 'isso.utils' (/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/developers_revert/reverted/isso/utils/__init__.py)"
+   }
+  },
+  "counts": {
+   "new_tests": 2,
+   "ran": 2,
+   "proves-behaviour": 0,
+   "passes-without-change": 0,
+   "missing-name": 2,
+   "crash": 0,
+   "head-fails": 0,
+   "skip": 0
+  },
+  "wall_s": {
+   "head": 0.91,
+   "reverted": 0.23
+  }
+ }
+}

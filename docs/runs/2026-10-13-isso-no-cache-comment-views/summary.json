@@ -1,5 +1,15 @@
 {
   "ticket": "isso-no-cache-comment-views",
+  "developers": {
+    "new_tests": 2,
+    "ran": 2,
+    "proves-behaviour": 0,
+    "passes-without-change": 0,
+    "missing-name": 2,
+    "crash": 0,
+    "head-fails": 0,
+    "skip": 0
+  },
   "qa_mode": "blind",
   "first_round": {
     "round": 3,

@@ -62,9 +62,22 @@ implemented the change"; file his thought on mocks and verification points; move
    and his scenarios (mocks then the deployed run as two verification points; criteria as
    verification points).
 
+7. *The revert check on the developers' own tests* (pull request 20, after Oleg asked for one more
+   thing worth showing). `factory/checks/devtests.py`: the two-tree revert run on the test files
+   the change added or modified, for the tests new at head; an informational check in Verify
+   after the revert check, and `python -m factory devtests <run folder>` for a finished run.
+   Run on the three tickets with worktrees here, no model spend: 9 of 9 developers' tests
+   (2 + 5 + 2) fail on the old code only for a missing name, each a constant the change adds
+   (`SORT_MODIFIED_ASC`, `FILTER_STATE_YES`, `NO_CACHE_HEADERS`); 0 on an assertion. The
+   factory's blind tests on the same tickets: 3, 7 and 3 on an assertion, 0 missing names.
+   Two things found on the way: the pytest plugin writes its records relative to the tree, so
+   the work folder must be absolute; the first run's Implement record names the worktree path
+   from before worktrees moved per ticket, so the command resolves the trees from the recipe
+   when the recorded path is gone. 4 tests. In `docs/trust.md` and on its page.
+
 **Left open.** Track 3 (the deployed run) not started. Mutating non-empty `__init__.py` files.
-The revert check on the developers' own tests (recommended in `docs/trust.md`). The three stale
-remote branches.
+The developers' tests check counts only tests new at head; tests the change modified in place are
+not judged.
 
 ## 2026-10-12 · Track 2 on the laptop: the cloud branch merged, Restate installed, the bundles ticket run for real
 
