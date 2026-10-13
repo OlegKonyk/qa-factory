@@ -1,0 +1,203 @@
+<title>Can We Trust the Tests</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: one reading column of about 70ch, tables and the diagram allowed to run wider inside their own scroll boxes. */
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --fg: #1d1f1a;
+    --muted: #5e6257;
+    --line: #d9d8cf;
+    --accent: #1f5f4b;
+    --accent-soft: #e2efe8;
+    --warn: #8a4b12;
+    --warn-soft: #f6e9d8;
+    --display: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171a; --surface: #1d2024; --fg: #e8e6df; --muted: #a2a59b; --line: #353a40;
+      --accent: #7cc4a6; --accent-soft: #1f3a30; --warn: #e2a15a; --warn-soft: #3a2a17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171a; --surface: #1d2024; --fg: #e8e6df; --muted: #a2a59b; --line: #353a40;
+    --accent: #7cc4a6; --accent-soft: #1f3a30; --warn: #e2a15a; --warn-soft: #3a2a17; color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.55; }
+  .wrap { max-width: 76ch; margin: 0 auto; padding-block: 2.5rem 4rem; padding-inline: 16px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; line-height: 1.15; margin: 0; }
+  h1 { font-size: clamp(1.9rem, 4.5vw, 2.6rem); }
+  h2 { font-size: 1.45rem; margin-top: 2.6rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.1rem; margin-top: 1.6rem; }
+  p { margin: 0.8rem 0; max-width: 70ch; }
+  .eyebrow { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+  .lede { font-size: 1.12rem; color: var(--fg); }
+  .answer { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 0.9rem 1.1rem; margin: 1.4rem 0; }
+  .answer p { margin: 0.4rem 0; }
+  .note { background: var(--warn-soft); border-left: 4px solid var(--warn); padding: 0.8rem 1.1rem; margin: 1.2rem 0; }
+  ol, ul { padding-left: 1.3rem; max-width: 70ch; }
+  li { margin: 0.4rem 0; }
+  li::marker { color: var(--muted); }
+  .scroll { overflow-x: auto; margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; vertical-align: top; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-weight: 500; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  td.num { text-align: right; white-space: nowrap; }
+  .pill { display: inline-block; font-family: var(--mono); font-size: 0.72rem; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+  .pill.ok { background: var(--accent-soft); border-color: var(--accent); color: var(--fg); }
+  .pill.no { background: var(--warn-soft); border-color: var(--warn); color: var(--fg); }
+  code { font-family: var(--mono); font-size: 0.88em; }
+  figure { margin: 1.4rem 0; }
+  figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
+  svg text { font-family: var(--body); fill: var(--fg); font-size: 13px; }
+  svg .lbl { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+  svg .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+  svg .box.hot { stroke: var(--accent); stroke-width: 1.8; }
+  svg .box.cold { stroke: var(--warn); stroke-width: 1.8; }
+  svg .arrow { stroke: var(--muted); stroke-width: 1.4; fill: none; marker-end: url(#head); }
+  svg .cut { stroke: var(--warn); stroke-width: 2; stroke-dasharray: 5 4; }
+  .meta { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin-top: 0.8rem; }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">QA factory · the question from the team</div>
+  <h1>Can we trust tests written in the session that implemented the change?</h1>
+  <p class="lede">The factory's answer, from four tickets run on one real open-source application between 8 and 12 October 2026 and one on a second application on 13 October. Every number on this page was measured on those runs. The limits are at the end.</p>
+
+  <div class="answer">
+    <p><strong>No, and the factory does not try to.</strong> A test written in the same session as the change was written to pass against the code as it was just written. It shares the change's blind spots.</p>
+    <p>Measured: on the sort feature, the developers' own tests, written with the code, fail on the code before the change only because a name is missing, not because the order is wrong. They prove the code is new. They do not prove what it does.</p>
+    <p>Trust comes from somewhere else: a separate session writes the acceptance tests, and deterministic tools decide whether those tests prove anything.</p>
+  </div>
+
+  <h2>What the factory does instead</h2>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 760 300" width="760" height="300" role="img" aria-label="The ticket goes to two separate sessions, the implementer and the test writer; the writer in blind mode cannot see the change; their outputs join at the deterministic checks, then a person reads the cases.">
+      <defs>
+        <marker id="head" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--muted)"/></marker>
+      </defs>
+      <rect class="box" x="20" y="120" width="120" height="60" rx="4"/>
+      <text x="80" y="146" text-anchor="middle">Ticket</text>
+      <text class="lbl" x="80" y="164" text-anchor="middle">contract + criteria</text>
+
+      <rect class="box cold" x="230" y="30" width="170" height="64" rx="4"/>
+      <text x="315" y="56" text-anchor="middle">Implementer</text>
+      <text class="lbl" x="315" y="76" text-anchor="middle">the change + its unit tests</text>
+
+      <rect class="box hot" x="230" y="200" width="170" height="64" rx="4"/>
+      <text x="315" y="226" text-anchor="middle">Test writer</text>
+      <text class="lbl" x="315" y="246" text-anchor="middle">fresh session · blind</text>
+
+      <line class="cut" x1="215" y1="120" x2="415" y2="120"/>
+      <line class="cut" x1="215" y1="175" x2="415" y2="175"/>
+      <text class="lbl" x="315" y="152" text-anchor="middle">cannot see the change, the other copies, or git</text>
+
+      <path class="arrow" d="M140,150 C190,150 180,62 230,62"/>
+      <path class="arrow" d="M140,150 C190,150 180,232 230,232"/>
+
+      <rect class="box" x="490" y="100" width="150" height="100" rx="4"/>
+      <text x="565" y="124" text-anchor="middle">Checks</text>
+      <text class="lbl" x="565" y="144" text-anchor="middle">revert check</text>
+      <text class="lbl" x="565" y="160" text-anchor="middle">mutation on changed lines</text>
+      <text class="lbl" x="565" y="176" text-anchor="middle">lint · the app's suite</text>
+      <text class="lbl" x="565" y="192" text-anchor="middle">a readable case per test</text>
+
+      <path class="arrow" d="M400,62 C450,62 440,130 490,130"/>
+      <path class="arrow" d="M400,232 C450,232 440,170 490,170"/>
+
+      <rect class="box" x="670" y="120" width="76" height="60" rx="4"/>
+      <text x="708" y="146" text-anchor="middle">Person</text>
+      <text class="lbl" x="708" y="164" text-anchor="middle">reads cases</text>
+      <path class="arrow" d="M640,150 L670,150"/>
+    </svg>
+    </div>
+    <figcaption>Two sessions never meet until the checks. The checks are programs, not a model's opinion.</figcaption>
+  </figure>
+
+  <ol>
+    <li><strong>A different session writes the acceptance tests.</strong> A fresh headless Claude Code session with its own prompt and budget and no memory of the implementation. In blind mode it works in a copy of the code before the change; the change, every other copy of the code and git are hidden from it, and its transcript is audited afterwards for any attempt to look.</li>
+    <li><strong>The revert check.</strong> Every new test runs twice: with the change, and with the change taken out (source files and test helpers put back to their old version). A test counts only if it passes with the change and fails without it on an assertion. A test that fails without the change on a missing import, attribute or name is rejected.</li>
+    <li><strong>Mutation testing</strong> with mutmut 3.8.0 on the functions the change touched: the generated tests alone, with the developers' tests added, and the developers' tests alone. A set that kills no mutant on the changed lines fails.</li>
+    <li><strong>Lint</strong> of the generated tests: ruff, no test without an assertion, no sleeps, no mocking of the application's own code. Then <strong>the application's whole suite</strong> with the new tests in place.</li>
+    <li><strong>A readable test case per automated test</strong>, in a fixed skeleton a linter checks, committed beside the tests. The test is the proof; the case is what a product owner reads.</li>
+  </ol>
+  <p>When a check fails, nobody is asked first: one repair round in a fresh session, then a stronger model decides retry, the change is wrong, or an environment problem. A person is asked only when it cannot decide. Rounds and spend are capped per ticket.</p>
+
+  <h2>What four runs showed</h2>
+  <p>linkding, a Django bookmark manager with a REST API and browser pages. "Blind" means the writer saw only the ticket and the code before the change.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Ticket</th><th>Written</th><th>Tests</th><th>Pass with change</th><th>Fail without it, on an assertion</th><th>Missing name or crash</th><th>Mutants killed, changed lines</th><th>Spend · time</th></tr></thead>
+    <tbody>
+      <tr><td>Sort by modified date</td><td>after the change</td><td class="num">6</td><td class="num">6</td><td class="num">5 + 1 guard</td><td class="num">0</td><td class="num">10 of 10</td><td class="num">5.58 USD · 13.5 min</td></tr>
+      <tr><td>Sort by modified date</td><td>blind</td><td class="num">4</td><td class="num">4</td><td class="num">3 + 1 guard</td><td class="num">0</td><td class="num">10 of 10</td><td class="num">5.48 USD · 15 min</td></tr>
+      <tr><td>Filter bundles by state</td><td>blind</td><td class="num">13</td><td class="num">13</td><td class="num">12 + 1 guard</td><td class="num">0</td><td class="num">16 of 16</td><td class="num">8.47 USD · stopped at cap</td></tr>
+      <tr><td>Filter bundles by state, again</td><td>blind</td><td class="num">7</td><td class="num">7</td><td class="num">7</td><td class="num">0</td><td class="num">16 of 16</td><td class="num">5.44 USD · 19.4 min</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li>A guard is a test that passes on both versions (the fallback for an unknown sort value). It is reported, not counted as proof.</li>
+    <li>On the sort ticket, blind tests were exactly as strong as tests written with the change in view: 27 of 108 mutants over the whole function and 10 of 10 on the changed lines, both ways.</li>
+    <li>The developers' own tests on the same functions: 98 of 108 and 77 of 82 over the whole function. They cover code that was already there; on the changed lines they tie with the generated tests.</li>
+    <li>Every blind writer's transcript was audited: 39, 24 and 24 tool calls, none touching the hidden code or git.</li>
+    <li>What went wrong in four runs was the factory's own checks, not the tests. Each is fixed and recorded.</li>
+  </ul>
+
+  <h2>Where the answer stops</h2>
+  <ul>
+    <li>One application, four runs, two of them the same ticket. Blind writers vary: 13 tests and then 7 on the same ticket, both killing every mutant on the changed lines, 78 % and 62 % over the whole function.</li>
+    <li>Both blind tickets stated the public contract (routes, fields, values, labels) because they were written from finished commits. A ticket written before the code may not; then the plan step has to fix the contract first. Unmeasured.</li>
+    <li>No bug-fix ticket has run. Mutation scores are reported, not thresholded. Mutation has a blind spot of its own: mutmut 3.8.0 makes no mutant for most decorated functions, and code in <code>__init__.py</code> is skipped. On the isso ticket every changed function was one of those, so the revert check was the only proof; the report says so rather than pretending a score.</li>
+    <li>The factory today needs the finished commit. Blind means the writer did not see the change, not that it ran at the same time.</li>
+    <li>Approval is a file, Ship is a local commit. Nothing has run against a deployed environment.</li>
+  </ul>
+
+  <h2>The scenarios raised</h2>
+
+  <h3>Tests in the implementing session</h3>
+  <p>Keep them as the developer's unit tests and let the checks judge them like any other test. Today the revert check judges only the generated tests; mutation testing reports the developers' tests as their own set. Running the revert check on the developers' tests too is a small change and answers "do their tests prove the behaviour" per ticket. <span class="pill no">not built</span></p>
+
+  <h3>Develop on mocks, validate on the deployed environment</h3>
+  <p>Read as two verification points for one set of acceptance tests.</p>
+  <ol>
+    <li><strong>In the service's own suite, dependencies mocked</strong> the way the suite already mocks them. The revert check, mutation testing and the suite run here. This is what makes the tests trustworthy at this point. <span class="pill ok">built · measured</span></li>
+    <li><strong>The same cases against the deployed environment</strong>, real dependencies, reached by a base URL, data created through the public API. <span class="pill no">not built</span> The tests from point 1 can only run here if they create data through the API, not the database.</li>
+  </ol>
+  <div class="note"><p>Keeping mocks reliable is a problem the factory has not touched: what a mock is kept from (a recorded exchange, the dependency's interface document, its own test double) and what checks it against the real service. Recommendation: wait for the first service with real dependencies, see how its suite mocks them, and add the check that run shows is missing.</p></div>
+
+  <h3>Acceptance criteria as verification points</h3>
+  <p>Already the shape. The framing step restates every criterion as something a test can check and names its surface (API, browser, unit, none), and lists what a writer would have to guess. The ticket carries the public contract as a field. A criterion the factory cannot test is reported back on the ticket. <span class="pill ok">built · measured</span></p>
+
+  <h3>Other scenarios the same mechanisms cover</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Scenario</th><th>Today</th><th>Missing</th></tr></thead>
+    <tbody>
+      <tr><td>A bug fix</td><td>the same loop; the contract states the wrong and the right behaviour</td><td>a run on one bug ticket</td></tr>
+      <tr><td>A change with no HTTP surface</td><td>mutation and the revert check work on any pytest suite</td><td>a strategy rule for unit-level tests</td></tr>
+      <tr><td>A service with external dependencies</td><td>the suite runs as it is, mocks included</td><td>the deployed run; a mock-freshness check</td></tr>
+      <tr><td>A service with no Python browser tests</td><td>API-only recipes; isso shipped one ticket on 13 October (6 tests, 3 prove the change, 3 guards)</td><td>nothing; mutation was not applicable there (decorated functions)</td></tr>
+      <tr><td>A non-Python service</td><td>nothing</td><td>the checks read pytest tracebacks and run mutmut</td></tr>
+      <tr><td>Tests the team wrote by hand</td><td>mutation testing reports them as a set</td><td>the revert check on them</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Four lines for the meeting</h2>
+  <ol>
+    <li>Tests from the implementing session prove the code is new, not what it does. Measured.</li>
+    <li>Trust comes from a separate session plus deterministic checks: fails without the change on an assertion, kills mutants on the changed lines, the suite stays green, a readable case per test.</li>
+    <li>On four runs the blind tests met the real change with no mismatch and were as strong as tests written with the change in view. Limits: one application, four runs, contracts stated.</li>
+    <li>The deployed-environment run and anything about mocks are not built. The adoption guide says what is ready and what a service needs to use it.</li>
+  </ol>
+  <p class="meta">Source: docs/trust.md in the qa-factory repository, 2026-10-13. Numbers from docs/runs/.</p>
+</div>

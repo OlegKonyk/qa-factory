@@ -4,6 +4,19 @@ What factory sessions learned about Oleg's Claude Code plugins (`~/dev/konyklabs
 for him to carry into that project. Newest first. One entry per observation: the plugin, what was
 missing or wrong, what would have helped, and the run that showed it.
 
+## 2026-10-13 · supervisor: an implementer slice and a guide-following agent, both from written specs
+
+**Plugin:** supervisor. **Run:** the adoption session (`docs/log.md`, 2026-10-13).
+
+Still dormant, so `supervisor:implementer` was spawned directly with a spec
+(`docs/specs/2026-10-13-adoption/s1-browser-optional.md`). It delivered in one pass, reported two
+stale comments it had not been asked to fix and two places it left alone with reasons; that
+report shape (deviations, things left alone) is worth making the default. The second agent of
+the session was not a plugin agent: an Opus session told to follow `docs/adopt.md` and nothing
+else, and to list every place the guide was wrong. That "follow the document blind and report
+the gaps" job is a reusable shape for any procedure meant for agents; a skill that spawns it with
+the document path and the report format would have saved writing the brief.
+
 ## 2026-10-12 · All plugins: not available in a cloud session
 
 Cloud sessions (claude.ai/code) do not load Oleg's plugins, so the Restate build of track 2 used a

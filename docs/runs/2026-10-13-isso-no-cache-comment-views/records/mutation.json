@@ -1,0 +1,101 @@
+{
+ "status": "pass",
+ "result": {
+  "globs": [
+   "isso.views.comments.x_no_cache_headers__mutmut_*",
+   "isso.views.comments.x\u01c1API\u01c1view__mutmut_*",
+   "isso.views.comments.x\u01c1API\u01c1fetch__mutmut_*"
+  ],
+  "only_mutate": [
+   "isso/views/comments.py"
+  ],
+  "changed_lines": {
+   "isso/views/comments.py": [
+    12,
+    28,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    529,
+    973
+   ]
+  },
+  "runs": {
+   "generated": {
+    "status": "pass",
+    "reason": "mutmut made no mutant for any changed function (it skips some shapes)",
+    "no_mutants": true,
+    "wall_s": 2.75,
+    "returncode": 1,
+    "generated": 1039,
+    "checked": 0,
+    "killed": 0,
+    "survived": 0,
+    "no_tests": 0,
+    "timeout": 0,
+    "other": 0,
+    "score": null,
+    "on_changed_lines": {
+     "checked": 0,
+     "killed": 0,
+     "survived": 0,
+     "score": null
+    },
+    "mutants": {},
+    "stdout_tail": [
+     "    done",
+     "Traceback (most recent call last):",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/bin/mutmut\", line 10, in <module>",
+     "    sys.exit(cli())",
+     "             ~~~^^",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 1631, in __call__",
+     "    return self.main(*args, **kwargs)",
+     "           ~~~~~~~~~^^^^^^^^^^^^^^^^^",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 1552, in main",
+     "    rv = self.invoke(ctx)",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 2032, in invoke",
+     "    return _process_result(sub_ctx.command.invoke(sub_ctx))",
+     "                           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 1415, in invoke",
+     "    return ctx.invoke(self.callback, **ctx.params)",
+     "           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/click/core.py\", line 910, in invoke",
+     "    return callback(*args, **kwargs)",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/mutmut/__main__.py\", line 941, in run",
+     "    _run(mutant_names, max_children)",
+     "    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/mutmut/__main__.py\", line 983, in _run",
+     "    mutants, source_file_mutation_data_by_path = collect_source_file_mutation_data(mutant_names=mutant_names)",
+     "                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+     "  File \"/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/lib/python3.13/site-packages/mutmut/__main__.py\", line 815, in collect_source_file_mutation_data",
+     "    assert filtered_mutants, f\"Filtered for specific mutants, but nothing matches\\n\\nFilter: {mutant_names}\"",
+     "           ^^^^^^^^^^^^^^^^",
+     "AssertionError: Filtered for specific mutants, but nothing matches",
+     "",
+     "Filter: ('isso.views.comments.x_no_cache_headers__mutmut_*', 'isso.views.comments.x\u01c1API\u01c1view__mutmut_*', 'isso.views.comments.x\u01c1API\u01c1fetch__mutmut_*')"
+    ],
+    "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/mutation/generated/mutation",
+    "test_files": [
+     "isso/tests/test_no_cache_comment_views_api.py"
+    ]
+   }
+  },
+  "skipped": "mutmut made no mutant for any changed function (it skips some shapes): isso.views.comments.x_no_cache_headers__mutmut_*, isso.views.comments.x\u01c1API\u01c1view__mutmut_*, isso.views.comments.x\u01c1API\u01c1fetch__mutmut_*"
+ }
+}

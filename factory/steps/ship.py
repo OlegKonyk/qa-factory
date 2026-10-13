@@ -92,8 +92,9 @@ def run(inp):
     sha = _git(head_tree, "rev-parse", "HEAD").strip()
 
     # The suite with the new tests in place: the recipe's first invocation (the API and unit tests),
-    # then the new browser files alone.
-    browser_files = [p for p in manifest["files"] if p.startswith(app["browser_tests_dir"] + "/")]
+    # then the new browser files alone, when the recipe has a browser folder.
+    browser_dir = app.get("browser_tests_dir") or None
+    browser_files = [p for p in manifest["files"] if browser_dir and p.startswith(browser_dir + "/")]
     invocations = [list(app["suite"][0])]
     if browser_files:
         invocations.append(["-o", f"python_files={app['browser_test_files']}", *browser_files])

@@ -3,6 +3,35 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-13 · Wrapping up for adoption, by delegation
+
+Made by the session that wrote the adoption guide and ran isso, under his direction of the same
+day (`docs/inputs.md`: wrap up so a real project can adopt the factory, set up by agents, with
+tested instructions; move fast); each can be overturned by a later entry.
+
+1. **The browser test folder is optional in a recipe.** `browser_tests_dir` and
+   `browser_test_files` may be left out of `app.json`; every step then treats the application as
+   API-only and the writer is told to write API tests only. Reason: a small service, and isso,
+   have no Python browser tests, and the factory refused to run without them.
+2. **The guide is the product, and it is tested by use.** `docs/adopt.md` is written for an agent
+   on a fresh machine. It counts as tested only when an agent that reads nothing else onboards a
+   real application and runs a ticket through; what that agent had to guess goes back into the
+   guide. isso was that application (the second application, decided 2026-10-08).
+3. **Nothing is built for mocks.** His scheme (develop and fix on mocks, the deployed run validates
+   the real implementation) is read as two verification points for one set of acceptance tests;
+   the first is what the factory does today, the second is track 3. What keeps a mock reliable is
+   not decided and waits for the first service with real dependencies (rule 3).
+4. **Track 3 stays next and did not start this session.** The deployed run is the one mechanism he
+   named that is not built; it is reported as not built rather than squeezed in.
+5. **The trust answer is a document and a page**, `docs/trust.md` and its published page, written
+   from the four runs' numbers only. Nothing in it is estimated.
+6. **Mutation that cannot run is reported, not repaired.** When mutmut makes no mutant for any
+   changed function (mutmut 3.8.0 skips most decorated functions and decorators with an inner
+   function; measured on isso 7e91d59), the mutation check records "not applicable" with the
+   function names and the run goes on; before, the factory blamed the writer and spent a repair
+   round that could not pass. The factory also still skips every `__init__.py`; isso keeps real
+   code there. Mutating non-empty `__init__.py` files is the next fix, not done this session.
+
 ## 2026-10-12 · Factory runs on the laptop bill the Console API key; cloud sessions build
 
 **Decided, his words:** "Yeah, hey, let's keep going." He was answering the recommendation to run

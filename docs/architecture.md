@@ -4,14 +4,14 @@ The picture is a published page: https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3
 Oleg), built by `docs/pages/architecture/build.py` and updated in place. It shows the flow, the
 stages inside Verify, the revert check, what a person approves, how a run stops and resumes, where
 everything lives, and the first run's numbers. This file keeps the two tables the page adds beyond
-`docs/status.md`, so the substance survives without the page. As of 2026-10-10.
+`docs/status.md`, so the substance survives without the page. As of 2026-10-13.
 
 ## Extension points: where a new use case attaches
 
 | | Point | Today | Where it lives | Already on the record |
 |---|---|---|---|---|
 | A | Ticket source | A JSON file written by hand from an upstream pull request | `targets/<app>/tickets/` | Tickets written with ticket skills (brief) |
-| B | Application recipe | linkding only: location, Python, test folders, suite commands, strategy rule | `targets/linkding/app.json`, `strategy.md`, `fetch.py` | isso second; a greenfield app once the loop runs |
+| B | Application recipe | linkding and isso: location, Python, test folders (browser optional), suite commands, strategy rule; `docs/adopt.md` is the procedure | `targets/<app>/app.json`, `strategy.md`, `fetch.py` | a greenfield app once the loop runs |
 | C | Test surfaces | API tests through Django's test client and Playwright browser tests in Python, inside the app's own test classes | `factory/prompts/write_tests.md`, the strategy rule | Mostly API, one or two browser tests per feature |
 | D | Checks | Lint, revert, mutation, suite, cases, in that order; a failure gets one repair round, then Fable 5.1's decision | `ATTEMPT_CHECKS` and `FINAL_CHECKS` in `factory/steps/verify.py`, `factory/checks/`, `factory/escalate.py` | Flaky quarantine and test selection when a run needs them |
 | E | Gate channel | `question.md` out, `answer.json` in, one approver | `factory/driver.py` | Approval on a pull request once the app is forked |
@@ -30,7 +30,7 @@ estimated.
 | Spend per ticket | 5.58 USD, 3.62 of it the test writer (Opus) | About 560 USD for 100 tickets a month (estimated: the first run times 100) | Models and caps by delegation, revisit on the numbers |
 | Time per ticket | Writer 414 s, mutation 159 s, cases 116 s, suite 93 s | The whole suite runs every time; mutation runs twice | Test selection by impact when a run shows the suite is slow |
 | Disk | Per ticket: head worktree 61 MB (47 MB node_modules), base 6 MB, run folder 48 MB; per app: environment 294 MB; shared: browsers 1.1 GB | node_modules and the two app copies per run folder grow with every ticket | Open |
-| Applications | One; a new one needs a recipe, a strategy rule, a fetch script and tickets | The checks assume Python: ruff, pytest, mutmut, a pytest plugin reading Python tracebacks | isso second, then a greenfield app |
+| Applications | Two (linkding, isso); a new one needs a recipe, a strategy rule, a fetch script and tickets, by `docs/adopt.md` | The checks assume Python: ruff, pytest, mutmut, a pytest plugin reading Python tracebacks | a greenfield app next |
 | People | Nobody when every check passes; a person only when Fable 5.1 cannot decide about a check that still fails, or a ticket asks by rule | No notification, no record of who answered beyond the file | Stronger models before people (10 Oct), built the same day |
 | Retries | One repair round, one guided round, one Review fix round; caps per ticket in `rounds.json` (3 writer rounds, 2 Fable calls, 15 USD by default) | A repair round cost 3.17 USD once (measured); a Fable call about 1 USD | The loop back to Implement waits for an agent-written Implement |
 | Machines | This laptop | Run folders and caches are local; a resume needs the run folder | Local first is a constraint of the brief |

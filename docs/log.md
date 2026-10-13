@@ -8,6 +8,64 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-13 · Wrap up for adoption: the guide, isso onboarded from it by an agent, the trust answer
+
+**Asked.** Oleg (`docs/inputs.md`, 2026-10-13): make sure the remote work is merged; wrap up so a
+real project can adopt the factory, set up by agents, with tested instructions and clear
+expectations; answer the team's question "how can we trust tests written in the session that
+implemented the change"; file his thought on mocks and verification points; move fast.
+
+**Ran, in order** (all measured):
+
+1. *Merge state.* All 18 pull requests merged; the three remote branches left on GitHub are the
+   squash-merged heads of 16, 17 and 18 (`git diff` against `main` shows nothing main lacks).
+   Deleting them was refused by the session's permission rules; left for Oleg.
+2. *The guide.* `docs/adopt.md` written for an agent on a fresh machine. Then `supervisor:implementer`
+   made the browser test folder optional in a recipe (spec
+   `docs/specs/2026-10-13-adoption/s1-browser-optional.md`, 10 new tests), because isso has no
+   Python browser tests.
+3. *isso from the guide alone.* An Opus agent that read nothing but `docs/adopt.md` and
+   `targets/linkding/` onboarded isso: a setuptools project with a werkzeug API, tests inside the
+   source package, no browser tests, no release tag newer than its 2026 commits. It chose upstream
+   7e91d59 (no-cache headers on the comment routes), checked the contract on both commits with a
+   probe through the test client, and wrote `targets/isso/`. Checklist steps 1 to 3 passed first
+   time: `fetch.py` all `ok` twice; `run --until implement` passed (Frame and Plan 0.33 USD on the
+   subscription; the guide had said "no model call", wrong).
+   - **It reported 14 gaps in the guide**, then 9 more after the run; all folded into
+     `docs/adopt.md`. The first was a blocker: the writer prompts hardcoded `helpers.py`, and isso
+     has `fixtures.py`. Fixed with a `test_helpers` recipe field (1 test).
+4. *The isso run, first attempt.* The blind writer (Opus, 249 s, 1.88 USD) wrote 6 API tests: all
+   pass with the change; 4 fail on the old code on an assertion (`None != 'no-store'`); 2 pass on
+   both, as the contract asked (unchanged bodies, other routes). Lint clean.
+   - **What failed: the factory.** mutmut 3.8.0 generated 1039 mutants in `isso/views/comments.py`
+     and none for the three changed functions (two decorated, one a decorator with an inner
+     function); the function that sets the header lives in `isso/utils/__init__.py`, which the
+     factory skips. Asked for mutants that did not exist, mutmut aborted ("Filtered for specific
+     mutants, but nothing matches", exit 1); the factory read that as "the tests never reach the
+     changed functions", marked it repairable, and started a repair round that could not pass.
+   - The session killed the run during that round (the killed call's cost is not in
+     `rounds.json`), fixed the check (`mutants.classify_exit`: "no mutants" is reported and the
+     mutation verdict skipped, not repaired; 2 tests), raised the ticket's cap to 10 USD, and
+     re-ran. A re-run after a failed Verify starts a fresh writer round (round 3).
+5. *The isso run, second attempt: shipped.* Round 3's blind writer (Opus, 274 s, 2.12 USD) wrote
+   6 API tests again: all pass with the change; 3 fail on the old code on an assertion; 3 pass on
+   both as the contract asks (unchanged bodies, error responses and other routes without the
+   header). Lint clean. Mutation recorded as not applicable (the three changed functions have no
+   mutants). isso's suite green with the tests (128 passed). 6 readable cases (168 s, 1.10 USD),
+   lint clean. Review approved (64 s, 0.27 USD). Ship committed `59a58be` on
+   `qa/isso-no-cache-comment-views`. Verify 7 min 31 s; the ticket's recorded spend 5.69 USD
+   (plus the killed round-2 call, unrecorded). Evidence in
+   `docs/runs/2026-10-13-isso-no-cache-comment-views/`.
+6. *The trust answer.* `docs/trust.md` and its page, from the four linkding runs' numbers: the
+   developers' own tests on the sort feature fail on the old code only for a missing name (the
+   measured case of "tests written with the code"), the mechanisms, the table of runs, the limits,
+   and his scenarios (mocks then the deployed run as two verification points; criteria as
+   verification points).
+
+**Left open.** Track 3 (the deployed run) not started. Mutating non-empty `__init__.py` files.
+The revert check on the developers' own tests (recommended in `docs/trust.md`). The three stale
+remote branches.
+
 ## 2026-10-12 · Track 2 on the laptop: the cloud branch merged, Restate installed, the bundles ticket run for real
 
 **Asked.** Oleg: "let's keep going". That answered the recommendation to run the bundles ticket on

@@ -21,10 +21,9 @@ Its test names, fixtures and reasons are guidance. Its file names are not: the p
 
 ## How to work
 
-1. Read `{api_tests_dir}/helpers.py`, `{browser_tests_dir}/helpers.py`, and one existing test file
-   in each folder to learn the conventions. The application's conventions win over anything else.
-2. Write the API tests into `{api_tests_dir}/{api_test_file}` and the browser test(s) into
-   `{browser_tests_dir}/{browser_test_file}`. New files only, those two names exactly.
+1. Read `{api_helpers}` and one existing test file in `{api_tests_dir}` to learn the
+   conventions. The application's conventions win over anything else.
+2. Write the API tests into `{api_tests_dir}/{api_test_file}`. New file only, that name exactly.
 3. Use only the public surface the ticket names: query strings, API JSON fields, routes, visible
    labels and controls exactly as the ticket states them. Never import or reference code names the
    change will add; use the test helpers only with the arguments they accept at this commit.
@@ -37,13 +36,12 @@ Its test names, fixtures and reasons are guidance. Its file names are not: the p
    AttributeError, KeyError, TypeError or a server error. Read values defensively (assertIn before
    indexing) so that a missing field fails as an assertion. A test of behaviour that already
    exists (a fallback) may pass here.
-5. The browser test cannot run here (the assets are not built). Check that it collects:
-   `{python} -m pytest -p no:cacheprovider --collect-only -q -o "python_files={browser_glob}" {browser_tests_dir}/{browser_test_file}`.
-   In it, first assert the new control is present, then use it and assert the visible result.
-6. Run `{python} -m ruff check` and `{python} -m ruff format` on your files.
-7. No sleeps, no mocking of the application's own code, no reaching into private names, no test
+5. Run `{python} -m ruff check` and `{python} -m ruff format` on your files.
+6. No sleeps, no mocking of the application's own code, no reaching into private names, no test
    without an assertion. Do not use git and do not look for the change anywhere else on this
    machine.
+
+{browser_section}
 
 Respond only through the structured output: the list of files you wrote (paths relative to the
 repository root) and short notes on what each test proves and why it is placed where it is.

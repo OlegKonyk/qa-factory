@@ -1,0 +1,50 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "pass",
+  "reason": "3 of 6 tests fail on an assertion without the change",
+  "tests": {
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testErrorResponsesCarryNoCacheControl": {
+    "at_head": "pass",
+    "reverted": "pass",
+    "verdict": "passes-without-change",
+    "message": ""
+   },
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingAndViewBodiesAreUnchanged": {
+    "at_head": "pass",
+    "reverted": "pass",
+    "verdict": "passes-without-change",
+    "message": ""
+   },
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingOfThreadWithCommentIsNoStore": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "Lists differ: [] != ['no-store']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'no-store'\n\n- []\n+ ['no-store']"
+   },
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testListingWithEachQueryParameterIsNoStore": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "{'/?u[30 chars]00, []), '/?uri=%2Fpath%2F&sort=newest': (200,[503 chars] [])} != {'/?u[30 chars]00, ['no-store']), '/?uri=%2Fpath%2F&sort=newe[633 chars]e'])}\n- {'/?uri=%2Fempty%2F': (200, []),\n+ {'/?uri=%2Fempty%2F': (200, ['no-store']),\n?                              ++++++++++\n\n-  '/?uri=%2Fpath%"
+   },
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testOtherRoutesDoNotGetNoStore": {
+    "at_head": "pass",
+    "reverted": "pass",
+    "verdict": "passes-without-change",
+    "message": ""
+   },
+   "isso/tests/test_no_cache_comment_views_api.py::TestNoCacheCommentViews::testViewWithEditCookieIsNoStoreWithAndWithoutPlain": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "{'/id/1': (200, []), '/id/1?plain=1': (200, [])} != {'/id/1': (200, ['no-store']), '/id/1?plain=1': (200, ['no-store'])}\n- {'/id/1': (200, []), '/id/1?plain=1': (200, [])}\n+ {'/id/1': (200, ['no-store']), '/id/1?plain=1': (200, ['no-store'])}\n?                  ++++++++++                            "
+   }
+  },
+  "wall_s": {
+   "head": 0.35,
+   "reverted": 0.28
+  },
+  "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/revert/reverted"
+ }
+}

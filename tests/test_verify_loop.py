@@ -342,6 +342,40 @@ def test_the_developers_mutation_set_runs_once_per_verify_run(tmp_path, monkeypa
     assert first["runs"]["developers"] is second["runs"]["developers"]
 
 
+def test_mutation_is_skipped_when_mutmut_makes_no_mutant_for_the_changed_functions(tmp_path, monkeypatch):
+    (tmp_path / "pkg").mkdir()
+    (tmp_path / "pkg" / "mod.py").write_text("def f(x):\n    return x\n")
+    source = tmp_path / "source.json"
+    source.write_text(json.dumps([{"path": "pkg/mod.py", "status": "M"}]))
+    tests = tmp_path / "tests.json"
+    tests.write_text(json.dumps([{"path": "tests/test_dev.py", "status": "A"}]))
+    inp = _inp(tmp_path, artifacts={"changed_source": str(source), "changed_tests": str(tests)})
+    inp["repo"]["app"].update(
+        source_package="pkg",
+        api_tests_dir="tests",
+        python="python",
+        exclude_copy=[],
+        mutmut={"pytest_add_cli_args": [], "pre_create_dirs": []},
+    )
+    runs = []
+
+    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest):
+        runs.append(os.path.basename(workdir))
+        return {
+            "status": "pass",
+            "reason": "mutmut made no mutant for any changed function",
+            "no_mutants": True,
+        }
+
+    monkeypatch.setattr(verify.mutants, "changed_functions", lambda base, head, module: [module + ".x_f*"])
+    monkeypatch.setattr(verify.mutants, "changed_lines", lambda base, head: {2})
+    monkeypatch.setattr(verify.mutants, "run", fake_run)
+    ctx = verify._context(inp)
+    ctx["files"] = ["tests/test_x.py"]
+    report = verify.run_mutation(ctx)  # no CheckFailed: nothing for the writer to repair
+    assert runs == ["generated"] and "pkg.mod.x_f*" in report["skipped"]
+
+
 # ------------------------------------------------------------------ the writer in real git trees
 def git(cwd, *args):
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}

@@ -1,0 +1,143 @@
+{
+  "ticket": "isso-no-cache-comment-views",
+  "qa_mode": "blind",
+  "first_round": {
+    "round": 3,
+    "tests": 6,
+    "tests_api": 6,
+    "tests_browser": 0,
+    "pass_at_head": 6,
+    "fail_at_base_on_assertion": 3,
+    "pass_on_both": 3,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 0,
+        "killed": 0,
+        "score": null,
+        "changed_lines": {
+          "checked": 0,
+          "killed": 0,
+          "score": null
+        }
+      }
+    }
+  },
+  "final_round": {
+    "round": 3,
+    "tests": 6,
+    "tests_api": 6,
+    "tests_browser": 0,
+    "pass_at_head": 6,
+    "fail_at_base_on_assertion": 3,
+    "pass_on_both": 3,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 0,
+        "killed": 0,
+        "score": null,
+        "changed_lines": {
+          "checked": 0,
+          "killed": 0,
+          "score": null
+        }
+      }
+    }
+  },
+  "rounds": [
+    {
+      "round": 3,
+      "kind": "write",
+      "failure": null
+    }
+  ],
+  "decisions": [],
+  "stages": {
+    "frame": {
+      "status": "pass",
+      "duration_s": 15.93,
+      "work_s": null,
+      "cost_usd": 0.15365330000000002,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "plan": {
+      "status": "pass",
+      "duration_s": 16.066,
+      "work_s": null,
+      "cost_usd": 0.17138210000000004,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "implement": {
+      "status": "pass",
+      "duration_s": 0.055,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "verify": {
+      "status": "pass",
+      "duration_s": 450.627,
+      "work_s": 450.7,
+      "cost_usd": 3.2233,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "review": {
+      "status": "pass",
+      "duration_s": 63.967,
+      "work_s": null,
+      "cost_usd": 0.2678978,
+      "model": "claude-opus-5-5",
+      "earlier_runs": 0
+    },
+    "ship": {
+      "status": "pass",
+      "duration_s": 2.291,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    }
+  },
+  "verify_parts": {
+    "time_s": {
+      "write_tests": 275.7,
+      "lint": 0.2,
+      "revert": 0.7,
+      "mutation.generated": 2.8,
+      "mutation": 2.9,
+      "suite": 2.2,
+      "test_cases": 169.0
+    },
+    "cost_usd": {
+      "write_tests": 2.120152,
+      "test_cases": 1.1031652
+    }
+  },
+  "spend_usd": 5.6925,
+  "ledger": {
+    "caps": {
+      "writer_rounds": 3,
+      "advice": 2,
+      "usd": 10.0
+    },
+    "spent_usd": 5.3675,
+    "writer_rounds_used": 0,
+    "advice_used": 0,
+    "calls": 4
+  },
+  "blind_audit": {
+    "tool_calls": 18,
+    "flagged": [],
+    "clean": true,
+    "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/verify/rounds/1/writer.jsonl"
+  }
+}

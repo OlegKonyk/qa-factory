@@ -1,0 +1,101 @@
+{
+  "step": "implement",
+  "index": 3,
+  "status": "pass",
+  "input": {
+    "ticket": {
+      "id": "isso-no-cache-comment-views",
+      "app": "targets/isso/app.json",
+      "base": "9fc7a0670afe6e9dc9410cffb7e9c5ba573a1e96",
+      "head": "7e91d59a261d98f772d6ac5ccb25cbb9693d2ed6",
+      "qa_mode": "blind",
+      "caps": {
+        "usd": 6.0
+      },
+      "source": "isso upstream commit 7e91d59 (fixes upstream issue #939); base is its parent 9fc7a06",
+      "title": "Stop browsers and proxies caching comment listings and single comments",
+      "description": "Readers sometimes see a stale list of comments because a browser or a proxy cached the JSON the comment widget fetched. The two read endpoints that return comments, the thread listing and the single-comment view, must tell every cache not to store their successful responses. Error responses and the other endpoints are not changed.",
+      "contract": [
+        "`GET /?uri=<uri>` (the comment listing of a thread): every response with a status below 400 carries the header `Cache-Control: no-store`, exactly that value. This holds with any of the endpoint's query parameters (`sort`, `limit`, `offset`, `parent`, `nested_limit`, `plain`, `after`).",
+        "`GET /id/<id>` (one comment, readable by the client holding that comment's edit cookie, which `POST /new` sets under the cookie name `<id>`): a 200 response carries `Cache-Control: no-store`, exactly that value. `?plain=1` makes no difference.",
+        "Responses with a status of 400 or above from these two endpoints get no `Cache-Control` header from this change: for example `GET /?uri=<uri>&sort=bogus` (400), `GET /id/<id>` for a missing comment (404), and `GET /id/<id>` without the edit cookie (403).",
+        "No other route changes: `POST /new`, `PUT /id/<id>`, `DELETE /id/<id>`, `POST /count`, `GET /latest`, `GET /config` and the rest keep their headers as they were.",
+        "Response bodies and status codes of both endpoints are unchanged."
+      ],
+      "acceptance_criteria": [
+        "After a comment is posted on a thread, GET /?uri=<that thread> returns 200 with the header Cache-Control: no-store",
+        "The comment's author, using the edit cookie from POST /new, gets 200 from GET /id/<id> with the header Cache-Control: no-store",
+        "GET /?uri=<thread>&sort=bogus returns 400 without a Cache-Control: no-store header",
+        "GET /id/<id> for a comment that does not exist returns 404 without a Cache-Control: no-store header",
+        "The JSON bodies of GET /?uri=<thread> and GET /id/<id> are the same as before the change"
+      ]
+    },
+    "repo": {
+      "app": {
+        "name": "isso",
+        "repo": "/Users/oleg/Library/Caches/qa-factory/isso/repo",
+        "worktrees": "/Users/oleg/Library/Caches/qa-factory/isso/wt",
+        "python": "/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/bin/python",
+        "source_package": "isso",
+        "pytest_args": [
+          "-p",
+          "no:cacheprovider"
+        ],
+        "api_tests_dir": "isso/tests",
+        "test_support": [
+          "isso/tests/fixtures.py"
+        ],
+        "exclude_copy": [
+          ".git",
+          "node_modules",
+          ".venv",
+          "mutants",
+          "__pycache__",
+          ".pytest_cache"
+        ],
+        "mutmut": {
+          "pytest_add_cli_args": [
+            "-p",
+            "no:cacheprovider"
+          ],
+          "pre_create_dirs": []
+        },
+        "suite": [
+          [
+            "--doctest-modules",
+            "isso"
+          ]
+        ],
+        "strategy": "targets/isso/strategy.md"
+      },
+      "base": "9fc7a0670afe6e9dc9410cffb7e9c5ba573a1e96",
+      "head": "7e91d59a261d98f772d6ac5ccb25cbb9693d2ed6",
+      "base_tree": "/Users/oleg/Library/Caches/qa-factory/isso/wt/isso-no-cache-comment-views/base",
+      "head_tree": "/Users/oleg/Library/Caches/qa-factory/isso/wt/isso-no-cache-comment-views/head"
+    },
+    "artifacts": {
+      "frame": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/frame/frame.json",
+      "plan": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/plan/plan.json"
+    },
+    "round": 1,
+    "run_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views"
+  },
+  "output": {
+    "status": "pass",
+    "artifacts": {
+      "change_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/implement/change.diff",
+      "change_full_diff": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/implement/change_full.diff",
+      "changed_source": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/implement/changed_source.json",
+      "changed_tests": "/Users/oleg/dev/qa-factory/.artifacts/runs/isso-no-cache-comment-views/implement/changed_tests.json"
+    },
+    "reason": "4 source files and 1 test files changed between 9fc7a06 and 7e91d59 (isso-no-cache-comment-views)",
+    "gate": null,
+    "metrics": {
+      "changed_source": 4,
+      "changed_tests": 1
+    }
+  },
+  "started": "2026-10-13T14:47:55+00:00",
+  "finished": "2026-10-13T14:47:55+00:00",
+  "duration_s": 0.055
+}

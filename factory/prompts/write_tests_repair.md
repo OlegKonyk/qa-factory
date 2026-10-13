@@ -33,12 +33,13 @@ change.
 2. A test that fails with the change expects something the change does not do: re-read the ticket
    and the code and fix the test, unless the ticket clearly says otherwise.
 3. Run your files and make them pass:
-   `{python} -m pytest -p no:cacheprovider {api_tests_dir}/{api_test_file}` and
-   `{python} -m pytest -p no:cacheprovider -o "python_files={browser_glob}" {browser_tests_dir}/{browser_test_file}`.
+   `{python} -m pytest -p no:cacheprovider {api_tests_dir}/{api_test_file}`.
    Also run `{python} -m ruff check` and `{python} -m ruff format` on your files.
 4. The same rules as before: the public surface (query strings, API JSON, visible controls), never
    the code's constants for the new values; no sleeps, no mocking of the application's own code, no
    reaching into private names, every test asserts.
+
+{browser_section}
 
 Respond only through the structured output: the list of your test files (paths relative to the
 repository root) and short notes on what you changed and why.

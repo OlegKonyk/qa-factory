@@ -1,0 +1,44 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "pass",
+  "runs": [
+   {
+    "args": [
+     "/Users/oleg/Library/Caches/qa-factory/isso/repo/.venv/bin/python",
+     "-m",
+     "pytest",
+     "-p",
+     "no:cacheprovider",
+     "--doctest-modules",
+     "isso"
+    ],
+    "returncode": 0,
+    "summary": "======================= 128 passed, 14 warnings in 2.07s =======================",
+    "wall_s": 2.18,
+    "tail": [
+     "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id",
+     "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id_workaround",
+     "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id_workaround",
+     "isso/tests/test_migration.py::TestMigration::test_disqus_empty_id_workaround",
+     "  /Users/oleg/Library/Caches/qa-factory/isso/wt/isso-no-cache-comment-views/head/isso/migrate.py:111: DeprecationWarning: Testing an element's truth value will always return True in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.",
+     "    if not thread_id:",
+     "",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "isso/tests/test_migration.py::TestMigration::test_wordpress",
+     "  /Users/oleg/Library/Caches/qa-factory/isso/wt/isso-no-cache-comment-views/head/isso/migrate.py:225: DeprecationWarning: 'count' is passed as positional argument",
+     "    text = re.sub(r\"(?!^\\n)\\n(?!^\\n)\", \"  \\n\", text, 0)",
+     "",
+     "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+     "======================= 128 passed, 14 warnings in 2.07s ======================="
+    ]
+   }
+  ]
+ }
+}
