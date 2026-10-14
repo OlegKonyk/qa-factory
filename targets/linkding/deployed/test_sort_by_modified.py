@@ -22,7 +22,9 @@ def test_list_bookmarks_sort_modified_asc_and_desc(bookmarks, sort_data):
 # TC-bookmarks-002
 def test_list_archived_bookmarks_sort_modified_asc_and_desc(bookmarks, sort_data):
     first, second, third = sort_data.sort_set(is_archived=True)
-    # Non-archived bookmarks must not be included; it is modified between second and first.
+    # Non-archived bookmarks must not be included. Created after the edits, so it is the newest
+    # modified (the in-suite test put it between second and first; what the case checks is that it
+    # does not appear, and that holds wherever it sorts).
     sort_data.add("Not archived")
 
     asc = bookmarks.list_ids(q=sort_data.marker, sort="modified_asc", archived=True)

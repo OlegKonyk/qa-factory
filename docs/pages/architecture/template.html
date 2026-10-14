@@ -402,9 +402,9 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
       <dl class="dl">
         <dt>Attaches at</dt><dd><span class="tag">B</span> application recipe, <span class="tag">C</span> test surfaces, <span class="tag">F</span> destination</dd>
         <dt>Exists today</dt><dd>Trusted API and browser tests inside the application's own suite, checked by the revert check and mutmut.</dd>
-        <dt>Missing</dt><dd>Tests that can run against a deployed URL. linkding's browser tests create their data through the database inside a test server, so they cannot run against a deployed environment as written. Also missing: a checklist that makes a repository agent-friendly (section 13).</dd>
+        <dt>Exists since 14 October</dt><dd>The four readable cases of the sort feature as a thin suite against linkding 1.47.0 from its Docker image, data through the REST API only: 4 of 4 pass in about 3.5 s. The API cannot set dates, so the order is built by edits; every request is scoped by a marker; one token cannot be a second user.</dd>
+        <dt>Missing</dt><dd>The thin suite is written by a session, not by a step; one feature, one application. The twelve-item checklist (section 13) is tested against this run.</dd>
         <dt>At scale</dt><dd>Applications, machines.</dd>
-        <dt>Settled</dt><dd>linkding from its Docker image on this laptop.</dd>
       </dl>
     </div>
     <div class="card">
@@ -527,7 +527,7 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
 <section id="plan">
   <div class="col">
     <div class="eyebrow">14 · Exploration plan</div>
-    <h2>Tracks 1 and 2 done; track 3 next</h2>
+    <h2>Three tracks done</h2>
     <p class="answer">The old lab died doing exactly “explore for a while”. So each track ends with a command that runs on linkding and a measured number, inside a cap. A track that cannot show that is reported as not done, and nothing else gets scored.</p>
   </div>
   <div class="tracks">
@@ -544,22 +544,22 @@ ul.check { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; }
       <dl class="dl"><dt>Produced</dt><dd>The Restate workflow behind <code>--engine restate</code>, a lock per step, <code>python -m factory report</code>, and screenshots of the UI.</dd><dt>Answered</dt><dd>It works, and adds a crash-safe run and a page to watch it on. It does not show the QA evidence. Which engine is the default is your call.</dd><dt>Spent</dt><dd>5.44 USD of model calls on the Console API key, measured</dd></dl>
     </div>
     <div class="card">
-      <div class="eyebrow">Track 3 · UC2</div>
+      <div class="eyebrow">Track 3 · UC2 · done</div>
       <h3>The deployed environment</h3>
-      <p>linkding from its own Docker image on this laptop stands for the deployed app. The readable cases of a feature become a thin suite with a base URL and data created through the REST API, run against the container.</p>
-      <dl class="dl"><dt>Produces</dt><dd>The same cases passing on a deployed app. The checklist above, tested against what it took.</dd><dt>Answers</dt><dd>Can the factory's tests run against an environment.</dd><dt>Cap</dt><dd>One session</dd></dl>
+      <p>linkding 1.47.0 from its own Docker image on this laptop, healthy 2.8 s after start. The four readable cases of the sort feature became a thin suite with a base URL and a token, data through the REST API only: 4 of 4 pass, twice, in about 3.5 s. Found on the way: a label in linkding's markup that points at a hidden input once a sort is applied.</p>
+      <dl class="dl"><dt>Produced</dt><dd><code>targets/linkding/deployed/</code>, the list of what had to change from the in-suite tests (dates through edits, a marker per test, no second user), and the checklist tested: five of its twelve items were needed, one would have helped.</dd><dt>Answered</dt><dd>Yes, when the cases create their data through the public API; the readable case is what crosses over.</dd><dt>Spent</dt><dd>No factory model call; one Opus session wrote the suite</dd></dl>
     </div>
   </div>
-  <p class="note" style="margin-top:14px">Ready-made pieces enter by use, not by comparison. Playwright's test agents come in when a TypeScript repository does. Playwright MCP comes into track 3 if the writer needs a live browser to find selectors.</p>
+  <p class="note" style="margin-top:14px">Ready-made pieces enter by use, not by comparison. Playwright's test agents come in when a TypeScript repository does. What comes next is the roadmap (<code>docs/roadmap.md</code>): the three factory fixes and the person gates landed with this track; a third application shaped like a small team service is next.</p>
 </section>
 
 <section id="decide">
   <div class="col">
     <div class="eyebrow">15 · Yours to decide</div>
-    <h2>Two questions</h2>
+    <h2>Both answered on 14 October</h2>
     <ol class="decide">
-      <li>Will tickets at work state the public contract (field names, values, labels, routes) before coding starts? If not, Plan has to fix it first, or the blind lane will meet mismatches the two tickets here did not have.</li>
-      <li>Make Restate the default engine now, or keep it behind the flag through track 3? Recommended: keep it behind the flag and decide after track 3. The plain driver is simpler, and Restate's gains only matter once runs are long or many.</li>
+      <li>Tickets at work will not state the public contract. So Frame now stops the run when a criterion cannot be made checkable or the contract is missing, and the person answers with the clarified ticket (roadmap item 4, built 14 October).</li>
+      <li>Restate stays behind its flag until Ship opens pull requests (roadmap item 6); it is replaced only when a run shows a need it cannot meet.</li>
     </ol>
     <p style="margin-top:14px">Settled on 10 October: the first run is approved and shipped; the factory approves its own work when every check passes and will ask a stronger model before a person; nothing at work runs a factory yet, so the orchestrator is ours to choose from track 2; the old lab is kept and salvaged piece by piece; track 3 runs linkding from its Docker image on this laptop. Settled on 12 October: the bundles ticket ran again as track 2's real run, factory runs on the laptop bill the Console API key, and cloud sessions build.</p>
     <p class="note" style="margin-top:18px">The record behind this page is in the repository: <code>docs/status.md</code>, <code>docs/log.md</code>, <code>docs/decisions.md</code>, <code>docs/architecture.md</code>, <code>docs/exploration.md</code>, and what was salvaged from the lab in <code>docs/reference/lab.md</code>.</p>
