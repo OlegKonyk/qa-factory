@@ -36,6 +36,11 @@ useful code. `docs/reference/lab.md` has the story and what can be salvaged.
 8. **Decisions are Oleg's.** Open questions go to him as questions with a recommendation. A
    session does not settle the test strategy, the target applications or the factory's shape on
    its own.
+9. **Always portable.** At every merge, the repository can be cloned on another machine and
+   pointed at a generic Python application by an agent that reads `docs/adopt.md` and nothing
+   else. A change that alters what a run needs (a tool, a path, a key, a recipe field) updates
+   that guide in the same pull request, and anything that only works on this machine is named
+   there as such (his words, 2026-10-14, `docs/inputs.md`).
 
 ## Evidence
 

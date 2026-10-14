@@ -31,10 +31,14 @@ the research on software factories and AI SDLC practice he never saw, and the la
   is his question 4.
 - **The research.** It exists only in the old lab (`~/dev/assay/docs/research/`, five files,
   fetched 2026-10-06 to 08) and was never shown to him; `docs/reference/lab.md` had it in one row.
-  A fresh pass was run with four web searches and nine page fetches, no agents (rule 7):
+  A fresh pass was run with five web searches and eleven page fetches, no agents (rule 7):
   `docs/research/2026-10-14-factory-landscape.md`, six points, each claim labelled checked,
   documentation only, or not verified. The one finding that changes the roadmap: the published
   factories put the person at specification and merge, the two gates the factory lacks.
+
+**Then, his third input of the day:** always portable to a generic application on another machine.
+Filed, made rule 9 of `CLAUDE.md`, and a portability table added to `docs/roadmap.md` with what
+is not yet true (no full run off this Mac; the key from the Keychain here).
 
 **What failed.** The three links recorded as published pages (architecture, trust, roadmap) could
 not be read from this session: the Artifact tool answered "not found" for the roadmap and the

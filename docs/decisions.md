@@ -3,6 +3,19 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-14 · Always portable
+
+**Decided, his words:** "this whole setup needs to be portable onto generic applications. If, on
+the other machine, I want to give this a try on a real app, this repository needs to be ready for
+that: have it ready with recipes describing what needs to be done."
+
+- Rule 9 of `CLAUDE.md`: at every merge, the repository can be cloned on another machine and
+  pointed at a generic Python application by an agent that reads `docs/adopt.md` and nothing
+  else; a change that alters what a run needs updates the guide in the same pull request;
+  anything that only works on this machine is named there.
+- `docs/adopt.md` is the recipe and stays the one tested procedure (2026-10-13). The roadmap
+  carries a table of where the rule is not yet true.
+
 ## 2026-10-14 · After his review of the roadmap, by delegation
 
 Made by the session that answered his review of the same day (`docs/inputs.md`: every person

@@ -8,8 +8,8 @@ The same four questions are at the end of `docs/roadmap.md` and on its page,
 https://claude.ai/artifact/DS1jXmWm67BPXzL1ma7cCy (republished 2026-10-14; the earlier link could
 not be read from this machine's session).
 
-1. Which comes first: make the factory adoptable by a real service (roadmap items 1 to 3), or an
-   agent writing the change itself (item 4)? Recommended: adoptable first.
+1. Which comes first: make the factory adoptable by a real service (roadmap items 1 to 4), or an
+   agent writing the change itself (item 5)? Recommended: adoptable first.
 2. His microservice: is it the third application on his side, and what is its shape (framework,
    database, the kind of thing it calls; the generic shape only, names stay in `.local/`)? Or does the session pick a public application with that
    shape? Recommended: a public one here.
@@ -24,6 +24,10 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
 ## Where things stand, 2026-10-14
 
+- **Rule 9, always portable** (his third input of the day): at every merge the repository can be
+  cloned elsewhere and pointed at a generic Python application from `docs/adopt.md` alone. The
+  roadmap's new portability table says where that is not yet true: no full ticket run off this
+  Mac yet, the key from the Keychain here and an environment variable elsewhere.
 - **The roadmap reviewed on his three points, no new code** (his second input of the day).
   Where a person steps in: of the brief's seven person points only Verify's two exist; a table
   in `docs/roadmap.md` and a diagram on its page show the rest, and a new item 4 in Now ("every

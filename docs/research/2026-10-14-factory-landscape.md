@@ -99,7 +99,7 @@ The lab's labels were the same three as here.
    Uber's AutoCover (ICSE-SEIP 2026): a multi-agent generator whose validator runs the tests and
    mutation testing, with a "viable" rate (passing tests that add coverage) of about 80 % for
    Python, 40 % Go, 20 % Java, and developers accepting about 44 % of viable tests in the IDE
-   (checked, the paper; the authors call coverage "an imperfect proxy for quality"). Meta's ACH
+   (checked, the paper's PDF fetched and read; the authors call coverage an "imperfect proxy for test quality" and mitigate it "via scenario coverage and mutation testing in the Validator"). Meta's ACH
    starts from a stated concern, derives mutants, and generates tests that must fail on the
    mutant and pass on the original; over 70 % accepted (checked in the lab's sweep, 2026-10-07;
    the acceptance figure is through a secondary review). AdverTest (arXiv 2602.08146, v3 of

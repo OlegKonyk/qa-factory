@@ -19,6 +19,23 @@ Of the brief's seven steps, two are not the factory's own yet: the ticket is a J
 by hand, and Implement is the developers' finished commit, not an agent's change. Ship stops at a
 local commit.
 
+## Portable to a generic application on another machine
+
+His standing rule of 2026-10-14 (`CLAUDE.md`, rule 9): at every merge, the repository can be
+cloned on another machine and pointed at a generic Python application by an agent that reads
+`docs/adopt.md` and nothing else. That guide is the recipe: the machine, what the application
+must have, the recipe folder per application, the ticket format, the run, the verdicts, a
+checklist. It was tested on 2026-10-13 by an agent that read only it and onboarded isso. Every
+item below that changes what a run needs updates the guide in its own pull request; item 3 is
+the next test of it. Where the rule is not yet true, said plainly:
+
+| What | State |
+|---|---|
+| A full ticket run on a machine other than this Mac | not done; Linux has run only the factory's own tests (cloud session, 2026-10-12) |
+| The Console key | this Mac's Keychain through `scripts/with-console-key.sh`; elsewhere `ANTHROPIC_API_KEY`, documented, not run |
+| Windows, a `src/` layout, a service with outside dependencies, a bug-fix ticket | not run (`docs/adopt.md`, section 9); item 3 covers three of the four |
+| Restate | optional, behind its flag; the guide runs without it |
+
 ## Where a person steps in: what the brief asks, what exists
 
 The brief (`docs/brief.md`) names a person point per step. Oleg's review of 2026-10-14 asks that
