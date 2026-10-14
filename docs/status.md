@@ -23,6 +23,18 @@ questions as they stood, for the record:
 A check, not a decision: does the Console show the factory's spend (about 5.44 USD on 2026-10-12
 and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
+## Where things stand, 2026-10-14, afternoon
+
+- **Roadmap item 2 done (pull request #26).** mutmut 3.8.0 ignores decorated functions by
+  design, so the factory rewrites the copy it mutates and keeps line numbers; `__init__.py` is
+  mutated; `python -m factory mutation <run folder>` re-runs the check on a finished run. On the
+  isso ticket's shipped tests: 269 mutants checked where there were 0, the generated tests kill
+  181, on the changed lines 1 of 1 (measured). A spend cap hit after the checks is now
+  resumable at the readable cases. The developers' tests check judges tests modified in place
+  (0, 6 and 0 found on the three finished runs). Built by Opus agents from written specs in a
+  workflow, reviewed by Opus, merged here; `docs/log.md` has the path. 271 factory tests.
+- Items 4 and 1 follow in the next two pull requests of the same session.
+
 ## Where things stand, 2026-10-14
 
 - **Each roadmap item has a state, and a command reads it** (his fifth input of the day:

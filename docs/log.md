@@ -8,6 +8,58 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · The "Now" items built in one session: three fixes, every person point, the deployed run
+
+**Asked.** Oleg: check the roadmap, pick up the first chunks, use workflows for speed, Opus for
+the implementation to stay conservative on spend (`docs/inputs.md`). Read as items 1, 2 and 4
+of `docs/roadmap.md` in one session, item 3 after them. This entry is the first of three pull
+requests (#26, item 2); the two that follow (item 4, then item 1) add to it.
+
+**How it was built.** One Workflow script, three git worktrees, three branches, in parallel.
+Each slice had a written spec (`docs/specs/2026-10-14-now-items/`); `supervisor:senior-implementer`
+(Opus) built it, `supervisor:reviewer` (Opus) read the diff against the spec and reported
+findings, spec gaps and an evidence check; a fix pass was scripted for a "fix" verdict but none
+fired: all eight slices were accepted on the first review, with medium and low findings that
+became two small follow-up specs (s2d, s4c) in a second workflow. Fable conducted, wrote the
+specs, took the decisions (`docs/decisions.md`, "Building the Now items"), rescanned and merged.
+Workflow counts: twelve agents, about 767k subagent tokens on the first run, four agents and
+about 200k on the second (the tool's own numbers; nothing priced them).
+
+**Item 2, measured.**
+
+1. *Why mutmut made no mutants.* mutmut 3.8.0 skips every decorated function except a lone
+   `@staticmethod` or `@classmethod` (its `file_mutation.py`, by design, no setting). isso's
+   `API.view` and `API.fetch` are decorated; its `no_cache_headers` is a decorator whose inner
+   `wrapper` is itself decorated with `@wraps`, so mutmut drops the inner body and nothing is
+   left to mutate (0 mutants with `@wraps`, 10 without, measured on a small copy). The helper in
+   `isso/utils/__init__.py` was skipped by the factory itself.
+2. *The fix.* The copy mutmut mutates is rewritten: decorator lines become comments and
+   `f = dec(f)` or `Cls.m = dec(Cls.m)` is appended at the end of the module, so every line number
+   stays. A method whose decorator names a class-body attribute, and decorators a metaclass reads,
+   are left alone with the reason listed; when the rewritten copy still breaks mutmut, the run
+   falls back to the plain copy and says so (the reviewer's medium finding; the spec's assumed
+   signal was wrong, measured: mutmut writes every `.meta` before any test runs and exits 1 with
+   every mutant's code null). `__init__.py` is mutated; mutmut keys it by the package
+   (`isso.utils.x_f__mutmut_*`). `python -m factory mutation <run folder>` re-runs the check on a
+   finished run with no model call.
+3. *The real run.* The isso ticket's shipped tests, mutation check run again: 269 mutants checked
+   per set (`view` 30, `fetch` 238, the helper 1), the generated tests kill 181 (0.67), with the
+   developers' 213 (0.79), on the changed lines 1 of 1; 11 min 28 s wall, of which mutmut itself
+   about 45 s and the rest the factory's line mapping re-parsing the 5 MB mutated module once per
+   mutant (left as is, a leftover below). Before: 0 checked.
+4. *Resume after the cap.* Verify records `stopped_at` and `resumable` when a cap stops it; a
+   re-run after raising `caps.usd` in the ticket resumes at the readable cases with the last
+   round's tests, no writer call (fake-runner tests; the bundles run that motivated it is not
+   re-run, nothing to measure without a new cap hit).
+5. *Modified developers' tests.* Judged and labelled; on the three finished runs 0, 6 and 0 tests
+   modified in place were found, all failing on the old code only for a missing name, as the new
+   ones do (`docs/trust.md` numbers unchanged in kind).
+
+**Left open from item 2.** The line mapping's cost (about 0.85 s per parse, once per mutant;
+cache the parse per module). `@property` and setters not measured. Decorated functions used at
+module level before the module ends run undecorated in the copy (not the case in isso or
+linkding).
+
 ## 2026-10-14 · The roadmap gets a state per item and a command that reads it
 
 **Asked.** Oleg, after asking how the work is organized across sessions: "yes, add the state and
