@@ -3,6 +3,24 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-14 · Discuss the roadmap and the next work items
+
+> let's discuss roadmap and come up uth next work items for factory
+
+How it was read ("uth" is "with"):
+
+- He asked for a plan, so a plan is this session's output (rule 4's exception); nothing is built.
+  The first item is left ready to paste as the next session's kickoff.
+- The roadmap is written from the record, not from new research: what `docs/adopt.md` section 1
+  says is not built, what `docs/status.md` and `docs/log.md` left open, the brief's steps that do
+  not exist yet, and his input of 2026-10-13 (his microservice adopting the factory, the meetings
+  at work, mocks then the deployed run as verification points), which sets the near-term order.
+- Where it goes: `docs/roadmap.md`, the "Next" of `docs/status.md` pointing at it, the kickoffs in
+  `docs/next-session.md`, and a page with diagrams for him to review (his request of 2026-10-08).
+- What is his: which direction comes first, and what only he knows about his service and the
+  tickets at work. The swappable choices (the Restate default, which public application and which
+  ticket) are decided by delegation or left to the session that builds them, with criteria.
+
 ## 2026-10-13 · Wrap up for adoption by a real project; answer "how can we trust the tests"; mocks as a verification point
 
 > For QA factory and software factory in general, because this is still software factory with the
