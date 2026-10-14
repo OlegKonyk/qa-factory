@@ -4,7 +4,8 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg
 
-Nothing. He answered the roadmap's four questions on 2026-10-14 ("adopt, public, no, keep";
+Nothing. Items 1, 2 and 4 of the roadmap are done (2026-10-14, pull requests 26 to 28); item 3
+is next and needs no answer from him. Earlier: he answered the roadmap's four questions on 2026-10-14 ("adopt, public, no, keep";
 `docs/decisions.md`). The page is https://claude.ai/artifact/DS1jXmWm67BPXzL1ma7cCy
 (republished 2026-10-14; the earlier link could not be read from this machine's session). The
 questions as they stood, for the record:
@@ -43,7 +44,16 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
   answerer in `status` and the report. Proved on a deliberately vague ticket for about 0.25 USD
   (`docs/runs/2026-10-14-linkding-sort-by-modified-vague/`); the first prompt asked for test
   mechanics and was tightened, with the shipped blind ticket as the control. 341 factory tests.
-- Item 1 follows in the next pull request of the same session.
+- **Roadmap item 1 done (pull request #28).** The four readable cases of the shipped sort
+  feature run against linkding 1.47.0 from its Docker image with data through the REST API only:
+  4 of 4 pass, twice, in about 3.5 s (`targets/linkding/deployed/`, its README has the recipe and
+  what had to change; `docs/exploration.md` "Track 3 results"; `docs/trust.md` now has the second
+  verification point). The architecture page is rebuilt and republished at
+  https://claude.ai/artifact/VLRBAcB5WEatQ4Lh6LsSPL (version 8).
+- **Item 3 is next** (`docs/next-session.md`); items 5 and 6 after it. The three items were built
+  from written specs by Opus agents in two Workflow runs (`docs/specs/2026-10-14-now-items/`),
+  about 970k subagent tokens in all by the tool's count, and about 0.25 USD of factory model calls
+  (the proof run of item 4); `docs/plugin-notes.md` has what the plugins showed.
 
 ## Where things stand, 2026-10-14
 

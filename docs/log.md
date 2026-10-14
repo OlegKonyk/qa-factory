@@ -77,6 +77,24 @@ about 200k on the second (the tool's own numbers; nothing priced them).
 4. *Decided on the way* (`docs/decisions.md`): answers are strict; a refusal keeps the run waiting
    and is listed; `redo` records the artifact hashes at pass time.
 
+**Item 1 (pull request #28), measured.** linkding 1.47.0 from its Docker image (healthy
+2.8 s after `docker run`; release 1.46.0 is the first with both shipped features). The four
+readable cases of the shipped sort run became `targets/linkding/deployed/`, one pytest test each
+on Playwright's request context and page, data through the REST API only: 4 of 4 pass, twice,
+3.66 s and 3.24 s. What had to change from the in-suite tests: the API cannot set
+`date_modified` or `date_added`, so the order is built by edits read back after each one (every
+`PATCH` moves the date, microseconds, about 8 ms); every list request scoped by a per-test
+marker; cleanup in a `finally`; no second user with one token; login through the form; locators
+by role. Found in linkding: a label that points at a hidden input once a sort is applied. The
+agent-friendly checklist tested: five of twelve items needed, one would have helped, in
+`docs/exploration.md` ("Track 3 results"). The architecture page's builder had been broken since
+the first run's summary was regenerated on 2026-10-10; it now reads a frozen copy of those
+numbers, and the page is republished (the old link could not be read from this session).
+
+**Left open from item 1.** The thin suite is a session's work; making it a factory step (the
+readable cases to a deployed suite by an agent, checked the same way) is not on the roadmap yet.
+One feature, one application. The token still comes from the container's shell.
+
 **Left open from item 2.** The line mapping's cost (about 0.85 s per parse, once per mutant;
 cache the parse per module). `@property` and setters not measured. Decorated functions used at
 module level before the module ends run undecorated in the copy (not the case in isso or
