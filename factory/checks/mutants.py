@@ -16,6 +16,13 @@ Facts measured on linkding at commit 0490013 with mutmut 3.8.0:
   98 killed, 10 survived, 115 s wall (measured).
 - The mutated module holds `def x_<f>__mutmut_orig(...)` and one `def x_<f>__mutmut_N(...)` per
   mutant, same signature, usually one line differs.
+- mutmut skips every decorated function except one decorated only with `@staticmethod` or
+  `@classmethod` (`mutmut/mutation/file_mutation.py`, `_skip_node_and_children`), nested ones
+  included. `undecorate` rewrites the copy mutmut mutates so top-level functions and methods get
+  mutants (measured on isso 7e91d59: `API.view` 0 -> 30, `API.fetch` 0 -> 238). A function whose
+  body is a decorated inner function (`@wraps(func) def wrapper`) still gets none.
+- In `pkg/__init__.py` the key drops `__init__`: `pkg.x_f__mutmut_1` (mutmut's `get_mutant_name`;
+  measured on isso `isso/utils/__init__.py`).
 """
 
 import ast
@@ -25,6 +32,7 @@ import os
 import shutil
 import subprocess
 import time
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 BAR = "ǁ"
@@ -50,6 +58,8 @@ def _functions(src: str) -> dict[str, ast.AST]:
 
 def changed_functions(base_src: str | None, head_src: str, module: str) -> list[str]:
     """mutmut globs for functions that are new or whose code differs between base and head."""
+    if module.endswith(".__init__"):  # mutmut names the package itself: pkg.x_f, not pkg.__init__.x_f
+        module = module[: -len(".__init__")]
     base = _functions(base_src) if base_src else {}
     globs = []
     for qualified, node in _functions(head_src).items():
@@ -64,6 +74,92 @@ def changed_functions(base_src: str | None, head_src: str, module: str) -> list[
         else:
             globs.append(f"{module}.x_{qualified}__mutmut_*")
     return globs
+
+
+# Descriptor decorators turn a method into something other than a function; `Cls.m = dec(Cls.m)` after
+# the class body is not equivalent for them (a setter needs the property of the same name).
+DESCRIPTORS = {"property", "cached_property"}
+DESCRIPTOR_ATTRS = {"setter", "getter", "deleter"}
+
+
+def _decorator_name(dec: ast.expr) -> str:
+    node = dec.func if isinstance(dec, ast.Call) else dec
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    return node.id if isinstance(node, ast.Name) else ""
+
+
+def _keeps_decorators(node, in_class: bool, names_in_scope: list[str]) -> bool:
+    decs = node.decorator_list
+    if any(isinstance(d, ast.Name) and d.id in ("staticmethod", "classmethod") for d in decs):
+        return True  # alone mutmut handles them; stacked with another decorator, not measured
+    if in_class and any(
+        _decorator_name(d) in DESCRIPTORS or (isinstance(d, ast.Attribute) and d.attr in DESCRIPTOR_ATTRS)
+        for d in decs
+    ):
+        return True
+    # A name defined twice in one scope (@overload stubs, @x.register on `_`): applying the decorators
+    # at the end would see only the last definition.
+    return names_in_scope.count(node.name) > 1
+
+
+def undecorate(src: str) -> str:
+    """The module with each decorated top-level function and method of a top-level class rewritten
+    so mutmut mutates it: every decorator line becomes a comment (`# @dec`, `#` for a continuation
+    line) and `f = a(b(f))` or `Cls.m = a(b(Cls.m))` is appended at the end of the module. Every
+    existing line keeps its number. Left as they are: `@staticmethod` or `@classmethod` (alone or not),
+    descriptor decorators on methods (`@property`, `@x.setter`, ...), a name defined twice in its
+    scope, and functions nested in functions. A module that does not parse is returned unchanged.
+    """
+    try:
+        module = ast.parse(src)
+    except SyntaxError:
+        return src
+    lines = src.splitlines(keepends=True)
+    defs = (ast.FunctionDef, ast.AsyncFunctionDef)
+    targets: list[tuple[ast.AST, str]] = []
+    top_names = [n.name for n in module.body if isinstance(n, (*defs, ast.ClassDef))]
+    for node in module.body:
+        if isinstance(node, defs) and node.decorator_list:
+            if not _keeps_decorators(node, False, top_names):
+                targets.append((node, node.name))
+        elif isinstance(node, ast.ClassDef):
+            names = [i.name for i in node.body if isinstance(i, (*defs, ast.ClassDef))]
+            for item in node.body:
+                if isinstance(item, defs) and item.decorator_list:
+                    if not _keeps_decorators(item, True, names):
+                        targets.append((item, f"{node.name}.{item.name}"))
+    if not targets:
+        return src
+    tail = []
+    for node, target in targets:
+        start = node.decorator_list[0].lineno
+        while start > 1 and not lines[start - 1].lstrip().startswith("@"):
+            start -= 1  # `@(` on the line before the expression
+        for n in range(start, node.lineno):
+            text = lines[n - 1]
+            indent = text[: len(text) - len(text.lstrip())]
+            ending = "\n" if text.endswith("\n") else ""
+            stripped = text.strip()
+            lines[n - 1] = (
+                f"{indent}# {stripped}{ending}" if stripped.startswith("@") else f"{indent}#{ending}"
+            )
+        expr = target
+        for dec in reversed(node.decorator_list):
+            callee = ast.unparse(dec)
+            if not isinstance(dec, ast.Name | ast.Attribute | ast.Call | ast.Subscript):
+                callee = f"({callee})"
+            expr = f"{callee}({expr})"
+        tail.append(f"{target} = {expr}\n")
+    if lines and not lines[-1].endswith("\n"):
+        lines[-1] += "\n"
+    out = (
+        "".join(lines)
+        + "\n# Decorators moved here by qa-factory so mutmut mutates the functions.\n"
+        + "".join(tail)
+    )
+    ast.parse(out)  # a broken rewrite fails here, not inside mutmut
+    return out
 
 
 def changed_lines(base_src: str | None, head_src: str) -> set[int]:
@@ -138,10 +234,11 @@ NOTHING_MATCHES = "Filtered for specific mutants, but nothing matches"
 def classify_exit(timed_out, returncode, found_meta, output, timeout) -> tuple[str, str, bool]:
     """(status, reason, no_mutants) for one mutmut run.
 
-    mutmut 3.8.0 makes no mutant for some function shapes (measured on isso 7e91d59: a decorator and
-    the two functions it decorates got none); asked for those by name it aborts with NOTHING_MATCHES
-    and exit code 1. That is not a failure of the tests, so it is reported as "no mutants" and the
-    caller skips the mutation verdict instead of sending the writer into a repair round.
+    mutmut 3.8.0 makes no mutant for some function shapes (measured on isso 7e91d59: a decorator
+    whose body is a decorated inner function); asked only for those by name it aborts with
+    NOTHING_MATCHES and exit code 1. That is not a failure of the tests, so it is reported as "no
+    mutants" and the caller skips the mutation verdict instead of sending the writer into a repair
+    round.
     """
     if timed_out:
         return "fail", f"mutmut did not finish within {timeout} seconds", False
@@ -236,6 +333,10 @@ def run(
     if tree.exists():
         shutil.rmtree(tree)
     shutil.copytree(head_tree, tree, ignore=shutil.ignore_patterns(*exclude_copy))
+    for relpath in only_mutate:  # the copy only: the worktree keeps its decorators
+        source = tree / relpath
+        if source.is_file():
+            source.write_text(undecorate(source.read_text()))
     pyproject = tree / "pyproject.toml"
     existing = pyproject.read_text() if pyproject.exists() else ""
     pyproject.write_text(
@@ -296,6 +397,7 @@ def run(
     cs = sum(m["status"] == "survived" for m in on_changed)
 
     status, reason, no_mutants = classify_exit(timed_out, returncode, found_meta, output, timeout)
+    unmutated = [g for g in globs if not any(fnmatchcase(k, g) for k in all_codes)] if found_meta else []
     return {
         "status": status,
         "reason": reason,
@@ -313,6 +415,7 @@ def run(
             "score": _score(ck, cs),
         },
         "mutants": mutants,
+        "unmutated": unmutated,
         "stdout_tail": output.splitlines()[-30:],
         "tree": str(tree),
     }

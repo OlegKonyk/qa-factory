@@ -511,7 +511,7 @@ def run_mutation(ctx):
         path = row["path"]
         if row["status"] not in ("M", "A") or not path.endswith(".py") or not path.startswith(pkg + "/"):
             continue
-        if "/migrations/" in path or path.endswith("/__init__.py"):
+        if "/migrations/" in path:  # an empty __init__.py has no function and falls out below
             continue
         head_src = _read(os.path.join(head_tree, path))
         base_src = _read(os.path.join(base_tree, path)) if row["status"] == "M" else None
@@ -637,6 +637,7 @@ def write_cases(ctx):
     rc, findings = _lint_cases(cases_dir)
     repair = None
     if rc != 0:
+        ctx["stage"] = "test_cases_repair"
         repair = headless.call(
             "The test cases you wrote under "
             f"{cases_dir} fail their linter. Fix every finding below by editing the files in place; "
@@ -760,6 +761,9 @@ def _context(inp, previous=None):
         "repaired": False,
         "guided": False,
         "recheck_round": None,
+        "stage": None,  # the stage about to call a model; a spend cap hit there is recorded as stopped_at
+        "stopped_at": None,
+        "resumable": False,
         "round_no": max(done, default=0) + 1,
         "round": None,
         "kind": None,
@@ -805,6 +809,8 @@ def _write_report(ctx):
         "gate_kind": ctx.get("gate_kind"),
         "last_failure": ctx.get("last_failure"),
         "status": ctx.get("status"),
+        "stopped_at": ctx.get("stopped_at"),
+        "resumable": bool(ctx.get("resumable")),
     }
     _dump(ctx["report_path"], report)
     return report
@@ -820,6 +826,7 @@ def _attempt(ctx, kind, findings="", guidance=""):
     round_dir = os.path.join(ctx["out"], "rounds", str(n))
     os.makedirs(round_dir, exist_ok=True)
     summary, failure = {}, None
+    ctx["stage"] = kind  # the writer's call: "write", "repair", "guided" or "review_fix"
     checks = ATTEMPT_CHECKS
     if kind == "recheck":  # the tests of an earlier round, no writer
         checks = [("write_tests", restore_round)] + [c for c in ATTEMPT_CHECKS if c[0] != "write_tests"]
@@ -926,6 +933,7 @@ def _advise(ctx, failure, allow_retry):
     ledger = ctx["ledger"]
     k = ledger.count("advice") + 1
     path = os.path.join(ctx["out"], f"escalation-{k}.json")
+    ctx["stage"] = "advice"
     record = escalate.decide(
         ticket=ctx["ticket"],
         strategy=_read(os.path.join(FACTORY_ROOT, ctx["app"].get("strategy", ""))),
@@ -1075,7 +1083,13 @@ def _finish(ctx, failure, rule):
     terminal = _settle(ctx, failure)
     if terminal:
         return terminal
+    return _final(ctx, rule)
+
+
+def _final(ctx, rule):
+    """Every attempt check passed: write the readable test cases, then approve."""
     for name, check in FINAL_CHECKS:
+        ctx["stage"] = name
         t0 = time.time()
         try:
             entry = {"status": "pass", "result": check(ctx)}
@@ -1093,6 +1107,13 @@ def _guarded(ctx, step):
     try:
         return step()
     except rounds.CapReached as e:
+        # Resumable only when the last attempt passed every check: then only the readable cases and
+        # the approval are left, and a re-run takes them up (`_resume_after_cap`). A cap hit in a
+        # writer round or a stronger-model call is not resumable: a re-run starts a fresh round.
+        ctx["stopped_at"] = ctx.get("stage")
+        ctx["resumable"] = all(
+            ctx["checks"].get(name, {}).get("status") == "pass" for name, _ in ATTEMPT_CHECKS
+        )
         return _fail(ctx, str(e))
 
 
@@ -1172,10 +1193,46 @@ def repair_from_review(inp, review):
     )
 
 
+def _resume_after_cap(inp, report):
+    """A run stopped at the spend cap after every check passed: the readable cases and the approval,
+    on the last round's tests, under the caps the ticket gives now. None when that round's check
+    files are not all there and passed, so the caller starts a fresh round.
+    """
+    ctx = _context(inp, previous=report)
+    if not ctx["rounds"]:
+        return None
+    n = ctx["rounds"][-1]["round"]
+    round_dir = os.path.join(ctx["out"], "rounds", str(n))
+    checks = {name: _load(os.path.join(round_dir, name + ".json")) for name, _ in ATTEMPT_CHECKS}
+    if not all(isinstance(e, dict) and e.get("status") == "pass" for e in checks.values()):
+        return None
+    _restore(ctx, report.get("artifacts") or {})
+    ctx["checks"] = checks
+    kinds = [r.get("kind") for r in ctx["history"]]
+    ctx["attempts"] = sum(k != "resume" for k in kinds)
+    ctx["repaired"], ctx["guided"] = "repair" in kinds, "guided" in kinds
+    ctx.update(round=n, kind="resume")
+    ctx["rounds"].append({"round": n, "kind": "resume", "checks": {}, "failure": None})
+    ctx["history"].append({"round": n, "kind": "resume", "failure": None})
+    out = _guarded(ctx, lambda: _final(ctx, RULE_VERIFY))
+    if out["status"] == "pass":
+        out["reason"] = (
+            f"resumed at the readable cases after the spend cap; tests of round {n} kept; {out['reason']}"
+        )
+    return out
+
+
 def run(inp):
     run_dir = _field(inp, "run_dir")
     report_path = os.path.join(run_dir, "verify", "report.json")
     if "answer" in _field(inp, "artifacts") and os.path.exists(report_path):
         return resume(inp)
+    previous = _load(report_path)
+    if isinstance(previous, dict) and previous.get("resumable") is True:
+        resumed = _resume_after_cap(inp, previous)
+        if resumed is not None:
+            return resumed
+    # Any other earlier run, a spend cap hit in a writer round or a stronger-model call included,
+    # gets a fresh writer round.
     ctx = _context(inp)
     return _guarded(ctx, lambda: _finish(ctx, _attempt(ctx, "write"), RULE_VERIFY))

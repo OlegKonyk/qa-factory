@@ -43,9 +43,10 @@ FAILED_REPORT = {
 class Fakes:
     """Scripted checks. `outcomes[name]` lists per call: "pass", "repairable" or "fail" (last repeats)."""
 
-    def __init__(self, monkeypatch, tmp_path, **outcomes):
+    def __init__(self, monkeypatch, tmp_path, cases_cost=None, **outcomes):
         self.outcomes, self.calls, self.writes, self.cases = outcomes, {}, [], 0
         self.tmp_path = tmp_path
+        self.cases_cost = cases_cost  # given: the cases call goes through the ledger, as write_cases does
         checks = [("write_tests", self.write_tests)]
         checks += [(name, self._check(name)) for name in ("lint", "revert", "mutation", "suite")]
         monkeypatch.setattr(verify, "ATTEMPT_CHECKS", checks)
@@ -84,6 +85,9 @@ class Fakes:
         return check
 
     def test_cases(self, ctx):
+        if self.cases_cost is not None:  # as write_cases does: the budget first, which may raise CapReached
+            ctx["ledger"].budget_for(verify.CASES_BUDGET_USD)
+            verify._record(ctx, "test_cases", "cases", {"cost_usd": self.cases_cost, "model": "cases"})
         self.cases += 1
         return {"files": ["demo/TC-demo-001.md"]}
 
@@ -770,3 +774,75 @@ def test_a_lowered_advice_budget_still_reaches_the_stronger_model(tmp_path, monk
     out = verify.run(_inp(tmp_path))
     assert out["status"] == "fail" and "environment problem" in out["reason"]
     assert advisor.calls[0]["budget_usd"] == 1.0
+
+
+# ------------------------------------------------------------------ resuming after the spend cap
+def _capped_at_the_cases(tmp_path, monkeypatch):
+    """A run whose checks all passed and whose readable cases hit the spend cap (0.5 spent of 0.9)."""
+    Fakes(monkeypatch, tmp_path, cases_cost=0.3)
+    inp = _inp(tmp_path, {"caps": {"usd": 0.9}})
+    out = verify.run(inp)
+    assert out["status"] == "fail" and out["reason"].startswith("spend cap reached")
+    return inp
+
+
+def test_a_cap_hit_at_the_readable_cases_leaves_the_run_resumable(tmp_path, monkeypatch):
+    _capped_at_the_cases(tmp_path, monkeypatch)
+    report = _report(tmp_path)
+    assert report["status"] == "fail"
+    assert report["stopped_at"] == "test_cases" and report["resumable"] is True
+
+
+def test_a_re_run_with_a_raised_cap_resumes_at_the_cases_without_a_writer(tmp_path, monkeypatch):
+    inp = _capped_at_the_cases(tmp_path, monkeypatch)
+    fakes = Fakes(monkeypatch, tmp_path, cases_cost=0.3)
+    inp["ticket"]["caps"] = {"usd": 5.0}  # the driver reads the ticket file afresh on every run
+    out = verify.run(inp)
+    assert out["status"] == "pass", out["reason"]
+    assert out["reason"].startswith(
+        "resumed at the readable cases after the spend cap; tests of round 1 kept"
+    )
+    assert fakes.writes == [] and fakes.calls == {} and fakes.cases == 1
+    assert Path(out["artifacts"]["approval"]).is_file()
+    report = _report(tmp_path)
+    assert [(r["round"], r["kind"]) for r in report["rounds"]] == [(1, "write"), (1, "resume")]
+    assert report["status"] == "pass" and report["resumable"] is False
+    saved = json.loads((tmp_path / "run" / "rounds.json").read_text())
+    assert saved["caps"]["usd"] == 5.0
+    assert [e["kind"] for e in saved["entries"]] == ["write", "cases"]
+
+
+def test_a_cap_hit_in_the_writer_round_is_not_resumable_and_the_re_run_writes_again(tmp_path, monkeypatch):
+    fakes = Fakes(monkeypatch, tmp_path)
+
+    def capped_writer(ctx):
+        raise rounds.CapReached("spend cap reached: 15.00 of 15.00 USD spent on this ticket")
+
+    monkeypatch.setattr(
+        verify, "ATTEMPT_CHECKS", [("write_tests", capped_writer), *verify.ATTEMPT_CHECKS[1:]]
+    )
+    inp = _inp(tmp_path)
+    assert verify.run(inp)["status"] == "fail"
+    report = _report(tmp_path)
+    assert report["stopped_at"] == "write" and report["resumable"] is False
+    fakes = Fakes(monkeypatch, tmp_path)
+    out = verify.run(inp)
+    assert out["status"] == "pass", out["reason"]
+    assert [(w["kind"], w["round"]) for w in fakes.writes] == [("write", 2)]
+    assert not out["reason"].startswith("resumed")
+
+
+def test_the_run_report_renders_a_resumed_run(tmp_path, monkeypatch):
+    from factory import __main__ as cli
+
+    inp = _capped_at_the_cases(tmp_path, monkeypatch)
+    Fakes(monkeypatch, tmp_path, cases_cost=0.3)
+    inp["ticket"]["caps"] = {"usd": 5.0}
+    out = verify.run(inp)
+    run = tmp_path / "run"
+    (run / "steps").mkdir()
+    record = {"step": "verify", "index": 4, "status": out["status"], "duration_s": 1.0, "output": out}
+    (run / "steps" / "04-verify.json").write_text(json.dumps(record, default=str))
+    assert cli.main(["report", str(run)]) == 0
+    page = (run / "report.md").read_text()
+    assert "| 1 | resume | - |" in page

@@ -89,6 +89,7 @@ def _developers_lines(run: Path) -> list[str]:
     tests = result.get("tests") or {}
     if not tests:
         return [_md(result.get("reason") or "no result")]
+    kinds = result.get("kinds") or {}  # absent from results before modified tests were judged: all new
     rows = []
     for node, t in tests.items():
         file, _, name = node.partition("::")
@@ -96,12 +97,13 @@ def _developers_lines(run: Path) -> list[str]:
             [
                 _md(file),
                 _md(name or "-"),
+                kinds.get(node, "new"),
                 t.get("at_head"),
                 VERDICT_WORDS.get(t.get("verdict"), t.get("verdict")),
                 _md(_first_line(t.get("message"))),
             ]
         )
-    header = ["file", "test", "with the change", "without the change", "failure on the old code"]
+    header = ["file", "test", "kind", "with the change", "without the change", "failure on the old code"]
     return [_md(result.get("reason") or ""), "", *_table(header, rows)]
 
 

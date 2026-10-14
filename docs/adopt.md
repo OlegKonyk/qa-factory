@@ -31,7 +31,7 @@ Pointing the factory at a work repository is Oleg's call, not a session's (`CLAU
 | Resume after a crash, a run you can watch (Restate) | built, measured, optional | `docs/exploration.md`, track 2 |
 | An application with no Python browser tests (API only) | built 2026-10-13, measured on isso (one ticket shipped) | `tests/test_verify_step.py`, the isso run |
 | A helper file not named `helpers.py` (`test_helpers`) | built 2026-10-13, measured on isso | `targets/isso/app.json` |
-| Mutation on decorated functions or code in `__init__.py` | not built: recorded as not applicable | section 7 |
+| Mutation on decorated functions or code in `__init__.py` | built 2026-10-14, measured on isso; a decorator whose body is a decorated inner function still gets none | section 7 |
 | The same tests run against a deployed environment | not built | track 3, `docs/next-session.md` |
 | Tests run against mocked dependencies, then the deployed run | not built; nothing decided | `docs/inputs.md` 2026-10-13 |
 | A pull request to the application's repository instead of a local commit | not built | `docs/architecture.md`, point F |
@@ -102,8 +102,7 @@ needed.
 4. A source package directory at the repository root (`mypackage/`, flat layout). Mutation testing
    mutates `source_package/<path>.py` and imports it as `source_package.path`; a `src/` layout is
    not verified. Tests inside the source package (isso's `isso/tests/`) are copied into the
-   mutated tree with the rest; whether mutmut then finds them is not verified (on isso no mutant
-   ran, section 7).
+   mutated tree with the rest, and mutmut runs them there (measured on isso 7e91d59, 2026-10-14).
 5. ruff configured (or default); pytest able to run one file at a time with the arguments in the
    recipe.
 6. A strategy rule (section 4) saying where tests go.
@@ -203,12 +202,17 @@ The model is `targets/linkding/tickets/bundle-filters-blind-2.json` (blind, with
   folder): Implement counts every other changed path as source, including tests in another
   language, snapshots, a changelog and configuration files. A changelog or a config file in
   `changed_source.json` is expected and harmless (mutation looks only at `.py` files under the
-  source package, and skips every `__init__.py` and `migrations/`); a JavaScript test file there
-  means the commit is a poor fit. Look at the changed functions before writing the ticket: prefer
-  logic in plain functions outside `__init__.py`. mutmut 3.8.0 makes no mutant for most decorated
-  functions, nor for a decorator that defines an inner function (measured on isso 7e91d59: none
-  for its three changed functions), and code in `__init__.py` is skipped by the factory, so such a
-  change gets no mutation verdict (section 7).
+  source package, `__init__.py` included, and skips `migrations/`); a JavaScript test file there
+  means the commit is a poor fit. Look at the changed functions before writing the ticket.
+  mutmut 3.8.0 ignores decorated functions, so in the copy it mutates the factory turns each
+  decorator of a top-level function or method into a comment and applies it at the end of the
+  module instead (`f = dec(f)`); line numbers do not move. Left decorated, and so without a
+  mutant: `@staticmethod` or `@classmethod` stacked with another decorator (alone, mutmut
+  handles them), `@property` and its setters, a name defined twice (`@overload`), and functions
+  nested in functions. A decorator that defines a decorated inner function (`@wraps(func) def
+  wrapper`) gets no mutant (measured on isso 7e91d59). A change that only adds a decorator line
+  gets mutants in the function's body but none on a changed line. A change made only of
+  functions without a mutant gets no mutation verdict (section 7).
 - `qa_mode`: `"blind"` writes the tests from the ticket and the code before the change, without
   seeing the change; omit it to write them after the change with the diff in view. Blind is the
   stronger proof and needs the contract stated; track 1 measured no mismatch on two tickets whose
@@ -247,8 +251,12 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
 - A run that stops for a person writes `question.md` in the run folder and exits 2. Put
   `answer.json` beside it (`{"decision": "approve", "by": "<who>", "note": "..."}` for a gate, or
   the escalation answers in `docs/decisions.md`, 2026-10-10) and run the same command again.
-- A re-run skips passed steps and runs failed ones again. Caps live in `rounds.json` in the run
-  folder and survive re-runs.
+- A re-run skips passed steps and runs failed ones again. The spend so far lives in `rounds.json`
+  in the run folder and survives re-runs; the caps are read from the ticket (`caps`) on every run.
+- A Verify stopped at its spend cap after every check passed (the report says `"resumable": true`
+  and `stopped_at`) resumes on re-run at the readable test cases, with the same tests and no new
+  writer round. To continue, raise `caps.usd` in the ticket file and run the same command again.
+  A cap hit in a writer round or a stronger-model call starts a fresh writer round on re-run.
 - Ship commits the tests and the readable cases on `qa/<ticket id>` in the head worktree and runs
   the suite there. Nothing is pushed.
 - With Restate (optional): `restate-server --base-dir <data dir> &`, `uv run python -m factory
@@ -269,12 +277,17 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   the developers' alone. Scores are reported, not thresholded; the check fails only when mutmut
   could not run, no mutant was checked, or the generated tests kill no mutant on the changed lines.
 - **The developers' own tests** (`verify/developers_revert.json`): the same revert check on the
-  tests the change itself added, reported with the same verdicts and never a failure. It answers,
-  per ticket, whether the tests written with the code prove the behaviour. On a finished run,
-  `python -m factory devtests <run folder>` runs it alone, with no model call.
-- **Mutation not applicable**: when mutmut makes no mutant for any changed function (decorated
-  functions, section 5), the report says so under `skipped` and the run goes on; the revert check
-  is then the only proof the tests exercise the change. This is not a test failure; do not retry.
+  tests the change itself added or modified, reported with the same verdicts, each test labelled
+  new or modified, and never a failure. It answers, per ticket, whether the tests written with the
+  code prove the behaviour. On a finished run, `python -m factory devtests <run folder>` runs it
+  alone, with no model call.
+- **Mutation not applicable**: when mutmut makes no mutant for any changed function (the shapes
+  in section 5), the report says so under `skipped` and the run goes on; the revert check is then
+  the only proof the tests exercise the change. This is not a test failure; do not retry. A
+  changed function that alone got no mutant is listed in each run's `unmutated`. On a finished
+  run, `python -m factory mutation <run folder>` runs the mutation check again with no model call
+  (it puts the shipped tests back from `verify/tests/` if they are missing) and writes
+  `verify/mutation-rerun.json`; exit 0 when mutmut ran or was skipped, 1 on an error.
 - **Lint**, **suite**, **cases**: pass or the findings.
 - `rounds.json`: every model call, its cost and round; `verify/escalation-<k>.json`: the stronger
   model's decision when one was asked.
