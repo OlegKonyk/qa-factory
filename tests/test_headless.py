@@ -4,6 +4,8 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from factory import headless
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -130,6 +132,22 @@ def test_error_result_is_flagged():
     assert res.cost_usd == 0.1
     assert len(res.stderr) == 2000
     assert res.model == "m"
+    assert res.subtype == "error_max_budget_usd" and res.budget_exceeded is True
+
+
+@pytest.mark.parametrize(
+    "raw,stderr,said",
+    [
+        ({"is_error": True, "subtype": "error_during_execution", "result": ""}, "", "error_during_execution"),
+        ({"is_error": True, "subtype": "success", "result": "API Error: 500"}, "", "success: API Error: 500"),
+        ({"is_error": True, "result": ""}, "boom on stderr\n", "boom on stderr"),
+        ({"is_error": True}, "", "exit code 1"),
+    ],
+)
+def test_a_failed_call_says_why_and_is_no_budget_hit(raw, stderr, said):
+    res = do_call(FakeRunner(json.dumps(raw), returncode=1, stderr=stderr))
+    assert res.error_text() == said
+    assert res.budget_exceeded is False
 
 
 def test_unparseable_output_is_an_error():

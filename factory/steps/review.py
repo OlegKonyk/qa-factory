@@ -4,6 +4,9 @@ When the review asks for changes, the test writer gets its findings for one fix 
 (`verify.repair_from_review`: Verify's checks run again) and the review runs once more. When it
 still asks for changes, or no writer round is left for a fix, it stops for a person (gate `review`):
 `sign_off`, `another_round` or `decline`. Under the `person` mode an approving review stops too.
+A fix round that stopped at the spend cap after every check passed (Verify's report says
+`resumable`) is taken up by the next run: Verify resumes at the readable cases, then the review
+runs again.
 """
 
 import json
@@ -63,12 +66,13 @@ def _test_files(inp: dict) -> str:
 
 
 def _review(inp: dict, ledger, kwargs) -> dict:
+    budget = ledger.budget_for(1.00)
     out = one_prompt(
         "review",
         inp,
         SCHEMA,
         "claude-opus-5-5",
-        ledger.budget_for(1.00),
+        budget,
         "Read,Glob,Grep",
         "Read,Glob,Grep",
         extra={"test_files": _test_files(inp)},
@@ -83,6 +87,11 @@ def _review(inp: dict, ledger, kwargs) -> dict:
         m.get("model") or "",
         (m.get("duration_ms") or 0) / 1000,
     )
+    if out.get("budget_exceeded"):  # claude -p ended the call at its budget: a cap hit, its spend counted
+        raise rounds.CapReached(
+            f"spend cap reached: the review ended at its budget of {budget:.2f} USD; "
+            f"{ledger.spent():.2f} of {float(ledger.caps['usd']):.2f} USD spent on this ticket"
+        )
     return out
 
 
@@ -232,6 +241,15 @@ def run(inp: dict, runner=None) -> dict:
     # Never review, and so never pass to Ship, tests whose checks did not pass: a fix round that
     # failed or stopped leaves Verify's report in that state.
     verify_report = _load(artifacts.get("verify_report")) or {}
+    if verify_report.get("resumable") is True:
+        # The fix round stopped at the spend cap after every check passed (`stopped_at` names the
+        # stage): Verify resumes at the readable cases on its tests, then the review runs again.
+        round1 = _latest_round(inp["run_dir"])
+        fix = verify.resume_after_cap(inp)  # never a fresh writer round: Review grants one fix round
+        if fix["status"] != "pass":
+            carried = {**(fix.get("artifacts") or {}), _round_key(round1): str(round1)}
+            return {**fix, "reason": "review fix round: " + fix["reason"], "artifacts": carried}
+        return _review_again(inp, fix, round1, ledger, kwargs)
     if verify_report.get("status") not in (None, "pass"):
         return _fail(
             f"Verify's checks have not passed on the current tests (status {verify_report['status']}); "

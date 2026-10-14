@@ -31,7 +31,7 @@ Its test names, fixtures and reasons are guidance. Its file names are not: the p
    differ from the default order, so the test fails for a behavioural reason, not because a name
    is missing.
 4. The feature is missing here, so the tests must fail here, and for the right reason. Run
-   `{python} -m pytest -p no:cacheprovider {api_tests_dir}/{api_test_file}` and check that every
+   `{python} -m pytest {pytest_args} {api_tests_dir}/{api_test_file}` and check that every
    test of new behaviour fails with an AssertionError, never with an ImportError, NameError,
    AttributeError, KeyError, TypeError or a server error. Read values defensively (assertIn before
    indexing) so that a missing field fails as an assertion. A test of behaviour that already

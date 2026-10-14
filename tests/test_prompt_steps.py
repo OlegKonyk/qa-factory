@@ -244,6 +244,68 @@ def test_review_refuses_tests_whose_checks_have_not_passed(inp, tmp_path, status
     assert runner.calls == []
 
 
+def test_a_fix_round_still_capped_on_resume_fails_review_as_the_fix_round(inp, tmp_path, monkeypatch):
+    report = tmp_path / "verify_report.json"
+    report.write_text(json.dumps({"status": "fail", "resumable": True, "stopped_at": "test_cases"}))
+    inp["artifacts"]["verify_report"] = str(report)
+    seen = []
+
+    def run(step_input):
+        seen.append(step_input)
+        reason = "spend cap reached: 15.00 of 15.00 USD spent on this ticket"
+        return {"status": "fail", "artifacts": {"verify_report": str(report)}, "reason": reason, "gate": None}
+
+    monkeypatch.setattr(review.verify, "resume_after_cap", run)
+    runner = verdicts("approve")
+    out = review.run(inp, runner=runner)
+    assert out["status"] == "fail" and out["reason"] == (
+        "review fix round: spend cap reached: 15.00 of 15.00 USD spent on this ticket"
+    )
+    assert out["artifacts"]["verify_report"] == str(report) and "review_round1" in out["artifacts"]
+    assert len(seen) == 1 and runner.calls == []
+
+
+def test_a_resumable_report_that_cannot_resume_fails_without_a_writer_round(inp, monkeypatch):
+    report = Path(inp["run_dir"]) / "verify" / "report.json"
+    report.parent.mkdir(parents=True)
+    report.write_text(json.dumps({"status": "fail", "resumable": True, "rounds": []}))
+    inp["artifacts"]["verify_report"] = str(report)
+    inp["repo"]["app"]["name"] = "demo"
+    monkeypatch.setattr(
+        review.verify, "_attempt", lambda *a, **k: pytest.fail("a fresh writer round started")
+    )
+    runner = verdicts("approve")
+    out = review.run(inp, runner=runner)
+    assert out["status"] == "fail" and out["reason"] == (
+        "review fix round: the capped round's checks are not all on disk and passed; "
+        "re-run Verify for this ticket"
+    )
+    assert runner.calls == []
+
+
+def test_a_review_call_ended_at_its_budget_is_a_named_cap_hit_with_its_spend_counted(inp):
+    def runner(argv, **kwargs):
+        raw = {"subtype": "error_max_budget_usd", "is_error": True, "result": "", "total_cost_usd": 1.02}
+        return subprocess.CompletedProcess(argv, 1, json.dumps(raw), "")
+
+    out = review.run(inp, runner=runner)
+    assert out["status"] == "fail" and out["reason"] == (
+        "spend cap reached: the review ended at its budget of 1.00 USD; "
+        "1.02 of 15.00 USD spent on this ticket"
+    )
+    ledger = json.loads((Path(inp["run_dir"]) / "rounds.json").read_text())
+    assert [(e["kind"], e["cost_usd"]) for e in ledger["entries"]] == [("review", 1.02)]
+
+
+def test_a_failed_call_with_empty_text_names_its_subtype(inp):
+    def runner(argv, **kwargs):
+        raw = {"subtype": "error_during_execution", "is_error": True, "result": ""}
+        return subprocess.CompletedProcess(argv, 1, json.dumps(raw), "")
+
+    out = frame.run(inp, runner=runner)
+    assert out["reason"] == "frame call failed: error_during_execution" and "budget_exceeded" not in out
+
+
 def test_review_reads_an_answer_to_its_fix_round_through_verify(inp, monkeypatch):
     seen = []
 

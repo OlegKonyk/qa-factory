@@ -558,6 +558,7 @@ def trees(tmp_path):
         "browser_tests_dir": "e2e",
         "browser_test_files": "e2e_test_*.py",
         "python": "python",
+        "pytest_args": ["-p", "no:cacheprovider"],
     }
     return {
         "repo": {
@@ -997,3 +998,105 @@ def test_the_run_report_renders_a_resumed_run(tmp_path, monkeypatch):
     assert cli.main(["report", str(run)]) == 0
     page = (run / "report.md").read_text()
     assert "| 1 | resume | - |" in page
+
+
+# ------------------------------------------------------------------ a call ended at its budget
+def _claude_result(cost, subtype="error_max_budget_usd", is_error=True, structured=None):
+    """verify.RUNNER for one call: claude -p's result object, as on stdout."""
+
+    def runner(argv, **kwargs):
+        raw = {
+            "type": "result",
+            "subtype": subtype,
+            "is_error": is_error,
+            "result": "",
+            "total_cost_usd": cost,
+            "modelUsage": {"claude-test": {}},
+        }
+        if structured is not None:
+            raw["structured_output"] = structured
+        return subprocess.CompletedProcess(argv, 1 if is_error else 0, json.dumps(raw), "")
+
+    return runner
+
+
+def test_a_case_writer_ended_at_its_budget_is_a_resumable_cap_hit(tmp_path, monkeypatch):
+    Fakes(monkeypatch, tmp_path)
+    monkeypatch.setattr(verify, "FINAL_CHECKS", [("test_cases", verify.write_cases)])
+    monkeypatch.setattr(verify, "RUNNER", _claude_result(0.7046))
+    inp = _inp(tmp_path)
+    inp["repo"]["app"]["source_package"] = "demo"
+    out = verify.run(inp)
+    assert out["status"] == "fail"
+    assert out["reason"] == (
+        "spend cap reached: the test case writer ended at its budget of 2.00 USD; "
+        "1.20 of 15.00 USD spent on this ticket"
+    )
+    report = _report(tmp_path)
+    assert report["stopped_at"] == "test_cases" and report["resumable"] is True
+    cases = json.loads((tmp_path / "run" / "verify" / "test_cases.json").read_text())
+    assert cases["status"] == "fail" and cases["reason"] == out["reason"]
+    assert _ledger_kinds_of(inp) == [("write", 0.5), ("cases", 0.7046)]
+
+
+def test_a_case_writer_error_that_is_not_the_budget_names_its_subtype(tmp_path, monkeypatch):
+    Fakes(monkeypatch, tmp_path)
+    monkeypatch.setattr(verify, "FINAL_CHECKS", [("test_cases", verify.write_cases)])
+    monkeypatch.setattr(verify, "RUNNER", _claude_result(0.1, subtype="error_during_execution"))
+    monkeypatch.setattr(verify, "_lint_cases", lambda cases_dir: (0, ""))
+    inp = _inp(tmp_path)
+    inp["repo"]["app"]["source_package"] = "demo"
+    out = verify.run(inp)
+    assert out["reason"] == "test_cases: test case writer ended with an error: error_during_execution"
+    assert _report(tmp_path)["resumable"] is False
+
+
+def test_a_test_writer_ended_at_its_budget_is_a_cap_hit_whose_spend_is_counted(trees, monkeypatch):
+    monkeypatch.setattr(verify, "RUNNER", _claude_result(4.98))
+    monkeypatch.setattr(verify, "ATTEMPT_CHECKS", [("write_tests", verify.write_tests)])
+    out = verify.run(trees)
+    assert out["status"] == "fail"
+    assert out["reason"].startswith("spend cap reached: the test writer ended at its budget of 5.00 USD")
+    report = _report_of(trees)
+    assert report["stopped_at"] == "write" and report["resumable"] is False
+    assert _ledger_kinds_of(trees) == [("write", 4.98)]
+
+
+def test_a_test_writer_error_that_is_not_the_budget_names_its_subtype(trees, monkeypatch):
+    monkeypatch.setattr(verify, "RUNNER", _claude_result(0.2, subtype="error_during_execution"))
+    monkeypatch.setattr(verify, "ATTEMPT_CHECKS", [("write_tests", verify.write_tests)])
+    ctx = verify._context(trees)
+    failure = verify._attempt(ctx, "write")
+    assert failure["reason"] == "test writer ended with an error: error_during_execution"
+    assert _ledger_kinds_of(trees) == [("write", 0.2)]
+
+
+def test_review_resumes_a_fix_round_that_ended_at_the_case_writers_budget(tmp_path, monkeypatch):
+    from factory.steps import review
+
+    inp, _ = _verified(tmp_path)
+    strategy = tmp_path / "strategy.md"
+    strategy.write_text("STRATEGY")
+    inp["repo"]["app"].update(source_package="demo", strategy=str(strategy))
+    review_dir = tmp_path / "run" / "review"
+    review_dir.mkdir(parents=True)
+    (review_dir / "review.round1.json").write_text(json.dumps({"structured": REVIEW}))
+    Fakes(monkeypatch, tmp_path)
+    monkeypatch.setattr(verify, "FINAL_CHECKS", [("test_cases", verify.write_cases)])
+    monkeypatch.setattr(verify, "RUNNER", _claude_result(0.7046))
+    fix = verify.repair_from_review(inp, REVIEW)
+    assert fix["status"] == "fail" and _report_of(inp)["resumable"] is True
+
+    fakes = Fakes(monkeypatch, tmp_path)  # the cases writer works now; the attempt checks must not run
+    inp["artifacts"] = {**inp["artifacts"], **fix["artifacts"]}
+    approve = _claude_result(
+        0.25, subtype="success", is_error=False, structured={"findings": [], "verdict": "approve"}
+    )
+    out = review.run(inp, runner=approve)
+    assert out["status"] == "pass", out["reason"]
+    assert fakes.writes == [] and fakes.calls == {} and fakes.cases == 1
+    assert out["artifacts"]["review_round1"] == str(review_dir / "review.round1.json")
+    assert Path(out["artifacts"]["review"]).is_file() and Path(out["artifacts"]["approval"]).is_file()
+    approval = json.loads(Path(out["artifacts"]["approval"]).read_text())
+    assert approval["rule"] == verify.RULE_REVIEW_FIX  # the resumed round was the fix round
+    assert [k for k, _ in _ledger_kinds_of(inp)] == ["review_fix", "cases", "review"]

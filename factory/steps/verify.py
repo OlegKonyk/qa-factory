@@ -27,6 +27,7 @@ Every check writes its own JSON under `<run>/verify/rounds/<n>/` and the latest 
 import ast
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -147,7 +148,7 @@ def _prompt(name, values):
 
 NO_BROWSER_SECTION = "This application has no browser tests in Python: write API tests only."
 
-_PYTEST = '`{python} -m pytest -p no:cacheprovider{flags} -o "python_files={browser_glob}" '
+_PYTEST = '`{python} -m pytest {pytest_args}{flags} -o "python_files={browser_glob}" '
 _BROWSER_FILE = "{browser_tests_dir}/{browser_test_file}`."
 
 _BROWSER_COMMON = """Browser tests.
@@ -227,6 +228,16 @@ def _test_ids(tree, relpath):
 
 def _cost_key(ctx):
     return "write_tests" if ctx["kind"] == "write" else f"{ctx['kind']}.r{ctx['round']}"
+
+
+def _ended_at_budget(ctx, who, budget):
+    """The CapReached for a call that `claude -p` ended at its --max-budget-usd (subtype
+    error_max_budget_usd): the same shape as the ledger's own cap message, naming the call."""
+    ledger = ctx["ledger"]
+    return rounds.CapReached(
+        f"spend cap reached: {who} ended at its budget of {budget:.2f} USD; "
+        f"{ledger.spent():.2f} of {float(ledger.caps['usd']):.2f} USD spent on this ticket"
+    )
 
 
 def _record(ctx, key, ledger_kind, metrics):
@@ -330,6 +341,7 @@ def _writer_prompt(ctx):
         "api_helpers": app.get("test_helpers") or app["api_tests_dir"] + "/helpers.py",
         "api_test_file": f"test_{ctx['slug']}_api.py",
         "python": app["python"],
+        "pytest_args": shlex.join(app["pytest_args"]),  # a src/ layout's override, so the run is the checks'
     }
     if browser_dir(app):
         values.update(
@@ -390,11 +402,12 @@ def write_tests(ctx):
         "required": ["files", "notes"],
     }
     before = _snapshot(cwd, app)
+    budget = ctx["ledger"].budget_for(WRITER_BUDGET_USD)
     result = headless.call(
         _writer_prompt(ctx),
         cwd=cwd,
         model=WRITER_MODEL,
-        budget_usd=ctx["ledger"].budget_for(WRITER_BUDGET_USD),
+        budget_usd=budget,
         tools=WRITER_TOOLS,
         allowed_tools=WRITER_TOOLS,
         schema=schema,
@@ -449,8 +462,13 @@ def write_tests(ctx):
     ctx["artifacts_out"]["tests_dir"] = tests_dir
     ctx["files"] = sorted(new_tests)
 
+    if result.budget_exceeded:
+        # A cap hit, not a test failure. CapReached passes _attempt by, which would have put the
+        # call in the ledger: put it there here, so its spend is counted.
+        _record(ctx, _cost_key(ctx), "write" if ctx["kind"] == "write" else ctx["kind"], result.metrics())
+        raise _ended_at_budget(ctx, "the test writer", budget)
     if result.is_error:
-        raise CheckFailed(f"test writer ended with an error: {(result.text or result.stderr or '')[:300]}")
+        raise CheckFailed(f"test writer ended with an error: {result.error_text()[:300]}")
     if touched_source:
         raise CheckFailed(f"test writer touched application code (reverted): {touched_source}")
     if modified_tests:
@@ -656,11 +674,12 @@ def write_cases(ctx):
         "required": ["files"],
     }
     tools = "Read,Glob,Grep,Write"
+    budget = ctx["ledger"].budget_for(CASES_BUDGET_USD)
     result = headless.call(
         _prompt("test_cases", values),
         cwd=head_tree,
         model=CASES_MODEL,
-        budget_usd=ctx["ledger"].budget_for(CASES_BUDGET_USD),
+        budget_usd=budget,
         tools=tools,
         allowed_tools=tools,
         schema=schema,
@@ -668,6 +687,8 @@ def write_cases(ctx):
         runner=RUNNER,
     )
     _record(ctx, "test_cases", "cases", result.metrics())
+    if result.budget_exceeded:  # before the linter's repair call, so the stop is named test_cases
+        raise _ended_at_budget(ctx, "the test case writer", budget)
     rc, findings = _lint_cases(cases_dir)
     repair = None
     if rc != 0:
@@ -704,7 +725,7 @@ def write_cases(ctx):
     }
     ctx["artifacts_out"]["test_cases"] = cases_dir
     if result.is_error:
-        raise CheckFailed(f"test case writer ended with an error: {(result.text or '')[:300]}")
+        raise CheckFailed(f"test case writer ended with an error: {result.error_text()[:300]}")
     if rc != 0:
         raise CheckFailed(f"test cases fail their linter: {findings[:500]}")
     if len(written) < len(listing):
@@ -1145,6 +1166,10 @@ def _final(ctx, rule):
             entry = {"status": "pass", "result": check(ctx)}
         except CheckFailed as e:
             entry = {"status": "fail", "reason": str(e)}
+        except rounds.CapReached as e:  # the file says so too, then _guarded ends the step resumable
+            entry = {"status": "fail", "reason": str(e), "cap_reached": True}
+            _dump(os.path.join(ctx["out"], name + ".json"), entry)
+            raise
         ctx["timings"][name] = round(time.time() - t0, 1)
         ctx["checks"][name] = entry
         _dump(os.path.join(ctx["out"], name + ".json"), entry)
@@ -1260,15 +1285,36 @@ def _resume_after_cap(inp, report):
     kinds = [r.get("kind") for r in ctx["history"]]
     ctx["attempts"] = sum(k != "resume" for k in kinds)
     ctx["repaired"], ctx["guided"] = "repair" in kinds, "guided" in kinds
+    # The round that wrote the tests (an earlier resume may sit after it) names the approval's rule.
+    written = [r.get("kind") for r in ctx["rounds"] if r.get("kind") != "resume"]
+    rule = RULE_REVIEW_FIX if written and written[-1] == "review_fix" else RULE_VERIFY
     ctx.update(round=n, kind="resume")
     ctx["rounds"].append({"round": n, "kind": "resume", "checks": {}, "failure": None})
     ctx["history"].append({"round": n, "kind": "resume", "failure": None})
-    out = _guarded(ctx, lambda: _final(ctx, RULE_VERIFY))
+    out = _guarded(ctx, lambda: _final(ctx, rule))
     if out["status"] == "pass":
         out["reason"] = (
             f"resumed at the readable cases after the spend cap; tests of round {n} kept; {out['reason']}"
         )
     return out
+
+
+def resume_after_cap(inp):
+    """Review's way back into a fix round that stopped at the spend cap after every check passed:
+    the readable cases and the approval on that round's tests. Never a fresh writer round, which
+    Review's one fix round per ticket did not grant: when the round cannot be resumed, a failure.
+    """
+    previous = _load(os.path.join(_field(inp, "run_dir"), "verify", "report.json"))
+    resumed = _resume_after_cap(inp, previous) if isinstance(previous, dict) else None
+    if resumed is not None:
+        return resumed
+    return {
+        "status": "fail",
+        "artifacts": {},
+        "reason": "the capped round's checks are not all on disk and passed; re-run Verify for this ticket",
+        "gate": None,
+        "metrics": {},
+    }
 
 
 def run(inp):

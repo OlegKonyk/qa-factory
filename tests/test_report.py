@@ -259,3 +259,38 @@ def test_a_folder_without_steps_exits_2(tmp_path):
     assert "not a run folder" in buf.getvalue()
     assert cli.main(["report", str(tmp_path)]) == 2
     assert not (tmp_path / "report.md").exists()
+
+
+def test_a_failed_cases_call_after_a_passed_verify_says_the_cases_were_not_finished(tmp_path):
+    run = make_run(tmp_path)
+    _w(
+        run / "steps/04-verify.json",
+        {
+            "step": "verify",
+            "status": "pass",
+            "output": {"reason": "every check passed; approved by the factory"},
+        },
+    )
+    _w(
+        run / "verify/test_cases.json",
+        {"status": "fail", "reason": "spend cap reached: the test case writer"},
+    )
+    cases = _section(report.render(run), "## Readable test cases")
+    assert "The readable cases were not finished: spend cap reached: the test case writer" in cases
+    assert "- area/TC-here.md" in cases
+    assert "approved by the factory" not in cases and "No readable cases" not in cases
+
+
+def test_a_cases_call_stopped_at_the_spend_cap_says_so(tmp_path):
+    run = make_run(tmp_path)
+    shutil.rmtree(run / "verify" / "testcases", ignore_errors=True)
+    _w(
+        run / "verify/test_cases.json",
+        {"status": "fail", "reason": "spend cap reached: 15.00 of 15.00 USD", "cap_reached": True},
+    )
+    cases = _section(report.render(run), "## Readable test cases")
+    assert (
+        "The run stopped at the spend cap before the readable cases were finished: "
+        "spend cap reached: 15.00 of 15.00 USD"
+    ) in cases
+    assert "Case files found" not in cases and "were not finished:" not in cases

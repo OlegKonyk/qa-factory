@@ -191,6 +191,13 @@ the helper file is called and what it provides, that the application's conventio
 tests use the public surface and never the code's constants, that a test must fail on the old
 code for a behavioural reason, how to run one file. `targets/linkding/strategy.md` and
 `targets/isso/strategy.md` are the models. Keep it under a page.
+**For a `src/` layout, the one-file command carries the recipe's `pytest_args`.** The writer's
+prompt now gives `python -m pytest <pytest_args> <file>`, the recipe's `pytest_args` shell-quoted
+(`-p no:cacheprovider -o 'pythonpath=src client/src'` for gafaelfawr), and the browser command the
+same (built 2026-10-14, not yet measured on a writer round). Before, the prompt gave
+`-p no:cacheprovider` alone, which in a worktree imports the clone's code: on gafaelfawr the blind
+writer's plain command gave `5 passed` on the old code, with the override `3 failed, 2 passed`
+(measured). The strategy rule may still repeat the override; it does no harm.
 
 **`fetch.py`**: a standard-library script that is safe to run twice. It must leave behind:
 
@@ -350,6 +357,18 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   and `stopped_at`) resumes on re-run at the readable test cases, with the same tests and no new
   writer round. To continue, raise `caps.usd` in the ticket file and run the same command again.
   A cap hit in a writer round or a stronger-model call starts a fresh writer round on re-run.
+  A call that `claude -p` ends at its `--max-budget-usd` (result subtype `error_max_budget_usd`)
+  is a cap hit too, named as one: `spend cap reached: the test case writer ended at its budget of
+  <x> USD; ...` (the test writer and the review are named the same way).
+- **A cap hit inside Review's fix round** ends the step with the cap named: `verify/report.json`
+  says `"stopped_at": "test_cases"` and `"resumable": true` when the fix round's tests passed every
+  check. Raise `caps.usd` in the ticket file and run the same command again: Review resumes Verify
+  at the readable cases on the fix round's tests, with no new writer round, and reviews them again
+  (built 2026-10-14, measured on nothing yet). When that round's check files are not all on disk and
+  passed, Review fails and says so rather than start a writer round. Before, on gafaelfawr, Review ended `review fix
+  round: test_cases: test case writer ended with an error: ` with nothing after the colon, and the
+  same command failed at once with `Verify's checks have not passed on the current tests (status
+  fail)` (measured).
 - Ship commits the tests and the readable cases on `qa/<ticket id>` in the head worktree and runs
   the suite there. Nothing is pushed. Under `gates.ship: person` it asks first and writes nothing
   to the worktree until approved.
@@ -381,7 +400,11 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   tests the change itself added or modified, reported with the same verdicts, each test labelled
   new or modified, and never a failure. It answers, per ticket, whether the tests written with the
   code prove the behaviour. On a finished run, `python -m factory devtests <run folder>` runs it
-  alone, with no model call.
+  alone, with no model call. A parametrized test is judged as one test: pytest's
+  `test_lifecycle[github-oidc-server]` belongs to `test_lifecycle`, whose verdict is the worst of
+  its parametrizations' (`head-fails`, then `crash`, `missing-name`, `passes-without-change`,
+  `proves-behaviour`), each one's own verdict kept under `params` (built 2026-10-14, not yet
+  measured).
 - **Mutation not applicable**: when mutmut makes no mutant for any changed function (the shapes
   in section 5), the report says so under `skipped` and the run goes on; the revert check is then
   the only proof the tests exercise the change. This is not a test failure; do not retry. A

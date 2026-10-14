@@ -2,6 +2,7 @@
 
 import io
 import json
+import subprocess
 
 from factory import report
 from factory.checks import devtests
@@ -157,3 +158,61 @@ def test_main_runs_from_the_implement_record_and_writes_the_check_file(tmp_path,
     table = "\n".join(report._developers_lines(run))
     assert "| test_m | modified |" in table and "| kind |" in table
     assert devtests.main(str(tmp_path / "nowhere"), io.StringIO()) == 2
+
+
+def _record(nodeid, outcome, exc=None, frames=()):
+    return {
+        "nodeid": nodeid,
+        "kind": "test",
+        "outcome": outcome,
+        "exc_type": exc,
+        "exc_mro": [exc, "Exception"] if exc else [],
+        "message": "boom" if exc else "",
+        "frames": list(frames),
+    }
+
+
+def test_a_parametrized_test_gets_the_worst_verdict_of_its_parametrizations(tmp_path, monkeypatch):
+    head = _tree(tmp_path / "head", "def test_life(server): assert 2\n")
+    base = _tree(tmp_path / "base", "def test_life(server): assert 1\n")
+    assertion = [{"file": "tests/test_x.py", "line": 1, "function": "test_life"}]
+    plugin_lines = {  # the failsort plugin's jsonl, at head and in the reverted tree
+        "at head": [
+            _record("tests/test_x.py::test_life[github]", "passed"),
+            _record("tests/test_x.py::test_life[oidc]", "passed"),
+        ],
+        "reverted": [
+            _record("tests/test_x.py::test_life[github]", "failed", "AssertionError", assertion),
+            _record("tests/test_x.py::test_life[oidc]", "passed"),
+        ],
+    }
+
+    def fake_pytest(cmd, cwd, env, **kwargs):
+        lines = plugin_lines["reverted" if str(cwd).endswith("reverted") else "at head"]
+        lines = [*lines, {"event": "done", "exitstatus": 0}]
+        out = env["QA_FACTORY_FAILSORT_OUT"]
+        with open(out, "w") as f:
+            f.write("\n".join(json.dumps(line) for line in lines) + "\n")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(devtests.revert.subprocess, "run", fake_pytest)
+    changed = [{"path": "tests/test_x.py", "status": "M"}]
+    result = devtests.run(head, base, [], changed, tmp_path / "w", "py", [], [], None, [".git"])
+    assert result["status"] == "ran"
+    life = result["tests"]["tests/test_x.py::test_life"]
+    assert life["verdict"] == "passes-without-change"
+    assert life["params"] == {
+        "tests/test_x.py::test_life[github]": "proves-behaviour",
+        "tests/test_x.py::test_life[oidc]": "passes-without-change",
+    }
+    assert result["counts"]["ran"] == 1 and result["counts"]["passes-without-change"] == 1
+
+
+def test_the_worst_verdict_follows_the_order_head_fails_crash_missing_name_passes_proves():
+    kinds = {"f.py::t": "new", "f.py::C::m": "modified"}
+    order = ["proves-behaviour", "passes-without-change", "missing-name", "crash", "head-fails"]
+    for k in range(1, len(order)):
+        reported = {f"f.py::t[{v}]": {"verdict": v} for v in order[: k + 1]}
+        assert devtests._by_judged_id(reported, kinds)["f.py::t"]["verdict"] == order[k]
+    plain = devtests._by_judged_id({"f.py::C::m": {"verdict": "skip"}, "g.py::t[x]": {}}, kinds)
+    assert plain == {"f.py::C::m": {"verdict": "skip"}}  # no params on a plain test; others left out
