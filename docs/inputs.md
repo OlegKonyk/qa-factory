@@ -3,6 +3,20 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-14 · Pick up the first chunks of the roadmap; workflows for speed, Opus for implementation
+
+> Hey, please check the roadmap. Let's pick up the first chunks of work. Please use workflows to
+> speed up the development. Utilize Opus for the implementation as much as possible to be a little
+> more conservative on spend.
+
+How it was read: start the "Now" group of `docs/roadmap.md`. Items 1, 2 and 4 are built in this
+session, each on its own branch, in one parallel workflow: Opus implements each slice from a
+written spec (`docs/specs/2026-10-14-now-items/`), an Opus reviewer reads the diff before it is
+accepted, and the session merges the pull requests one by one. Item 3 (a third application,
+a paid factory run) comes after items 2 and 4 are merged, because it is the next test of the
+adoption guide they both change. "Conservative on spend" is read as: Opus, not Fable, writes the
+code; Fable conducts and reviews the result.
+
 ## 2026-10-14 · A persisted plan to track across sessions; add the state and the roadmap command
 
 > Before we kick off the work, do we have a persisted strategic plan and roadmap that we can hold

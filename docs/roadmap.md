@@ -85,7 +85,7 @@ the deployed application. Already approved on 2026-10-10; kickoff A in `docs/nex
 
 ### 2. Three factory fixes the last runs found
 
-State: planned
+State: done (2026-10-14, pull request #26; estimated one cloud session with no model spend, measured: one laptop session, no factory model call, built by Opus agents in a workflow)
 
 Code only, no model calls, so it fits a cloud session paid by the one-time credit (250 USD, until
 2026-11-05). Kickoff B.

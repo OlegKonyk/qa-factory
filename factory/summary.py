@@ -261,7 +261,7 @@ def _number_rows(summaries: list[dict]) -> list[list]:
                         ],
                     ]
                 )
-    for key in ("new_tests", *devtests.VERDICTS[:5]):
+    for key in ("new_tests", "modified_tests", *devtests.VERDICTS[:5]):
         rows.append([f"developers tests {key}", *[(s.get("developers") or {}).get(key) for s in summaries]])
     rows.append(["spend_usd", *[s["spend_usd"] for s in summaries]])
     return rows

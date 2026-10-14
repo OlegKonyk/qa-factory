@@ -1,4 +1,6 @@
+import json
 import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -199,3 +201,248 @@ def test_classify_exit_reports_no_mutants_when_mutmut_matched_nothing():
     )
     assert mutants.classify_exit(True, None, False, "", 10)[0] == "fail"
     assert mutants.classify_exit(False, 0, True, "done", 10) == ("pass", "mutmut ran", False)
+
+
+def _unchanged_lines_keep_their_place(src: str, out: str, commented: set[int], assignments: int = 1) -> None:
+    """Same line count up to the original end (then a blank line, a note, the assignments); every
+    line not a decorator line is unchanged at its number; every decorator line is a comment."""
+    before, after = src.splitlines(), out.splitlines()
+    assert len(after) == len(before) + 2 + assignments
+    for n, line in enumerate(before, 1):
+        if n in commented:
+            assert after[n - 1].lstrip().startswith("#"), (n, after[n - 1])
+        else:
+            assert after[n - 1] == line, (n, after[n - 1])
+
+
+def test_undecorate_top_level_function():
+    src = "import x\n\n\n@dec\ndef f(a):\n    return a\n\n\ny = 1\n"
+    out = mutants.undecorate(src)
+    _unchanged_lines_keep_their_place(src, out, {4})
+    assert out.splitlines()[3] == "# @dec"
+    assert out.splitlines()[-1] == "f = dec(f)"
+
+
+def test_undecorate_method():
+    src = 'class C:\n    x = 1\n\n    @requires(str, "uri")\n    def m(self):\n        return 1\n'
+    out = mutants.undecorate(src)
+    _unchanged_lines_keep_their_place(src, out, {4})
+    assert out.splitlines()[3] == '    # @requires(str, "uri")'
+    assert out.splitlines()[-1] == "C.m = requires(str, 'uri')(C.m)"
+
+
+def test_undecorate_two_decorators_apply_bottom_up():
+    src = "@a\n@b\ndef f():\n    pass\n"
+    out = mutants.undecorate(src)
+    _unchanged_lines_keep_their_place(src, out, {1, 2})
+    assert out.splitlines()[-1] == "f = a(b(f))"
+
+
+def test_undecorate_multi_line_decorator():
+    src = "@route(\n    '/x',\n    methods=['GET'],\n)\ndef f():\n    return 1\n"
+    out = mutants.undecorate(src)
+    _unchanged_lines_keep_their_place(src, out, {1, 2, 3, 4})
+    assert out.splitlines()[:4] == ["# @route(", "    #", "    #", "#"]
+    assert out.splitlines()[4] == "def f():"
+    assert out.splitlines()[-1] == "f = route('/x', methods=['GET'])(f)"
+
+
+def test_undecorate_leaves_staticmethod_property_and_nested_functions():
+    src = (
+        "class C:\n"
+        "    @staticmethod\n"
+        "    def s():\n"
+        "        return 1\n"
+        "\n"
+        "    @classmethod\n"
+        "    @cache\n"
+        "    def k(cls):\n"
+        "        return 1\n"
+        "\n"
+        "    @property\n"
+        "    def p(self):\n"
+        "        return 1\n"
+        "\n"
+        "\n"
+        "def outer(func):\n"
+        "    @wraps(func)\n"
+        "    def inner():\n"
+        "        return func()\n"
+        "    return inner\n"
+    )
+    out = mutants.undecorate(src)
+    assert out == src and len(out.splitlines()) == len(src.splitlines())
+
+
+def test_undecorate_leaves_a_name_defined_twice():
+    src = "@overload\ndef f(a: int): ...\n@overload\ndef f(a: str): ...\ndef f(a):\n    return a\n"
+    out = mutants.undecorate(src)
+    assert out == src and len(out.splitlines()) == len(src.splitlines())
+
+
+def test_undecorate_runs_the_same_as_the_decorated_module():
+    src = (
+        "def twice(f):\n"
+        "    return lambda *a: f(*a) * 2\n"
+        "\n"
+        "\n"
+        "def plus(n):\n"
+        "    return lambda f: lambda *a: f(*a) + n\n"
+        "\n"
+        "\n"
+        "@twice\n"
+        "@plus(1)\n"
+        "def g(x):\n"
+        "    return x\n"
+        "\n"
+        "\n"
+        "class C:\n"
+        "    @plus(10)\n"
+        "    def m(self, x):\n"
+        "        return x\n"
+    )
+    plain, rewritten = {}, {}
+    exec(src, plain)
+    out = mutants.undecorate(src)
+    _unchanged_lines_keep_their_place(src, out, {9, 10, 16}, assignments=2)
+    exec(out, rewritten)
+    assert plain["g"](3) == rewritten["g"](3) == 8
+    assert plain["C"]().m(1) == rewritten["C"]().m(1) == 11
+
+
+def test_changed_functions_in_a_package_init_use_the_package_name():
+    assert mutants.changed_functions(None, "def f():\n    pass\n", "pkg.utils.__init__") == [
+        "pkg.utils.x_f__mutmut_*"
+    ]
+
+
+def test_run_mutates_an_undecorated_copy_and_names_globs_without_a_mutant(tmp_path, monkeypatch):
+    head = tmp_path / "head"
+    (head / "pkg").mkdir(parents=True)
+    src = "@dec\ndef f(a):\n    return a\n\n\ndef dec(f):\n    return f\n"
+    (head / "pkg" / "mod.py").write_text(src)
+    seen = {}
+
+    def fake_mutmut(cmd, cwd, **kwargs):
+        seen["copy"] = (Path(cwd) / "pkg" / "mod.py").read_text()
+        (Path(cwd) / "mutants" / "pkg").mkdir(parents=True)
+        (Path(cwd) / "mutants" / "pkg" / "mod.py").write_text("")
+        meta = {"exit_code_by_key": {"pkg.mod.x_f__mutmut_1": 1}}
+        (Path(cwd) / "mutants" / "pkg" / "mod.py.meta").write_text(json.dumps(meta))
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    globs = ["pkg.mod.x_f__mutmut_*", "pkg.mod.x_dec__mutmut_*"]
+    result = mutants.run(head, "py", "pkg", ["pkg/mod.py"], [], globs, tmp_path / "w", [], [], [], {})
+    assert seen["copy"] == mutants.undecorate(src) != src
+    assert (head / "pkg" / "mod.py").read_text() == src  # the worktree keeps its decorators
+    assert result["killed"] == 1 and result["unmutated"] == ["pkg.mod.x_dec__mutmut_*"]
+
+
+def test_undecorate_leaves_a_method_whose_decorator_names_a_class_attribute():
+    src = (
+        "class Store:\n"
+        "    _lock = Lock()\n"
+        "\n"
+        "    @synchronized(_lock)\n"
+        "    def put(self, k):\n"
+        "        return k\n"
+        "\n"
+        "    @requires(str)\n"
+        "    def get(self, k):\n"
+        "        return k\n"
+    )
+    out, kept = mutants.undecorate_with_reasons(src)
+    assert out.splitlines()[3] == "    @synchronized(_lock)"
+    assert out.splitlines()[-1] == "Store.get = requires(str)(Store.get)"
+    assert kept == [("Store.put", "its decorator names _lock from the class body")]
+
+
+def test_undecorate_leaves_abstractmethod_and_lists_why():
+    src = "class A(ABC):\n    @abc.abstractmethod\n    def f(self):\n        return 1\n"
+    out, kept = mutants.undecorate_with_reasons(src)
+    assert out == src == mutants.undecorate(src)
+    assert kept == [("A.f", "@abstractmethod is read while the class is created")]
+
+
+def test_undecorate_does_not_list_a_lone_staticmethod():
+    src = "class C:\n    @staticmethod\n    def s():\n        return 1\n"
+    assert mutants.undecorate_with_reasons(src) == (src, [])
+
+
+REWRITE_NOTE = "# Decorators moved here by qa-factory"
+
+
+def _write_meta(cwd: Path, codes: dict) -> None:
+    (cwd / "mutants" / "pkg").mkdir(parents=True, exist_ok=True)
+    (cwd / "mutants" / "pkg" / "mod.py").write_text("")
+    (cwd / "mutants" / "pkg" / "mod.py.meta").write_text(json.dumps({"exit_code_by_key": codes}))
+
+
+def _decorated_head(tmp_path: Path) -> Path:
+    head = tmp_path / "head"
+    (head / "pkg").mkdir(parents=True)
+    src = (
+        "class C:\n"
+        "    _lock = 1\n"
+        "\n"
+        "    @synchronized(_lock)\n"
+        "    def put(self):\n"
+        "        return 1\n"
+        "\n"
+        "\n"
+        "@dec\n"
+        "def f(a):\n"
+        "    return a\n"
+    )
+    (head / "pkg" / "mod.py").write_text(src)
+    return head
+
+
+GLOBS = ["pkg.mod.x_f__mutmut_*", "pkg.mod.xǁCǁput__mutmut_*"]
+
+
+def test_run_falls_back_to_the_plain_copy_when_the_rewrite_breaks_the_import(tmp_path, monkeypatch):
+    head = _decorated_head(tmp_path)
+    copies = []
+
+    def fake_mutmut(cmd, cwd, **kwargs):
+        cwd = Path(cwd)
+        copies.append((cwd / "pkg" / "mod.py").read_text())
+        if REWRITE_NOTE in copies[-1]:  # as measured: .meta written, every code null, exit 1
+            _write_meta(cwd, {"pkg.mod.x_f__mutmut_1": None})
+            return subprocess.CompletedProcess(
+                cmd, 1, "NameError\nfailed to collect stats. runner returned 2\n", ""
+            )
+        _write_meta(cwd, {"pkg.mod.x_g__mutmut_1": 1})
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    result = mutants.run(head, "py", "pkg", ["pkg/mod.py"], [], GLOBS, tmp_path / "w", [], [], [], {})
+    assert len(copies) == 2 and REWRITE_NOTE in copies[0]
+    assert copies[1] == (head / "pkg" / "mod.py").read_text()
+    assert result["undecorate"] == (
+        "fallen back: mutmut exited with code 1 and checked no mutant "
+        "(failed to collect stats. runner returned 2)"
+    )
+    assert result["status"] == "pass" and result["killed"] == 1 and result["left_decorated"] == []
+
+
+def test_run_lists_what_it_left_decorated_and_does_not_fall_back_after_checking_a_mutant(
+    tmp_path, monkeypatch
+):
+    head = _decorated_head(tmp_path)
+    copies = []
+
+    def fake_mutmut(cmd, cwd, **kwargs):
+        copies.append((Path(cwd) / "pkg" / "mod.py").read_text())
+        _write_meta(Path(cwd), {"pkg.mod.x_f__mutmut_1": 0, "pkg.mod.x_f__mutmut_2": None})
+        return subprocess.CompletedProcess(cmd, 1, "a worker crashed\n", "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    result = mutants.run(head, "py", "pkg", ["pkg/mod.py"], [], GLOBS, tmp_path / "w", [], [], [], {})
+    assert len(copies) == 1 and REWRITE_NOTE in copies[0]
+    assert "undecorate" not in result and result["checked"] == 1
+    assert result["left_decorated"] == [
+        {"file": "pkg/mod.py", "function": "C.put", "reason": "its decorator names _lock from the class body"}
+    ]

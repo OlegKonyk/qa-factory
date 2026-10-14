@@ -1,4 +1,5 @@
-"""Command line: python -m factory run <ticket.json> | status | summary | report | roadmap | restate ..."""
+"""Command line: python -m factory run <ticket.json> | status | summary | report | devtests | mutation |
+roadmap | restate ..."""
 
 from __future__ import annotations
 
@@ -35,6 +36,8 @@ def main(argv: list[str] | None = None) -> int:
     report_p.add_argument("--out", default=None, help="write the page here (default <run_dir>/report.md)")
     dev_p = sub.add_parser("devtests", help="the revert check on the developers' own tests of a finished run")
     dev_p.add_argument("run_dir", help="path to a run folder")
+    mut_p = sub.add_parser("mutation", help="Verify's mutation check again on a finished run, no model call")
+    mut_p.add_argument("run_dir", help="path to a run folder")
     roadmap_p = sub.add_parser("roadmap", help="show the state of each item in docs/roadmap.md")
     roadmap_p.add_argument("--path", default=None, help="the roadmap file (default docs/roadmap.md)")
     roadmap_p.add_argument("--json", action="store_true", help="print JSON instead of a table")
@@ -76,6 +79,10 @@ def main(argv: list[str] | None = None) -> int:
         from factory.checks import devtests
 
         return devtests.main(args.run_dir)
+    if args.command == "mutation":
+        from factory.checks import mutation_rerun
+
+        return mutation_rerun.main(args.run_dir)
     if args.command == "report":
         return report.main(args.run_dir, args.out)
     return driver.status(args.run_dir)
