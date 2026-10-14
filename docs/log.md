@@ -8,6 +8,43 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · Finish a run after a cap hit in Review's fix round, and three smaller defects
+
+**Asked.** Spec `docs/specs/2026-10-14-third-application/s3-finish-after-cap.md`, from the
+gafaelfawr run `gafaelfawr-oidc-client-updates`.
+
+**Found (measured on that run).**
+1. Review's fix round (Verify round 4) passed every check; the readable-case writer got
+   `--max-budget-usd 0.70`, cost 0.7046 USD, and `claude -p` ended it as an error with empty text.
+   Review failed with `test case writer ended with an error: ` and nothing after the colon, the
+   report was not resumable, and a re-run failed at once with `Verify's checks have not passed`.
+2. The three writer prompts ran one file with `-p no:cacheprovider` and not the recipe's
+   `pytest_args`: the blind writer's plain command gave `5 passed` on the old code, with
+   `-o "pythonpath=src client/src"` `3 failed, 2 passed`.
+3. The developers' modified test `test_lifecycle` was reported by pytest as
+   `test_lifecycle[github-oidc-server]`, matched nothing, and the check said `status: error`,
+   `ran: 0`.
+4. `report.md` said "No readable cases were written. Verify ended with: every check passed" while
+   round 4's `test_cases.json` said fail and 5 case files were on disk.
+
+**Built (none of it measured on an application yet; the factory's tests cover each).**
+1. `headless.Result` keeps the result's `subtype`; `budget_exceeded` is true for
+   `error_max_budget_usd` (the subtype in `factory/headless.py`'s smoke notes). Verify's test writer
+   and case writer raise `CapReached` on it (`spend cap reached: the test case writer ended at its
+   budget of <x> USD; ...`), with the call's spend in `rounds.json`; a cap hit at the cases is
+   resumable as before and `verify/test_cases.json` records it. Any other failed call names its
+   subtype and text or stderr. Review's own call ended at its budget is a named cap hit too. Review,
+   finding a resumable Verify report, resumes Verify at the readable cases (approved under the fix
+   round's rule) and reviews again; when the round cannot be resumed it fails, never starting a
+   writer round.
+2. The writer prompts and the browser command carry `{pytest_args}`, the recipe's `pytest_args`
+   joined with `shlex.join`.
+3. The developers' tests check judges `file::name[params]` as `file::name`, the worst verdict of
+   its parametrizations, each kept under `params`.
+4. `report.md` says "The readable cases were not finished: <reason>" when `verify/test_cases.json`
+   failed, or "The run stopped at the spend cap before the readable cases were finished" when it
+   records a cap hit, and lists the case files found.
+
 ## 2026-10-14 · Files mutmut's copy needs: `mutmut.also_copy`, and a truthful failure reason
 
 **Asked.** Spec `docs/specs/2026-10-14-third-application/s2-mutmut-also-copy.md`, from the first

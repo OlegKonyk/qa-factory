@@ -120,7 +120,22 @@ def _case_title(path: Path) -> str | None:
 
 def _case_lines(run: Path, out_dir: Path) -> list[str]:
     verify = run / "verify"
-    files = (_result(_load(verify / "test_cases.json")) or {}).get("files")
+    entry = _load(verify / "test_cases.json")
+    if isinstance(entry, dict) and entry.get("status") == "fail":
+        # The latest cases call failed (a review's fix round, say) though an earlier Verify passed:
+        # say so, and list what it left on disk rather than the passed step's reason.
+        found = sorted(
+            p.relative_to(verify / "testcases").as_posix() for p in (verify / "testcases").rglob("*.md")
+        )
+        why = _md(entry.get("reason") or "-")
+        if entry.get("cap_reached"):  # resumable: raising caps.usd and running again finishes them
+            lines = [f"The run stopped at the spend cap before the readable cases were finished: {why}"]
+        else:
+            lines = [f"The readable cases were not finished: {why}"]
+        if found:
+            lines += ["", "Case files found under `verify/testcases/`:", "", *[f"- {_md(f)}" for f in found]]
+        return lines
+    files = (_result(entry) or {}).get("files")
     if not isinstance(files, list):
         line = "No readable cases were written."
         rec = _load(run / "steps" / "04-verify.json")

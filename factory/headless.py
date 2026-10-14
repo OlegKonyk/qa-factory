@@ -34,6 +34,7 @@ from factory import blind
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 FACTORY_ROOT = Path(__file__).resolve().parent.parent
+BUDGET_SUBTYPE = "error_max_budget_usd"  # the result's subtype when --max-budget-usd ended the call
 
 
 @dataclass
@@ -53,7 +54,23 @@ class Result:
     permission_denials: list = field(default_factory=list)
     returncode: int = 0
     stderr: str = ""
+    subtype: str = ""
     raw: dict = field(default_factory=dict)
+
+    @property
+    def budget_exceeded(self) -> bool:
+        """The call ended because it reached its --max-budget-usd.
+
+        Read in this module's docstring (smoke, 2026-10-08, measured): a call over its budget ends
+        with is_error and subtype `error_max_budget_usd`, exit code 1. The capped cases call of the
+        gafaelfawr run kept no transcript (write_cases passes none), so nothing more was read there.
+        """
+        return self.subtype == BUDGET_SUBTYPE
+
+    def error_text(self) -> str:
+        """Why a failed call failed, never empty: the subtype, then the text or else stderr."""
+        parts = [self.subtype, (self.text or self.stderr or "").strip()]
+        return ": ".join(p for p in parts if p) or f"exit code {self.returncode}"
 
     def metrics(self) -> dict:
         return {
@@ -179,6 +196,7 @@ def result_from(raw: dict, requested_model: str, returncode: int = 0, stderr: st
         permission_denials=list(raw.get("permission_denials") or []),
         returncode=returncode,
         stderr=(stderr or "")[-2000:],
+        subtype=str(raw.get("subtype") or ""),
         raw=raw,
     )
 
@@ -293,14 +311,17 @@ def one_prompt(
     )
     metrics = res.metrics()
     if res.is_error or res.structured is None:
-        reason = res.text or res.stderr or "no structured output"
-        return {
+        reason = res.error_text() if res.is_error else (res.text or res.stderr or "no structured output")
+        failed = {
             "status": "fail",
             "artifacts": {},
             "reason": f"{name} call failed: {reason}",
             "gate": None,
             "metrics": metrics,
         }
+        if res.budget_exceeded:  # the caller may name it as a cap hit (Review does)
+            failed["budget_exceeded"] = True
+        return failed
     out_dir = Path(inp["run_dir"]) / name
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{name}.json"

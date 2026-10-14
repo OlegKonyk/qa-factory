@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -101,6 +102,7 @@ def test_prompts_have_every_placeholder_the_step_fills():
         "browser_test_file": "d",
         "browser_glob": "e",
         "python": "f",
+        "pytest_args": "-p no:cacheprovider",
     }
     assert "test_sort" not in verify._prompt("write_tests", values)
     blind_values = {k: v for k, v in values.items() if k not in ("diff", "dev_tests_diff")}
@@ -189,6 +191,7 @@ def _writer_ctx(tmp_path, app_extra, mode, blind):
     app = {
         "api_tests_dir": "tests",
         "python": "py",
+        "pytest_args": ["-p", "no:cacheprovider"],
         "strategy": str(strategy),
         **app_extra,
     }
@@ -236,6 +239,24 @@ def test_writer_prompt_names_the_recipe_helper_file_or_helpers_py(tmp_path, monk
     assert "Read `tests/helpers.py`" in default
     named = verify._writer_prompt(_writer_ctx(tmp_path, {"test_helpers": "tests/fixtures.py"}, mode, blind))
     assert "Read `tests/fixtures.py`" in named and "tests/helpers.py" not in named
+
+
+@pytest.mark.parametrize("mode,blind", [("fresh", False), ("fresh", True), ("repair", False)])
+def test_writer_prompt_runs_one_file_with_the_recipes_pytest_args(tmp_path, monkeypatch, mode, blind):
+    monkeypatch.setattr(verify, "_git", lambda *a, **k: "")
+    src_layout = {
+        "pytest_args": ["-p", "no:cacheprovider", "-o", "pythonpath=src client/src"],
+        "browser_tests_dir": "e2e",
+        "browser_test_files": "e2e_test_*.py",
+    }
+    prompt = verify._writer_prompt(_writer_ctx(tmp_path, src_layout, mode, blind))
+    args = "-p no:cacheprovider -o 'pythonpath=src client/src'"
+    assert f"py -m pytest {args} tests/test_sort_api.py" in prompt
+    assert f"py -m pytest {args}" in prompt.split("Browser tests")[-1]  # the browser command too
+
+    isso = json.loads((Path(verify.FACTORY_ROOT) / "targets" / "isso" / "app.json").read_text())
+    plain = verify._writer_prompt(_writer_ctx(tmp_path, {"pytest_args": isso["pytest_args"]}, mode, blind))
+    assert "py -m pytest -p no:cacheprovider tests/test_sort_api.py" in plain
 
 
 def test_a_recipe_without_browser_keys_touches_only_the_api_folder(tmp_path):

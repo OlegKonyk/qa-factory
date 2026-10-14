@@ -22,6 +22,38 @@ from pathlib import Path
 from factory.checks import revert
 
 VERDICTS = ("proves-behaviour", "passes-without-change", "missing-name", "crash", "head-fails", "skip")
+# A parametrized test's verdict is the worst of its parametrizations', in this order. `skip` and any
+# other verdict rank after these five: a skipped parametrization does not hide what the others showed.
+WORST_FIRST = ("head-fails", "crash", "missing-name", "passes-without-change", "proves-behaviour")
+
+
+def _judged_id(nodeid: str) -> str:
+    """`file::name[params]`, as pytest reports a parametrized test, belongs to `file::name`."""
+    path, sep, rest = nodeid.partition("::")
+    if sep and rest.endswith("]") and "[" in rest:  # a name holds no "[": the first one opens the params
+        return f"{path}::{rest[: rest.index('[')]}"
+    return nodeid
+
+
+def _rank(verdict) -> int:
+    return WORST_FIRST.index(verdict) if verdict in WORST_FIRST else len(WORST_FIRST)
+
+
+def _by_judged_id(reported: dict, kinds: dict) -> dict:
+    """The revert report's tests keyed by judged id. Several parametrizations of one test give it the
+    worst verdict among them, that one's record, and each one's own verdict under `params`."""
+    groups: dict[str, dict[str, dict]] = {}
+    for nodeid, t in reported.items():
+        judged = _judged_id(nodeid)
+        if judged in kinds:
+            groups.setdefault(judged, {})[nodeid] = t
+    tests = {}
+    for judged, runs in groups.items():
+        worst = min(runs, key=lambda n: _rank(runs[n].get("verdict")))
+        tests[judged] = dict(runs[worst])
+        if list(runs) != [judged]:
+            tests[judged]["params"] = {n: t.get("verdict") for n, t in runs.items()}
+    return tests
 
 
 def _test_nodes(tree, relpath) -> dict[str, ast.AST]:
@@ -115,7 +147,7 @@ def run(
         exclude_copy,
         timeout,
     )
-    tests = {k: v for k, v in (report.get("tests") or {}).items() if k in kinds}
+    tests = _by_judged_id(report.get("tests") or {}, kinds)
     counts = {
         "new_tests": sum(k == "new" for k in kinds.values()),
         "modified_tests": sum(k == "modified" for k in kinds.values()),
