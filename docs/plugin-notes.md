@@ -4,6 +4,32 @@ What factory sessions learned about Oleg's Claude Code plugins (`~/dev/konyklabs
 for him to carry into that project. Newest first. One entry per observation: the plugin, what was
 missing or wrong, what would have helped, and the run that showed it.
 
+## 2026-10-14 · supervisor agents for four factory fixes and two guide-following onboarding agents, in Workflow scripts
+
+**Plugins:** supervisor (`senior-implementer`, `reviewer`, `worker`). **Run:** roadmap item 3
+(`docs/log.md`, 2026-10-14, the gafaelfawr entry).
+
+- Four factory fixes (`docs/specs/2026-10-14-third-application/s0` to `s3`) each ran as
+  implementer, reviewer, fix pass. Three reviews returned spec gaps that were decisions rather than
+  defects; the fix pass of s2 came back `BLOCKED` on them by the contract ("stop and report rather
+  than guess"), and the conductor took the decisions and made the change by hand. That is the
+  right behaviour, and it means a fix pass needs the decisions in its prompt, not a pointer to the
+  review: the s3 fix pass was told "take the option the spec's intent supports and say so" and
+  finished.
+- The onboarding agents (the guide-following role of 2026-10-13 again) were plain Opus agents,
+  not `senior-implementer`, because that contract stops on ambiguity and onboarding by a guide
+  needs the opposite. One was stopped mid-run by the conductor when the factory spent a writer
+  round on an environment gap; its state (recipe, ticket, run folder) carried to a second agent
+  through the brief, and both reported their gaps separately from the facts the brief gave them.
+  A reviewer that reads the run folder without the agent's conclusions caught nothing the agent
+  had not disclosed, which is the point.
+- The candidate search (`supervisor:worker` on four angles, then three clone-and-run scouts on
+  Opus) was the first fan-out for research this repository allowed itself; it found the
+  application in one round and the dead-end list is in the decision record. The scouts' mutmut
+  trial crashed a dozen forked Python children on macOS (the proxy lookup after fork), which put a
+  dozen crash dialogs on Oleg's screen before the cause was known; a scout brief that runs mutmut
+  should say `no_proxy='*'` up front.
+
 ## 2026-10-14 · supervisor and py-testing agents driven by a Workflow script, six slices in parallel
 
 **Plugins:** supervisor (`senior-implementer`, `reviewer`), py-testing (`test-implementer`).

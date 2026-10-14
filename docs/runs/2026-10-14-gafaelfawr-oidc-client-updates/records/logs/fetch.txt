@@ -1,0 +1,22 @@
+--- fetch run 1
+ok    clone present: /Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo
+ok    checked out 16.0.2 2a7e4f9 (detached)
+ok    gafaelfawr, rubin.gafaelfawr (editable), pytest, testcontainers, ruff, mutmut==3.8.0 installed
+ok    AGENTS.md in the clone (git-excluded)
+ok    worktree gafaelfawr-oidc-client-updates/base at 9b61018
+ok    worktree gafaelfawr-oidc-client-updates/base imports its own gafaelfawr and rubin.gafaelfawr
+ok    worktree gafaelfawr-oidc-client-updates/head at d7c2fbf
+ok    worktree gafaelfawr-oidc-client-updates/head imports its own gafaelfawr and rubin.gafaelfawr
+exit 0
+state hash after run 1: 96d63c2605b089c2bf1d415d6a5fd3e56a4d4998  -
+--- fetch run 2
+ok    clone present: /Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo
+ok    checked out 16.0.2 2a7e4f9 (detached)
+ok    gafaelfawr, rubin.gafaelfawr (editable), pytest, testcontainers, ruff, mutmut==3.8.0 installed
+ok    AGENTS.md in the clone (git-excluded)
+ok    worktree gafaelfawr-oidc-client-updates/base at 9b61018
+ok    worktree gafaelfawr-oidc-client-updates/base imports its own gafaelfawr and rubin.gafaelfawr
+ok    worktree gafaelfawr-oidc-client-updates/head at d7c2fbf
+ok    worktree gafaelfawr-oidc-client-updates/head imports its own gafaelfawr and rubin.gafaelfawr
+exit 0
+state hash after run 2: 96d63c2605b089c2bf1d415d6a5fd3e56a4d4998  -

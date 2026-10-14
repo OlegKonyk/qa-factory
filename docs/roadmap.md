@@ -105,7 +105,7 @@ Code only, no model calls, so it fits a cloud session paid by the one-time credi
 
 ### 3. A third application shaped like a small team service
 
-State: planned
+State: done (2026-10-14, pull request #35; estimated one session and about 6 USD, measured: one laptop session, two Opus onboarding agents by the guide alone, one bug-fix ticket shipped on gafaelfawr, 9.30 USD recorded plus one stopped writer round of at most about 2 USD that no record holds; five factory defects found and fixed on the way, pull requests #30 to #34)
 
 Kickoff C.
 

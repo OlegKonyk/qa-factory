@@ -1,0 +1,11 @@
+skip  1 frame
+skip  2 plan
+skip  3 implement
+skip  4 verify
+pass  5 review  (65.573 s)
+pass  6 ship  (59.186 s)
+all 6 steps passed: /Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates
+real 124.85
+user 40.84
+sys 3.85
+exit 0

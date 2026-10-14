@@ -5,10 +5,12 @@ a fresh machine, from a fresh clone. Follow it in order; every step ends with a 
 output it should give. Where it says "not verified", that part has not run anywhere yet.
 
 Who this is for: a small Python service with a pytest suite, with or without browser tests.
-The factory has run on two applications: linkding (Django, REST API, server-rendered pages with
-Playwright tests), four tickets; and isso (a werkzeug comment server, API only, tests inside the
+The factory has run on three applications: linkding (Django, REST API, server-rendered pages with
+Playwright tests), four tickets; isso (a werkzeug comment server, API only, tests inside the
 source package), one ticket shipped on 2026-10-13 (`docs/runs/2026-10-13-isso-no-cache-comment-views/`;
-its mutation check could not run, section 7).
+its mutation check could not run, section 7); and gafaelfawr (FastAPI, a `src/` layout, a suite
+that starts its own Postgres and Redis), one bug-fix ticket shipped on 2026-10-14 after five
+factory fixes the run found (`docs/runs/2026-10-14-gafaelfawr-oidc-client-updates/`).
 Everything below is written from those runs. The isso onboarding was done by an agent that read
 only this guide; what it had to guess was folded back in (`docs/log.md`, 2026-10-13).
 
@@ -38,12 +40,16 @@ Pointing the factory at a work repository is Oleg's call, not a session's (`CLAU
 | The factory writing the change itself (an agent-written Implement) | not built | the ticket points at a finished commit |
 | A gate at every step: stop, tell, list, answer, correct | built 2026-10-14, proved on one ticket through Plan | section 6, `docs/runs/2026-10-14-linkding-sort-by-modified-vague/` |
 | Approval on a pull request | not built | approval is a file in the run folder |
-| A `src/` layout for the source package | built 2026-10-14, not yet measured on an application: modules are named as mutmut names them (a leading `src/` dropped) | section 3 item 4, section 4 `source_package` |
+| A `src/` layout for the source package | built 2026-10-14, measured on gafaelfawr (71 mutants checked on three changed functions): modules are named as mutmut names them (a leading `src/` dropped) | section 3 items 4 and 7, section 4 `source_package` |
+| A suite that starts its own services (Postgres, Redis through testcontainers) | measured on gafaelfawr, 2026-10-14: revert, mutation and suite ran; needs Docker and, on this machine, the export in section 2 | section 3 item 8 |
 | Anything not Python: the checks read pytest tracebacks and run mutmut | not built | |
 
 Model spend per ticket on linkding, measured: 5.4 to 5.6 USD and 13 to 20 minutes when every check
-passes in round 1; 8.5 USD when a repair round and the stronger model ran. Caps default to 15 USD
-and three writer rounds per ticket.
+passes in round 1; 8.5 USD when a repair round and the stronger model ran. On gafaelfawr, measured:
+each Opus test-writer call (a fresh round or Review's fix round) cost 2.00 to 2.19 USD, each
+readable-case call 0.70 to 0.73 USD, a review 0.30 USD. Caps default to 15 USD and three writer
+rounds per ticket; only repair, guided and review-fix rounds count against the three (a fresh
+writer round does not; `WRITER_ROUND_KINDS` in `factory/rounds.py`, read, not tested).
 
 ## 2. The machine
 
@@ -145,8 +151,25 @@ needed.
    pytest` with those arguments that prints the module's `__file__`, or run `PYTHONPATH=src python
    -c 'import pkg; print(pkg.__file__)'`; either must print the worktree's path.
 
+8. **Files the tests read beside the code.** mutmut runs the tests in its own copy, `mutants/`,
+   which holds only the source package, `tests/`, `pyproject.toml`, `setup.cfg` and the lock files
+   (section 4, `mutmut.also_copy`). A fixture that reads a file from the repository root (a config,
+   migrations, schema files) fails there and no mutant is checked. Find them before the first run:
+
+   ```
+   grep -rn "Path(__file__)\|os.path.dirname(__file__)" tests/conftest.py tests/support/
+   ```
+
+   On gafaelfawr this printed `alembic_path = Path(__file__).parent.parent / "alembic.ini"` in the
+   database fixture; without `"also_copy": ["alembic", "alembic.ini"]` every mutmut run stopped
+   before its first mutant with `alembic.util.exc.CommandError: No 'script_location' key found in
+   configuration.` (measured 2026-10-14). A read inside a fixture or test that the generated tests
+   never reach (gafaelfawr's `crds/`, read by the Kubernetes tests only) does not need copying.
+
 If the service calls other services, its suite must already run with those mocked or stubbed in
-its own way; the factory runs the suite as it is and adds nothing.
+its own way; the factory runs the suite as it is and adds nothing. A suite that starts its own
+containers (testcontainers) runs as it is, with Docker running (gafaelfawr: Postgres and Redis per
+test session, about 5 s per run of one test file, measured).
 
 ## 4. The recipe: `targets/<app>/`
 
@@ -171,7 +194,7 @@ the steps index the required keys directly and fail with a `KeyError` on a missi
 | `exclude_copy` | folders not copied when a tree is copied (`.git`, `node_modules`, `.venv`, `mutants`...) | revert, mutation |
 | `mutmut.pytest_add_cli_args` | pytest arguments mutmut passes (`-p no:cacheprovider` at least; `-o django_find_project=false` for Django) | mutation |
 | `mutmut.pre_create_dirs` | folders the application needs to exist inside the mutated copy; `[]` if none | mutation, Implement |
-| `mutmut.also_copy` (optional) | files or folders relative to the repository root that the tests need beside the code when mutmut runs them in its `mutants/` copy, for example `["alembic", "alembic.ini"]` for a suite whose fixtures stamp or migrate the database; `[]` if none. mutmut skips a path that does not exist without a word, so check the spelling | mutation |
+| `mutmut.also_copy` (optional) | files or folders relative to the repository root that the tests need beside the code when mutmut runs them in its `mutants/` copy, for example `["alembic", "alembic.ini"]` for a suite whose fixtures stamp or migrate the database (section 3, item 8, has the check); `[]` if none. mutmut skips a path that does not exist without a word, so check the spelling | mutation |
 | `suite` | list of pytest invocations that make up the suite; the first is the API/unit suite, run again by Ship | suite check, Ship |
 | `strategy` | the strategy rule's path, relative to the factory root | the writer prompt |
 | `caps` (optional) | `{"writer_rounds": 3, "advice": 2, "usd": 15.0}` overrides | Verify, Review |
@@ -207,7 +230,9 @@ writer's plain command gave `5 passed` on the old code, with the override `3 fai
    For a uv project: `uv sync --python 3.13` in the clone, then `uv pip install --python <python>
    mutmut==3.8.0`. For any other project: `uv venv --python 3.13 .venv` in the clone, then
    `uv pip install --python .venv/bin/python -e '.[test]' ruff mutmut==3.8.0` (the extra's name
-   is the application's);
+   is the application's). 3.13 is an example: use a version the application's `requires-python`
+   allows (gafaelfawr needs 3.14; its recipe runs `uv sync --frozen --inexact --python 3.14`, which
+   keeps the lock and is meant to leave ruff and mutmut in place on a later sync);
 3. with `--ticket <ticket.json>`: two worktrees, `<worktrees>/<ticket id>/base` at the ticket's
    `base` commit and `.../head` at its `head`, detached; for an installed package, the check of
    section 3, item 7 on each;
@@ -215,6 +240,10 @@ writer's plain command gave `5 passed` on the old code, with the override `3 fai
    the head worktree.
 
 It prints `ok    <step>` or `FAIL  <step>  <reason>` per step and exits 1 on any failure.
+`just check` lints everything under `targets/` with the factory's ruff settings (line length
+110), so the recipe's `fetch.py` must pass `uv run ruff check targets` and `uv run ruff format
+--check targets` (gafaelfawr's first `fetch.py` turned the factory red with two long lines,
+measured).
 
 **A private recipe outside this repository.** A recipe for a repository that must not be named
 here (`CLAUDE.md`, boundary) lives anywhere else, for example `~/factory-private/<app>/`. The
@@ -280,7 +309,14 @@ The model is `targets/linkding/tickets/bundle-filters-blind-2.json` (blind, with
   field name, a value, a label, a status code), Frame stops and asks. A person's answer may replace
   these three fields for the run (section 6, the clarified ticket); the ticket file is not changed.
 - `notify_url` (optional): overrides the recipe's for this ticket.
-- `caps.usd` is the hard model-spend cap of Verify and Review together.
+- `caps.usd` is the hard model-spend cap of Verify and Review together. 8.0 is enough for one
+  clean writer round and an approving review (about 3 USD on gafaelfawr, measured), not for a
+  failed round plus Review's fix round: gafaelfawr's ticket reached 8.0054 USD in the fix round's
+  case writer (a failed round 2.19, a writer round 2.00, cases 0.73, review 0.30, fix round 2.08,
+  cases 0.70); raised to 12, the run finished at 9.30 USD with Frame and Plan (a second cases
+  call 0.71 and two more reviews 0.26 and 0.23). Allow about 6 USD for a writer round, its cases,
+  a review and one fix round, plus about 2.2 for every round that fails first (estimated from
+  those numbers); the default cap of 15 covers that.
 - `area` (optional) names the folder of the readable cases (`testcases/<area>/TC-<area>-<nnn>.md`);
   defaults to the package directory's own name in kebab case (`src/gafaelfawr` gives
   `gafaelfawr`, `my_pkg` gives `my-pkg`). Before 2026-10-14 the default was the whole
@@ -369,12 +405,22 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   says `"stopped_at": "test_cases"` and `"resumable": true` when the fix round's tests passed every
   check. Raise `caps.usd` in the ticket file and run the same command again: Review resumes Verify
   at the readable cases on the fix round's tests, with no new writer round, and reviews them again
-  (built 2026-10-14, measured on nothing yet). When that round's check files are not all on disk and
-  passed, Review fails and says so rather than start a writer round. Before, on gafaelfawr, Review ended `review fix
+  (measured on gafaelfawr 2026-10-14: `caps.usd` raised from 8 to 12, the same command resumed at
+  the cases, 0.71 USD, and the review approved, 0.26 USD, 173 s in all; the report of that run
+  had been written before the fix and was marked `resumable` by hand). When that round's check
+  files are not all on disk and passed, Review fails and says so rather than start a writer round. Before, on gafaelfawr, Review ended `review fix
   round: test_cases: test case writer ended with an error: ` with nothing after the colon, and the
   same command failed at once with `Verify's checks have not passed on the current tests (status
   fail)` (measured).
-- Ship commits the tests and the readable cases on `qa/<ticket id>` in the head worktree and runs
+- **A run stopped by hand mid-round** (the session killed during a repair round) leaves an empty
+  `verify/rounds/<k>/` and no line in `rounds.json` for the stopped call; the re-run starts Verify
+  afresh at round `k+1` (gafaelfawr: rounds 1 and 3, `rounds/2` empty, measured), and that call's
+  spend is in no record.
+- `question.md` stays in the run folder after its answer was read; `python -m factory waiting`
+  is what says whether a run waits ("nothing is waiting" with gafaelfawr's answered Plan question
+  still there, measured). The total in `summary.md` leaves out a gated step's earlier round
+  (gafaelfawr: Plan's first call, 0.0569 USD, in `steps/02-plan.round1.json`), and `rounds.json`
+  holds Verify and Review only.- Ship commits the tests and the readable cases on `qa/<ticket id>` in the head worktree and runs
   the suite there. Nothing is pushed. Under `gates.ship: person` it asks first and writes nothing
   to the worktree until approved.
 - With Restate (optional): `restate-server --base-dir <data dir> &`, `uv run python -m factory
@@ -400,7 +446,10 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   folder) is not in the copy. That is a recipe gap, not a test failure: the step ends with that reason at once, with no
   repair round and no stronger-model call (the other mutmut sets are not run either). Add the
   missing path to `mutmut.also_copy` and run the same command again; the re-run starts Verify
-  afresh, which is one more writer round.
+  afresh, which is one more writer round (measured on gafaelfawr: 2.00 USD, and every check passed).
+  `python -m factory mutation <run folder>` is no shortcut for checking the new recipe: it rebuilds
+  its input from the Implement record, recipe included, so it does not see an `also_copy` added
+  after Implement ran (read in `factory/checks/mutation_rerun.py`, not run).
 - **The developers' own tests** (`verify/developers_revert.json`): the same revert check on the
   tests the change itself added or modified, reported with the same verdicts, each test labelled
   new or modified, and never a failure. It answers, per ticket, whether the tests written with the
@@ -408,8 +457,9 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   alone, with no model call. A parametrized test is judged as one test: pytest's
   `test_lifecycle[github-oidc-server]` belongs to `test_lifecycle`, whose verdict is the worst of
   its parametrizations' (`head-fails`, then `crash`, `missing-name`, `passes-without-change`,
-  `proves-behaviour`), each one's own verdict kept under `params` (built 2026-10-14, not yet
-  measured).
+  `proves-behaviour`), each one's own verdict kept under `params` (measured 2026-10-14 with
+  `python -m factory devtests` on the gafaelfawr run: 1 of 1 modified test, `test_lifecycle`,
+  proves-behaviour; before the fix the same record said `status: error`, `ran: 0`).
 - **Mutation not applicable**: when mutmut makes no mutant for any changed function (the shapes
   in section 5), the report says so under `skipped` and the run goes on; the revert check is then
   the only proof the tests exercise the change. This is not a test failure; do not retry. A
@@ -420,6 +470,10 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   run, `python -m factory mutation <run folder>` runs the mutation check again with no model call
   (it puts the shipped tests back from `verify/tests/` if they are missing) and writes
   `verify/mutation-rerun.json`; exit 0 when mutmut ran or was skipped, 1 on an error.
+- **Scores move by a mutant between runs** when a test compares times taken around a call:
+  gafaelfawr's developers' tests, unchanged, killed `register__mutmut_10` (a changed line) in one
+  run and not in the next, 23 then 22 of 24 on the changed lines (measured; the cause is not
+  verified). Compare scores across runs with that in mind.
 - **Lint**, **suite**, **cases**: pass or the findings.
 - `rounds.json`: every model call, its cost and round; `verify/escalation-<k>.json`: the stronger
   model's decision when one was asked.
@@ -438,9 +492,10 @@ An agent onboarding an application reports these, each with the command and its 
 
 ## 9. What is not covered
 
-The factory has not run on a bug-fix ticket, on a service with external dependencies, on a `src/`
-layout, on Windows, or on more than one ticket at a time; against a deployed instance only one
-feature of linkding has run (section 10). Each is
+The factory has shipped one bug-fix ticket on a `src/` layout whose suite starts its own Postgres
+and Redis (gafaelfawr, 2026-10-14). It has not run on a service that needs other services running
+beside it (gafaelfawr's outside services are mocked by its own suite), on Windows, or on more than
+one ticket at a time; against a deployed instance only one feature of linkding has run (section 10). Each is
 a run away, not a design away; the first run of each will find what this guide does not say.
 
 ## 10. The same cases against a deployed instance

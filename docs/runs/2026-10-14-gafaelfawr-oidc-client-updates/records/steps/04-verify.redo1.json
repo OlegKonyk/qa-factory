@@ -1,0 +1,32 @@
+{
+  "step": "verify",
+  "by": "the session (Claude, standing in for Oleg)",
+  "at": "2026-10-14T17:26:53+00:00",
+  "note": "The six readable cases were moved from testcases/src/gafaelfawr/TC-src/ to testcases/gafaelfawr/ and their ids renamed TC-gafaelfawr-00N after pull request #34 fixed the default area; linted: 6 cases checked, 0 findings",
+  "rerun": false,
+  "artifacts": {
+    "tests_manifest": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/tests_manifest.json",
+    "tests_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/tests",
+    "verify_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/report.json",
+    "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/testcases",
+    "approval": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/approval.json"
+  },
+  "sha256_before": {
+    "tests_manifest": "29b4af3d658c57a031936787b77fa97f65a10ade7b16c93b8a3c9ee96279ba22",
+    "tests_dir": "unknown",
+    "verify_report": "593fe7f00214555188b9ad81c8f493bc5756d7c40f9bb2c3a4bc82609181d605",
+    "test_cases": "unknown",
+    "approval": "6c0aabf6655d3930344b12964f8cd97d1d16a3d37d30dd91b63307c0d46fa04d"
+  },
+  "sha256_after": {
+    "tests_manifest": "34f2aadb2159ee6f9717a7b2445f7bba2ad12d6c75666cd720dd942fe9ca7010",
+    "tests_dir": "directory",
+    "verify_report": "98686f2b27194d258e49d4a943f5867612c6e21576496a6052fe5fc0981888d4",
+    "test_cases": "directory",
+    "approval": "f4bd206f7c16e7bac412739ea9ebfc1573adcbe148510f8c13be9a0350b486e0"
+  },
+  "archived": [
+    "05-review.round3.json",
+    "06-ship.round1.json"
+  ]
+}

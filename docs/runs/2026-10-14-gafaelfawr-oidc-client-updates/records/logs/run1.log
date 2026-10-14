@@ -1,0 +1,10 @@
+skip  1 frame
+skip  2 plan
+skip  3 implement
+pass  4 verify  (718.381 s)
+FAIL  5 review: review fix round: test_cases: test case writer ended with an error: 
+run: /Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates
+real 1517.94
+user 485.55
+sys 45.81
+exit 1

@@ -1,0 +1,181 @@
+{
+  "step": "plan",
+  "index": 2,
+  "status": "needs_person",
+  "input": {
+    "ticket": {
+      "id": "gafaelfawr-oidc-client-updates",
+      "app": "targets/gafaelfawr/app.json",
+      "base": "9b61018d6fcbb9cf5fefec4ec88e8c4f34c9d9ef",
+      "head": "d7c2fbfb509ca14be417933cc9ca73de1b223182",
+      "qa_mode": "blind",
+      "caps": {
+        "usd": 8.0
+      },
+      "source": "gafaelfawr upstream commit d7c2fbf (2026-08-25, 'Fix OpenID Connect client updates'); base is its parent 9b61018. Ticket written as a bug report from the observed behaviour; the contract was probed through the test client on both commits on 2026-10-14.",
+      "title": "Updating an OpenID Connect client does not record who changed it or when",
+      "description": "Administrators manage OpenID Connect clients through the admin API. When one administrator registers a client and a second administrator later updates it with PATCH, the update itself is applied (the new return URI, description and notes are returned and stored), but the client's audit fields are not: `last_modified_by` still names the administrator who created the client and `last_modified` still holds the creation time, in the PATCH response, in GET of the client and in the client list. An update must record the administrator who made it and the time it was made. Creating, reading, listing and deleting clients, and who may call these routes, do not change.",
+      "contract": [
+        "`PATCH /auth/api/v1/oidc-clients/{client_id}` with a JSON body `{\"return_uri\": <string, required>, \"description\": <string, required>, \"notes\": <string or null, optional>}` replaces those three fields (a body without `notes` clears it) and returns 200 with the client as JSON: `client_id`, `return_uri`, `description`, `notes` (present, `null` when cleared), `created`, `last_modified`, `last_modified_by`, `url`. No `client_secret`. The two GET routes leave `notes` out of a client's JSON when it is null.",
+        "After a successful PATCH, `last_modified_by` is the username of the caller who made the PATCH (the user the bearer token or session cookie belongs to), not the creator's. If the creator patches, it stays the creator's username.",
+        "After a successful PATCH, `last_modified` is the time of that update: at or after the moment the PATCH was sent, truncated to the whole second, and never before `created`. It may equal `created` when the client was created in the same second.",
+        "`created` is set once by `POST /auth/api/v1/oidc-clients` and a PATCH never changes it. On creation `last_modified` equals `created` and `last_modified_by` is the creator's username.",
+        "`created` and `last_modified` are UTC timestamps in whole seconds, serialised without a fractional part, for example `2026-10-14T15:44:22Z`.",
+        "`GET /auth/api/v1/oidc-clients/{client_id}` and `GET /auth/api/v1/oidc-clients` return the same `last_modified` and `last_modified_by` as the PATCH response, for the patched client.",
+        "Who may call: a token with the scope `admin:oidc`, sent as `Authorization: Bearer <token>`, or a session cookie together with its `X-CSRF-Token` header for PATCH, POST and DELETE. Unchanged by this ticket: no credentials gives 401, a token without `admin:oidc` gives 403, a cookie without the CSRF header gives 403, an unknown `client_id` gives 404, a body without `return_uri` or `description` gives 422; after a refused PATCH (401, 403, 422) a GET of the client shows it unchanged, `last_modified_by` and `last_modified` included.",
+        "These routes exist when the OpenID Connect server is enabled in the configuration."
+      ],
+      "acceptance_criteria": [
+        "Administrator A creates a client; administrator B (another user with admin:oidc) patches it; the PATCH response has last_modified_by equal to B's username",
+        "After B's PATCH, GET /auth/api/v1/oidc-clients/{client_id} and the client's entry in GET /auth/api/v1/oidc-clients both show last_modified_by equal to B's username and the new return_uri, description and notes",
+        "After a PATCH, last_modified is at or after the start of the PATCH truncated to the whole second, and at or after created",
+        "created and last_modified in POST, PATCH and GET responses carry no fractional seconds",
+        "created is the same before and after a PATCH",
+        "A PATCH by the creator keeps last_modified_by equal to the creator's username"
+      ]
+    },
+    "repo": {
+      "app": {
+        "name": "gafaelfawr",
+        "repo": "/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo",
+        "worktrees": "/Users/oleg/Library/Caches/qa-factory/gafaelfawr/wt",
+        "python": "/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv/bin/python",
+        "source_package": "src/gafaelfawr",
+        "pytest_args": [
+          "-p",
+          "no:cacheprovider",
+          "-o",
+          "pythonpath=src client/src"
+        ],
+        "api_tests_dir": "tests/handlers",
+        "test_helpers": "tests/support/tokens.py",
+        "test_support": [
+          "tests/support/tokens.py",
+          "tests/support/cookies.py"
+        ],
+        "exclude_copy": [
+          ".git",
+          "node_modules",
+          ".venv",
+          "mutants",
+          "__pycache__",
+          ".pytest_cache",
+          ".ruff_cache"
+        ],
+        "mutmut": {
+          "pytest_add_cli_args": [
+            "-p",
+            "no:cacheprovider"
+          ],
+          "pre_create_dirs": []
+        },
+        "suite": [
+          [
+            "tests"
+          ]
+        ],
+        "strategy": "targets/gafaelfawr/strategy.md"
+      },
+      "base": "9b61018d6fcbb9cf5fefec4ec88e8c4f34c9d9ef",
+      "head": "d7c2fbfb509ca14be417933cc9ca73de1b223182",
+      "base_tree": "/Users/oleg/Library/Caches/qa-factory/gafaelfawr/wt/gafaelfawr-oidc-client-updates/base",
+      "head_tree": "/Users/oleg/Library/Caches/qa-factory/gafaelfawr/wt/gafaelfawr-oidc-client-updates/head"
+    },
+    "artifacts": {
+      "frame": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/frame/frame.json"
+    },
+    "round": 1,
+    "run_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates"
+  },
+  "output": {
+    "status": "needs_person",
+    "artifacts": {
+      "plan": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/plan/plan.json"
+    },
+    "reason": "the plan needs a person: - not in the strategy: Regex check for no fractional seconds on timestamp strings: the strategy only says to compare with datetime.fromisoformat, so this is an invented assertion.; - not in the strategy: Creating two distinct admin users via create_session_token with different usernames in one test: inferred from the helper signature, not shown in the strategy.; - not in the strategy: Creating a client with a bearer token and patching it with a session cookie in one test: the strategy does not show mixing auth methods.",
+    "gate": {
+      "who": "Oleg",
+      "question": "The test plan for 'Updating an OpenID Connect client does not record who changed it or when' needs a look before tests are written:\n- not in the strategy: Regex check for no fractional seconds on timestamp strings: the strategy only says to compare with datetime.fromisoformat, so this is an invented assertion.\n- not in the strategy: Creating two distinct admin users via create_session_token with different usernames in one test: inferred from the helper signature, not shown in the strategy.\n- not in the strategy: Creating a client with a bearer token and patching it with a session cookie in one test: the strategy does not show mixing auth methods.",
+      "context": {
+        "risk": "medium",
+        "unknown_patterns": [
+          "Regex check for no fractional seconds on timestamp strings: the strategy only says to compare with datetime.fromisoformat, so this is an invented assertion.",
+          "Creating two distinct admin users via create_session_token with different usernames in one test: inferred from the helper signature, not shown in the strategy.",
+          "Creating a client with a bearer token and patching it with a session cookie in one test: the strategy does not show mixing auth methods."
+        ],
+        "tests": [
+          {
+            "surface": "api",
+            "file": "tests/handlers/test_oidc_client_updates_api.py",
+            "name": "test_patch_by_other_admin_records_modifier",
+            "covers": [
+              "AC1",
+              "AC2",
+              "AC5"
+            ],
+            "reason": "Admin A (create_session_token, scope admin:oidc) POSTs a client and records created. Admin B, a different username with admin:oidc, PATCHes with new return_uri, description and notes. Asserts the PATCH response has last_modified_by == B's literal username. Then GETs the client and the list and asserts last_modified_by == B and the new return_uri, description and notes in both. Asserts created in both GETs equals the POST value. Fails today because last_modified_by stays A's."
+          },
+          {
+            "surface": "api",
+            "file": "tests/handlers/test_oidc_client_updates_api.py",
+            "name": "test_patch_last_modified_not_before_send_time",
+            "covers": [
+              "AC3",
+              "AC4"
+            ],
+            "reason": "Takes before = datetime.now(tz=UTC).replace(microsecond=0) in the test, then PATCHes. Parses last_modified and created with datetime.fromisoformat from the POST, PATCH and both GET responses. Asserts last_modified >= before and last_modified >= created. Asserts every timestamp string matches ^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\dZ$ (no fraction). Uses no sleep. The before bound fails today because last_modified still holds the creation time, but only when the PATCH falls in a later second than the POST. The test therefore also compares against the second-truncated send time rather than relying on created alone. This is the strongest check available without a sleep."
+          },
+          {
+            "surface": "api",
+            "file": "tests/handlers/test_oidc_client_updates_api.py",
+            "name": "test_patch_by_creator_keeps_creator_as_modifier",
+            "covers": [
+              "AC6",
+              "AC4"
+            ],
+            "reason": "The creator PATCHes their own client. Asserts last_modified_by == the creator's username in the PATCH response and in a GET. Asserts that last_modified >= created. This guards against an implementation that writes the wrong user or blanks the field. It already passes today, so it is a regression guard."
+          },
+          {
+            "surface": "api",
+            "file": "tests/handlers/test_oidc_client_updates_api.py",
+            "name": "test_patch_by_other_admin_via_session_cookie",
+            "covers": [
+              "AC1",
+              "AC2"
+            ],
+            "reason": "Admin A creates the client with a bearer token. Admin B patches through set_session_cookie with an X-CSRF-Token header. Asserts last_modified_by == B's username in the PATCH response and in a GET. The contract allows both auth routes, and the cookie path resolves the caller differently from the bearer path, so a change that only handles token auth would otherwise pass."
+          }
+        ],
+        "placement_reason": "The strategy puts all coverage at the API level in a new tests/handlers/test_<feature>_api.py file, and gafaelfawr has no browser tests. So all four tests go in the new file tests/handlers/test_oidc_client_updates_api.py. They use the client and factory fixtures, create_session_token from ..support.tokens, and set_session_cookie from ..support.cookies. They use the config \"github-oidc-server\", which the existing tests of the same routes in tests/handlers/api_oidc_test.py use. All results are read back through GET routes, with literal expected values and timestamps compared via datetime.fromisoformat. I saw no developer tests, so every criterion is covered here. I read only the existing test parametrization and not the route code, so the cookie-path username behaviour is inferred from the ticket.",
+        "plan": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/plan/plan.json"
+      },
+      "kind": "plan",
+      "answers": [
+        {
+          "decision": "approve",
+          "means": "the plan stands as written"
+        },
+        {
+          "decision": "edit",
+          "means": "the edited plan replaces the plan: a path to a JSON file in the plan's structured shape, or to plan/plan.json itself edited in place, or the object inline; the file replaced is kept as plan.before-edit.json",
+          "carries": "plan"
+        },
+        {
+          "decision": "decline",
+          "means": "the step fails with the note as its reason"
+        }
+      ]
+    },
+    "metrics": {
+      "cost_usd": 0.056867100000000004,
+      "model": "claude-sonnet-5-5",
+      "turns": 3,
+      "duration_ms": 13997,
+      "input_tokens": 4,
+      "output_tokens": 1690
+    }
+  },
+  "started": "2026-10-14T15:47:04+00:00",
+  "finished": "2026-10-14T15:47:19+00:00",
+  "duration_s": 15.227
+}

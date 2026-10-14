@@ -1,0 +1,44 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "pass",
+  "reason": "3 of 5 tests fail on an assertion without the change",
+  "tests": {
+   "tests/handlers/test_oidc_client_updates_api.py::test_patch_by_other_admin_records_modifier[github-oidc-server]": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "assert 'admin-a' == 'admin-b'\n  \n  - admin-b\n  ?       ^\n  + admin-a\n  ?       ^"
+   },
+   "tests/handlers/test_oidc_client_updates_api.py::test_patch_last_modified_not_before_send_time[github-oidc-server]": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "created is not in whole seconds: 2026-10-14T16:23:58.049366Z\nassert None\n +  where None = <built-in method match of re.Pattern object at 0x7b1dc4f10>('2026-10-14T16:23:58.049366Z')\n +    where <built-in method match of re.Pattern object at 0x7b1dc4f10> = re.compile('^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{"
+   },
+   "tests/handlers/test_oidc_client_updates_api.py::test_patch_by_creator_keeps_creator_as_modifier[github-oidc-server]": {
+    "at_head": "pass",
+    "reverted": "pass",
+    "verdict": "passes-without-change",
+    "message": ""
+   },
+   "tests/handlers/test_oidc_client_updates_api.py::test_patch_by_other_admin_via_session_cookie[github-oidc-server]": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "assert 'admin-a' == 'admin-b'\n  \n  - admin-b\n  ?       ^\n  + admin-a\n  ?       ^"
+   },
+   "tests/handlers/test_oidc_client_updates_api.py::test_refused_patch_leaves_client_unchanged[github-oidc-server]": {
+    "at_head": "pass",
+    "reverted": "pass",
+    "verdict": "passes-without-change",
+    "message": ""
+   }
+  },
+  "wall_s": {
+   "head": 7.28,
+   "reverted": 5.9
+  },
+  "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/revert/reverted"
+ }
+}

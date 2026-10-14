@@ -1,0 +1,11 @@
+skip  1 frame
+skip  2 plan
+skip  3 implement
+skip  4 verify
+pass  5 review  (172.532 s)
+FAIL  6 ship: IsADirectoryError: [Errno 21] Is a directory: '/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/testcases/src/gafaelfawr'
+run: /Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates
+real 172.68
+user 5.06
+sys 1.67
+exit 1

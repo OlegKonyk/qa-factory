@@ -1,0 +1,37 @@
+{
+  "structured": {
+    "findings": [
+      {
+        "file": "tests/handlers/test_oidc_client_updates_api.py",
+        "line": 56,
+        "severity": "low",
+        "summary": "backdate_client sets up state with raw SQL against the `oidc_client` table and its `created`/`last_modified` columns, which ties the tests to the private database schema instead of the public API.",
+        "failure_scenario": "Renaming the table or columns, or changing them to `timestamptz`, breaks every test in the file at setup (a SQL error, or asyncpg rejecting a naive datetime) even though the HTTP behaviour still works. This is setup, not the check, and tests/handlers/oidc_test.py:1121 already uses the same pattern, so it is acceptable. It also makes the PATCH-time assertions observable without a sleep."
+      },
+      {
+        "file": "tests/handlers/test_oidc_client_updates_api.py",
+        "line": 118,
+        "severity": "low",
+        "summary": "In test_patch_by_other_admin_records_modifier, the `last_modified` check only asserts the value is not the backdated string, so any other value passes, including a wrong time or a later timestamp with a fractional part.",
+        "failure_scenario": "If an update set `last_modified` to some fixed or garbage time other than 2020-01-01T12:00:00Z, this test would still pass. test_patch_last_modified_is_time_of_update (line 188) and the cookie and creator tests bound the value between `before` and `after`, so the criterion is still covered. The weak assertion only matters if this test is read on its own."
+      },
+      {
+        "file": "tests/handlers/test_oidc_client_updates_api.py",
+        "line": 243,
+        "severity": "low",
+        "summary": "The only PATCH on a client that is not backdated (created and patched in the same second) checks the timestamp format only. It never checks that `last_modified >= created` or that `created` is unchanged in that case.",
+        "failure_scenario": "The contract says `last_modified` may equal `created` but is never before it when both fall in the same second. An implementation that truncated the update time differently from the creation time (for example, rounding `created` up), producing last_modified < created within one second, would pass every test, because the other PATCH tests compare against the backdated 2020 `created`."
+      }
+    ],
+    "verdict": "approve"
+  },
+  "text": "{\"findings\":[{\"file\":\"tests/handlers/test_oidc_client_updates_api.py\",\"line\":56,\"severity\":\"low\",\"summary\":\"backdate_client sets up state with raw SQL against the `oidc_client` table and its `created`/`last_modified` columns, which ties the tests to the private database schema instead of the public API.\",\"failure_scenario\":\"Renaming the table or columns, or changing them to `timestamptz`, breaks every test in the file at setup (a SQL error, or asyncpg rejecting a naive datetime) even though the HTTP behaviour still works. This is setup, not the check, and tests/handlers/oidc_test.py:1121 already uses the same pattern, so it is acceptable. It also makes the PATCH-time assertions observable without a sleep.\"},{\"file\":\"tests/handlers/test_oidc_client_updates_api.py\",\"line\":118,\"severity\":\"low\",\"summary\":\"In test_patch_by_other_admin_records_modifier, the `last_modified` check only asserts the value is not the backdated string, so any other value passes, including a wrong time or a later timestamp with a fractional part.\",\"failure_scenario\":\"If an update set `last_modified` to some fixed or garbage time other than 2020-01-01T12:00:00Z, this test would still pass. test_patch_last_modified_is_time_of_update (line 188) and the cookie and creator tests bound the value between `before` and `after`, so the criterion is still covered. The weak assertion only matters if this test is read on its own.\"},{\"file\":\"tests/handlers/test_oidc_client_updates_api.py\",\"line\":243,\"severity\":\"low\",\"summary\":\"The only PATCH on a client that is not backdated (created and patched in the same second) checks the timestamp format only. It never checks that `last_modified >= created` or that `created` is unchanged in that case.\",\"failure_scenario\":\"The contract says `last_modified` may equal `created` but is never before it when both fall in the same second. An implementation that truncated the update time differently from the creation time (for example, rounding `created` up), producing last_modified < created within one second, would pass every test, because the other PATCH tests compare against the backdated 2020 `created`.\"}],\"verdict\":\"approve\"}",
+  "metrics": {
+    "cost_usd": 0.23070800000000002,
+    "model": "claude-opus-5-5",
+    "turns": 12,
+    "duration_ms": 64542,
+    "input_tokens": 14,
+    "output_tokens": 5645
+  }
+}

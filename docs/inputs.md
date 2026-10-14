@@ -3,6 +3,17 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-14 · Check progress and continue
+
+> Just wanted to check on the progress: where we are, how far we got, anything that is blocking
+> us, and any decisions that need to be made. Can you continue?
+
+How it was read: a progress report (items 1, 2 and 4 done and merged, nothing blocking, nothing
+his to decide) and then the next item in order: roadmap item 3, a third application shaped like a
+small team service, onboarded by `docs/adopt.md` alone with one bug-fix ticket shipped, under the
+kickoff in `docs/next-session.md` and his answer of 2026-10-14 that the application is a public one
+chosen by the session. The report comes first, the item is built in the same session.
+
 ## 2026-10-14 · Pick up the first chunks of the roadmap; workflows for speed, Opus for implementation
 
 > Hey, please check the roadmap. Let's pick up the first chunks of work. Please use workflows to

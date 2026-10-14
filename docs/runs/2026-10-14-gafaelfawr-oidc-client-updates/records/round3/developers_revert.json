@@ -1,0 +1,30 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "error",
+  "reason": "1 of 4 tests fail on an assertion without the change",
+  "files": [
+   "tests/handlers/api_oidc_test.py"
+  ],
+  "new_test_ids": {},
+  "kinds": {
+   "tests/handlers/api_oidc_test.py::test_lifecycle": "modified"
+  },
+  "tests": {},
+  "counts": {
+   "new_tests": 0,
+   "modified_tests": 1,
+   "ran": 0,
+   "proves-behaviour": 0,
+   "passes-without-change": 0,
+   "missing-name": 0,
+   "crash": 0,
+   "head-fails": 0,
+   "skip": 0
+  },
+  "wall_s": {
+   "head": 5.34,
+   "reverted": 5.4
+  }
+ }
+}

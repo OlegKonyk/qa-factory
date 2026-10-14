@@ -1,0 +1,232 @@
+{
+  "ticket": "gafaelfawr-oidc-client-updates",
+  "developers": {
+    "new_tests": 0,
+    "modified_tests": 1,
+    "ran": 1,
+    "proves-behaviour": 1,
+    "passes-without-change": 0,
+    "missing-name": 0,
+    "crash": 0,
+    "head-fails": 0,
+    "skip": 0
+  },
+  "qa_mode": "blind",
+  "first_round": {
+    "round": 3,
+    "tests": 5,
+    "tests_api": 5,
+    "tests_browser": 0,
+    "pass_at_head": 5,
+    "fail_at_base_on_assertion": 3,
+    "pass_on_both": 2,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 71,
+        "killed": 64,
+        "score": 0.9014084507042254,
+        "changed_lines": {
+          "checked": 24,
+          "killed": 24,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 71,
+        "killed": 65,
+        "score": 0.9154929577464789,
+        "changed_lines": {
+          "checked": 24,
+          "killed": 24,
+          "score": 1.0
+        }
+      },
+      "developers": {
+        "checked": 71,
+        "killed": 64,
+        "score": 0.9014084507042254,
+        "changed_lines": {
+          "checked": 24,
+          "killed": 23,
+          "score": 0.9583333333333334
+        }
+      }
+    }
+  },
+  "final_round": {
+    "round": 4,
+    "tests": 6,
+    "tests_api": 6,
+    "tests_browser": 0,
+    "pass_at_head": 6,
+    "fail_at_base_on_assertion": 5,
+    "pass_on_both": 1,
+    "missing_name": 0,
+    "crash": 0,
+    "head_fails": 0,
+    "mutation": {
+      "generated": {
+        "checked": 71,
+        "killed": 64,
+        "score": 0.9014084507042254,
+        "changed_lines": {
+          "checked": 24,
+          "killed": 24,
+          "score": 1.0
+        }
+      },
+      "generated_and_developers": {
+        "checked": 71,
+        "killed": 65,
+        "score": 0.9154929577464789,
+        "changed_lines": {
+          "checked": 24,
+          "killed": 24,
+          "score": 1.0
+        }
+      },
+      "developers": {
+        "checked": 71,
+        "killed": 63,
+        "score": 0.8873239436619719,
+        "changed_lines": {
+          "checked": 24,
+          "killed": 22,
+          "score": 0.9166666666666666
+        }
+      }
+    }
+  },
+  "rounds": [
+    {
+      "round": 3,
+      "kind": "write",
+      "failure": null
+    },
+    {
+      "round": 4,
+      "kind": "review_fix",
+      "failure": null
+    },
+    {
+      "round": 4,
+      "kind": "resume",
+      "failure": null
+    }
+  ],
+  "decisions": [],
+  "stages": {
+    "frame": {
+      "status": "pass",
+      "duration_s": 11.232,
+      "work_s": null,
+      "cost_usd": 0.037878999999999996,
+      "model": "claude-sonnet-5-5",
+      "earlier_runs": 0
+    },
+    "plan": {
+      "status": "pass",
+      "duration_s": 0.0,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 1
+    },
+    "implement": {
+      "status": "pass",
+      "duration_s": 0.041,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "verify": {
+      "status": "pass",
+      "duration_s": 718.381,
+      "work_s": 718.4,
+      "cost_usd": 2.7274,
+      "model": null,
+      "earlier_runs": 0
+    },
+    "review": {
+      "status": "pass",
+      "duration_s": 65.573,
+      "work_s": null,
+      "cost_usd": 0.23070800000000002,
+      "model": "claude-opus-5-5",
+      "earlier_runs": 3
+    },
+    "ship": {
+      "status": "pass",
+      "duration_s": 59.186,
+      "work_s": null,
+      "cost_usd": null,
+      "model": null,
+      "earlier_runs": 1
+    }
+  },
+  "verify_parts": {
+    "time_s": {
+      "write_tests": 331.0,
+      "lint": 0.2,
+      "revert": 13.3,
+      "developers_revert": 10.8,
+      "mutation.generated": 60.6,
+      "mutation.generated_and_developers": 68.4,
+      "mutation.developers": 60.2,
+      "mutation": 189.2,
+      "suite": 55.6,
+      "test_cases": 118.3
+    },
+    "cost_usd": {
+      "write_tests": 2.0019457999999997,
+      "test_cases": 0.7254294000000001
+    }
+  },
+  "spend_usd": 9.2477,
+  "ledger": {
+    "caps": {
+      "writer_rounds": 3,
+      "advice": 2,
+      "usd": 12.0
+    },
+    "spent_usd": 9.2098,
+    "writer_rounds_used": 1,
+    "advice_used": 0,
+    "calls": 9
+  },
+  "blind_audit": {
+    "tool_calls": 25,
+    "flagged": [
+      {
+        "tool": "Bash",
+        "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; $V/bin/python -c \\\"import safir.database, safir.pydantic, inspect; print(inspect.getsource(safir.database.datetime_to_db)); print(safir.pydantic.__file__)\\\"; grep -rn \\\"UtcDatetime\\\\b\\\" $($V/bin/python -c \\\"import safir.pyda"
+      },
+      {
+        "tool": "Bash",
+        "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; cat src/gafaelfawr/schema/_oidc_client.py; sed -n 30,80p $V/lib/python3.14/site-packages/safir/pydantic/_validators.py; grep -rn \\\"oidc_client\\\\|oidc-client\\\" src/gafaelfawr/handlers/api.py | head -20; ls alembic/versions | "
+      },
+      {
+        "tool": "Bash",
+        "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; PATH=\\\"$V/bin:$PATH\\\" $V/bin/python -m pytest -p no:cacheprovider -o \\\"pythonpath=src client/src\\\" tests/handlers/test_oidc_client_updates_api.py 2>&1 | tail -80\", \"description\": \"Run the new OIDC client update tests\", \"time"
+      },
+      {
+        "tool": "Bash",
+        "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; PATH=\\\"$V/bin:$PATH\\\" $V/bin/python -m pytest -p no:cacheprovider -o \\\"pythonpath=src client/src\\\" tests/handlers/test_oidc_client_updates_api.py 2>&1 | grep -E \\\"^E   |^tests/.*Error|passed|failed\\\" | head -40\", \"descriptio"
+      },
+      {
+        "tool": "Bash",
+        "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; F=tests/handlers/test_oidc_client_updates_api.py; $V/bin/python -m ruff format $F && $V/bin/python -m ruff check $F\", \"description\": \"Format and lint the new test file\"}"
+      },
+      {
+        "tool": "Bash",
+        "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; F=tests/handlers/test_oidc_client_updates_api.py; $V/bin/python -m ruff format $F && $V/bin/python -m ruff check $F && PATH=\\\"$V/bin:$PATH\\\" $V/bin/python -m pytest -p no:cacheprovider -o \\\"pythonpath=src client/src\\\" $F 2>&"
+      }
+    ],
+    "clean": false,
+    "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/rounds/1/writer.jsonl"
+  }
+}

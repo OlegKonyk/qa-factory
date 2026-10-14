@@ -1,0 +1,6 @@
+skip  1 frame
+skip  2 plan
+skip  3 implement
+skip  4 verify
+FAIL  5 review: Verify's checks have not passed on the current tests (status fail); re-run Verify for this ticket
+run: /Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates
