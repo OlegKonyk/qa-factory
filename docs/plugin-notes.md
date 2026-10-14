@@ -4,6 +4,32 @@ What factory sessions learned about Oleg's Claude Code plugins (`~/dev/konyklabs
 for him to carry into that project. Newest first. One entry per observation: the plugin, what was
 missing or wrong, what would have helped, and the run that showed it.
 
+## 2026-10-14 · supervisor and py-testing agents driven by a Workflow script, six slices in parallel
+
+**Plugins:** supervisor (`senior-implementer`, `reviewer`), py-testing (`test-implementer`).
+**Run:** the "Now" items of the roadmap (`docs/log.md`, 2026-10-14, second entry).
+
+- The agents were spawned by a Workflow script (`agentType`), not through the supervisor's
+  skills, because Oleg asked for workflows. Three branches ran in parallel, each slice as
+  implementer, then reviewer, with a fix pass when the reviewer said "fix". All eight slices came
+  back "accept" on the first review; no fix pass fired. The supervisor's hook stayed dormant, so
+  nothing priced the run: the Workflow tool's own count (about 767k subagent tokens for twelve
+  agents on the first run) is the only number.
+- **What would have helped:** a reviewer output field for *spec gaps* and an *evidence check* (does
+  the report paste what the spec asked, is any claim contradicted by the diff). Both were added in
+  the script's schema and caught real things: a report that summarised test output instead of
+  pasting it, a stage name set in a different function than the report said. Worth making part of
+  `supervisor:reviewer`'s contract.
+- `py-testing:test-implementer` ran with `model: opus` over its Sonnet default and the Playwright
+  skills preloaded; it found a markup defect in linkding (a label pointing at a hidden input) and
+  recorded it. The override works; the agent's description could say so.
+- The implementers' reports followed the contract (files, commands with output, deviations, left
+  alone) without being told twice. One ran an 11-minute mutation command in the foreground; a
+  line in the contract about backgrounding long commands would save wall time.
+- Two slices in different worktrees edited `docs/adopt.md` and `factory/steps/verify.py`; the
+  spec's "hands off" list kept the rebase clean. A decomposition skill that emits that list per
+  slice from the file ownership would make this routine.
+
 ## 2026-10-13 · supervisor: an implementer slice and a guide-following agent, both from written specs
 
 **Plugin:** supervisor. **Run:** the adoption session (`docs/log.md`, 2026-10-13).
