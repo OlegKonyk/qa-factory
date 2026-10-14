@@ -39,6 +39,8 @@ import time
 from fnmatch import fnmatchcase
 from pathlib import Path
 
+from factory.checks.appenv import app_env
+
 BAR = "ǁ"
 
 KILLED = {1, 3}
@@ -431,6 +433,7 @@ def _invoke(python, tree, globs, timeout):
         proc = subprocess.run(
             [mutmut, "run", *globs],
             cwd=tree,
+            env=app_env(python, mutmut=True),
             stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,

@@ -50,6 +50,14 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
   what had to change; `docs/exploration.md` "Track 3 results"; `docs/trust.md` now has the second
   verification point). The architecture page is rebuilt and republished at
   https://claude.ai/artifact/VLRBAcB5WEatQ4Lh6LsSPL (version 8).
+- **Every check runs with the application's environment** (`factory/checks/appenv.py`, branch
+  `fix/app-env`): the folder of the recipe's `python` first on PATH for the revert check, the
+  suite check, Ship, ruff, mutmut and the test writer's session (gafaelfawr's tests spawn
+  `alembic`), and `no_proxy='*'` for mutmut when no proxy variable is set (on macOS 62 of 62
+  mutants crashed with SIGSEGV without it, 62 of 62 ran with it; measured on gafaelfawr by the
+  scout). Measured so far by the factory's own tests only; the gafaelfawr onboarding run is the
+  first real measurement. `docs/adopt.md` gained the `src/` layout rule (`-o pythonpath=src`) and
+  a "this machine only" paragraph for Colima and testcontainers. 367 factory tests.
 - **Item 3 is next** (`docs/next-session.md`); items 5 and 6 after it. The three items were built
   from written specs by Opus agents in two Workflow runs (`docs/specs/2026-10-14-now-items/`),
   about 970k subagent tokens in all by the tool's count, and about 0.25 USD of factory model calls

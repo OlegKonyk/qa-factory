@@ -34,6 +34,7 @@ import time
 
 from factory import blind, escalate, gates, headless, rounds
 from factory.checks import devtests, lint, mutants, revert, suite
+from factory.checks.appenv import app_env
 from factory.steps.ship import restore_tests
 
 WRITER_MODEL = os.environ.get("QA_FACTORY_WRITER_MODEL", "claude-opus-5-5")
@@ -399,6 +400,7 @@ def write_tests(ctx):
         settings=settings,
         transcript_path=transcript,
         runner=RUNNER,
+        env=app_env(app["python"]),  # the tests it runs may spawn alembic or another console script
     )
     ctx["costs"][_cost_key(ctx)] = result.metrics()  # _attempt puts it in the ledger
 

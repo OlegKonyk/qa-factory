@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.checks import mutants
+from factory.checks.appenv import PROXY_VARS
 
 BASE = """\
 def same(a):
@@ -337,6 +338,28 @@ def test_run_mutates_an_undecorated_copy_and_names_globs_without_a_mutant(tmp_pa
     assert seen["copy"] == mutants.undecorate(src) != src
     assert (head / "pkg" / "mod.py").read_text() == src  # the worktree keeps its decorators
     assert result["killed"] == 1 and result["unmutated"] == ["pkg.mod.x_dec__mutmut_*"]
+
+
+def test_run_gives_mutmut_the_interpreter_folder_on_path_and_no_proxy(tmp_path, monkeypatch):
+    for name in PROXY_VARS:
+        monkeypatch.delenv(name, raising=False)
+    head = tmp_path / "head"
+    (head / "pkg").mkdir(parents=True)
+    (head / "pkg" / "mod.py").write_text("def f(a):\n    return a\n")
+    seen = {}
+
+    def fake_mutmut(cmd, cwd, **kwargs):
+        seen["cmd"], seen["env"] = cmd, kwargs["env"]
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    python = str(tmp_path / "venv" / "bin" / "python")
+    mutants.run(
+        head, python, "pkg", ["pkg/mod.py"], [], ["pkg.mod.x_f__mutmut_*"], tmp_path / "w", [], [], [], {}
+    )
+    assert seen["cmd"][0] == str(tmp_path / "venv" / "bin" / "mutmut")
+    assert seen["env"]["PATH"].split(os.pathsep)[0] == str(tmp_path / "venv" / "bin")
+    assert seen["env"]["no_proxy"] == "*"
 
 
 def test_undecorate_leaves_a_method_whose_decorator_names_a_class_attribute():
