@@ -10,7 +10,7 @@ https://claude.ai/artifact/TesENWMdg67e3p15kwiaZX.
 1. Which comes first: make the factory adoptable by a real service (roadmap items 1 to 3), or an
    agent writing the change itself (item 4)? Recommended: adoptable first.
 2. His microservice: is it the third application on his side, and what is its shape (framework,
-   database, the services it calls)? Or does the session pick a public application with that
+   database, the kind of thing it calls; the generic shape only, names stay in `.local/`)? Or does the session pick a public application with that
    shape? Recommended: a public one here.
 3. Will tickets at work state the public contract (field names, values, labels, routes) before
    coding starts? Both linkding blind tickets and the isso ticket had it written from finished

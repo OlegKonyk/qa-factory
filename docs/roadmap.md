@@ -128,7 +128,8 @@ Carried from the old "Next" of `docs/status.md`; none needs a session of its own
    change itself (item 4)? Recommended: adoptable first; it is what his service and the meetings
    need, and item 4 is easier to trust once item 3 has shown a bug-fix ticket.
 2. **His microservice:** is it the third application at his side, and what is its shape
-   (framework, database, the services it calls)? Or should the session pick a public application
+   (framework, database, the kind of thing it calls: another HTTP service, a queue, a third-party
+   API)? Only the generic shape enters the repository; names go to `.local/`. Or should the session pick a public application
    with the shape above? Recommended: a public one here; his at work from `docs/adopt.md` when he
    chooses.
 3. **Tickets at work:** will they state the public contract before coding starts? If not, item 6
