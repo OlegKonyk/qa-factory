@@ -6,6 +6,9 @@ requires-python = ">=3.13"
 dependencies = []
 
 [dependency-groups]
+deployed = [
+    "pytest-playwright>=0.10.0",
+]
 dev = [
     "hypercorn>=0.17",
     "pytest>=9.0",
