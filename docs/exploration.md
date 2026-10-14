@@ -249,8 +249,13 @@ Plan fixing the contract first is the guard; track 1 measures how often it still
 ## What makes a repository agent-friendly for this loop
 
 Drawn from the sources below and from what the first run needed; item 5 is the one linkding fails.
+Items 9 to 12 were added on 2026-10-14 from the research pass on factory-friendly repositories
+(`docs/research/2026-10-14-agent-friendly-repositories.md`); items 1 and 7 gained their numbers
+there. An onboarding (roadmap item 3) scores the application against this list first and records
+what it lacks.
 
-1. One documented command to build and start the app with seeded data, in the repository's agent file.
+1. One documented command to build and start the app with seeded data, in the repository's agent
+   file; a dev container or compose file is the preferred form.
 2. Test helpers named in a strategy rule, so the factory and its checks know them.
 3. A strategy rule: which kind of test goes to which level.
 4. Selectors by role and label first, test ids where roles are not enough.
@@ -258,8 +263,18 @@ Drawn from the sources below and from what the first run needed; item 5 is the o
    against a deployed environment. linkding's browser tests create data through the ORM inside a
    `LiveServerTestCase`, so they cannot run against a deployed URL as written.
 6. A base URL, test accounts and cleanup for each environment.
-7. Lint, the suite and mutation on changed code runnable locally in minutes.
+7. Lint in seconds and the suite in minutes, or selectable by what a change touches; mutation on
+   changed code runnable locally.
 8. Logs an agent can read when a test fails.
+9. A short agent file at the root (`AGENTS.md`, or `CLAUDE.md` importing it) with the exact
+   commands, the test runner, the etiquette and the environment quirks, and nothing an agent can
+   read from the code; nested per subproject when the repository is large.
+10. A machine-readable API description (OpenAPI, a GraphQL schema): the contract the Frame gate
+    checks a ticket against, and the input to property-based API checks.
+11. An isolated, reproducible environment per run, cut off from production: the container recipe
+    of item 1 run by the factory's fetch script, one worktree pair per ticket.
+12. Caps that the repository's own pipeline enforces: lint before push, a bounded number of CI
+    rounds, which the factory's caps per ticket mirror.
 
 ## Restate, from its documentation (read 2026-10-10, before any Restate code ran; what running it showed is under "Track 2, the build half")
 

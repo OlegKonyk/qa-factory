@@ -3,6 +3,25 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-14 · The roadmap's four questions, answered
+
+**Decided, his words:** "adopt, public, no, keep."
+
+1. **Adoptable first.** Roadmap items 1 to 4 (the deployed run, the three fixes, a third
+   application, every person point) before item 5 (an agent writes the change).
+2. **The third application is a public one**, chosen by the session that onboards it, from the
+   shape in item 3. His service at work comes later, from `docs/adopt.md`, when he chooses.
+3. **Tickets at work will not state the public contract before coding.** So the readiness check
+   that sends a ticket back for the missing contract is built now, as the Frame gate of item 4;
+   the tracker integration stays item 7, later.
+4. **Restate stays**, behind its flag until item 6 as recommended. "If there is a better
+   alternative, we can adopt that": no comparison is run (rule 2); a replacement is adopted when
+   a run shows a need Restate cannot meet or when work settles on Temporal.
+
+**Also his:** research continues, as a standing part of the roadmap, on two questions of his:
+what makes a repository factory-friendly and agent-efficient, QA-centric; and which new tools
+the factory can use. One short labelled pass per session, serving the next build step.
+
 ## 2026-10-14 · Always portable
 
 **Decided, his words:** "this whole setup needs to be portable onto generic applications. If, on
