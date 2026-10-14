@@ -142,6 +142,9 @@ the steps index the required keys directly and fail with a `KeyError` on a missi
 | `suite` | list of pytest invocations that make up the suite; the first is the API/unit suite, run again by Ship | suite check, Ship |
 | `strategy` | the strategy rule's path, relative to the factory root | the writer prompt |
 | `caps` (optional) | `{"writer_rounds": 3, "advice": 2, "usd": 15.0}` overrides | Verify, Review |
+| `gates` (optional) | where a run stops for a person, per step: `{"verify": "person"}`. `auto`: the step stops only when its own rule says so; `model`: a stronger model decides before a person (Verify only; elsewhere the same as `auto` for now); `person`: the step always stops at its end. Default `verify: model`, every other step `auto`; the ticket's `gates` win | Frame, Plan, Verify, Review, Ship, `python -m factory waiting` |
+| `approver` (optional) | the name a question is addressed to; default `Oleg` | Verify |
+| `notify_url` (optional) | a URL that gets a JSON POST when a run stops for a person (section 6); the ticket's wins | driver |
 
 **`suite` from the application's own test command.** Take the arguments after `pytest` as they are
 (isso: `make test` runs `pytest --doctest-modules isso/`, so `[["--doctest-modules", "isso"]]`).
@@ -221,8 +224,18 @@ The model is `targets/linkding/tickets/bundle-filters-blind-2.json` (blind, with
   gives the blind lane nothing to hold to; write it, or run without `qa_mode`. Check it against
   both commits before the run (isso's was checked with a probe through the test client on `base`
   and `head`).
-- `gate`: `"person"` parks the run after Verify until an answer file arrives. Leave it out, as
-  above, and passing work is approved by the factory (decision of 2026-10-10).
+- `gates` (optional): the same per-step modes as the recipe's (section 4), and they win over it:
+  any of `frame`, `plan`, `verify`, `review`, `ship`. `{"verify": "person"}` parks the run after
+  Verify until an answer file arrives; `{"frame": "person", "plan": "person", "review": "person",
+  "ship": "person"}` stops at each of those too. Leave it out, as above, and the run stops only
+  where a step's own rule says so (section 6) and passing work is approved by the factory
+  (decision of 2026-10-10). The older single field `"gate": "person"` is still accepted and means
+  `{"verify": "person"}`.
+- `description`, `contract` and `acceptance_criteria` are what Frame checks: when a criterion is
+  not testable, or the ticket and the old code leave out a fact a test writer needs (a route, a
+  field name, a value, a label, a status code), Frame stops and asks. A person's answer may replace
+  these three fields for the run (section 6, the clarified ticket); the ticket file is not changed.
+- `notify_url` (optional): overrides the recipe's for this ticket.
 - `caps.usd` is the hard model-spend cap of Verify and Review together.
 - `area` (optional) names the folder of the readable cases; defaults to `source_package`.
 
@@ -248,9 +261,52 @@ uv run python -m factory report .artifacts/runs/<ticket id>            # the QA 
 uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # the numbers
 ```
 
-- A run that stops for a person writes `question.md` in the run folder and exits 2. Put
-  `answer.json` beside it (`{"decision": "approve", "by": "<who>", "note": "..."}` for a gate, or
-  the escalation answers in `docs/decisions.md`, 2026-10-10) and run the same command again.
+- A run that stops for a person writes `question.md` in the run folder and exits 2. The question
+  names its kind, who is asked, the accepted answers with what each means, and an example. Put
+  `answer.json` beside it (`{"decision": "approve", "by": "<who>", "note": "..."}` for an approval;
+  `retry` with `guidance`, `recheck` with `round`, `change_is_wrong`, `environment` or `fail` for
+  Verify's escalation, `docs/decisions.md`, 2026-10-10) and run the same command again. `by` is
+  required: an answer without it, or with a decision the question does not accept, is left in
+  place and the run prints `answer: <what is wrong>` and exits 2 again. The old approval form
+  `{"approved": true, "by": "<who>"}` still works. The consumed answer is kept as
+  `steps/NN-<step>.answerM.json` with the time it was read (`answered_at`), and the question it
+  answered as `steps/NN-<step>.roundK.json`, so a step that stops twice keeps both; `status` names who
+  answered on the step's line and the report has a section "Who answered".
+- `uv run python -m factory waiting [--runs-root <folder>] [--json]` lists every run that waits for
+  a person, one line each: ticket, step, kind, who, since when, the question's start and its path.
+  A run whose answer is written but not yet read says "answer pending", or "answer refused: <what
+  is wrong>" when the run would refuse it; none prints "nothing is waiting".
+- When a run stops for a person it tells, best effort: on macOS with `osascript` on the PATH a
+  desktop notification (this machine only; nothing elsewhere), and with `notify_url` set a JSON
+  POST (`ticket`, `step`, `kind`, `who`, `question`, `run_dir`, `question_path`, 5 s timeout). A
+  failure to tell prints one `notify:` line and never stops the run. On a headless machine or in a
+  CI job set `QA_FACTORY_NO_NOTIFY=1` and it tells nobody.
+- Where each step stops under `auto` (the default everywhere but Verify), and the answers it
+  accepts. Under `person` each stops (Ship before its commit). The answer names one `decision`;
+  "carries" is the extra field that answer may hold.
+
+  | Step | Stops under `auto` when | Answers (what each carries) |
+  |---|---|---|
+  | Frame (`clarify`) | a criterion has `testable: false`, or `missing_contract` is not empty; ambiguities alone never stop it | `proceed` (go on with the frame as read), `clarify` (carries `ticket`: any of `description`, `contract`, `acceptance_criteria`; Frame runs again on the clarified ticket and its rule applies again), `decline` |
+  | Plan (`plan`) | the plan says `risk: "high"`, or lists `unknown_patterns` (patterns the strategy does not cover) | `approve`, `edit` (carries `plan`: a path to a JSON file in the plan's structured shape, or to `plan/plan.json` itself after editing it in place, relative to the run folder or absolute, or the object inline; the file the answer replaces is kept as `plan/plan.before-edit.json`, which for an in-place edit is already the edited one, so copy the original first if it matters), `decline` |
+  | Verify (`approval`, `escalation`) | the stronger model cannot decide a failure (mode `model`, the default) | `approve`/`decline`; `retry` (carries `guidance`), `recheck` (carries `round`), `change_is_wrong` |
+  | Review (`review`) | the review still requests changes after its fix round, or no writer round is left for one | `sign_off` (carries `note`, kept in the reason), `another_round` (one more fix round when a writer round is left, else the step fails), `decline`; under `person` an approving review asks `sign_off` or `decline` |
+  | Ship (`ship`) | never; under `person` it stops before the commit | `approve` (commit and run the suite), `decline` |
+
+- **The clarified ticket.** Frame's `clarify` answer writes its fields to
+  `<run folder>/ticket.clarified.json`. From then on every step, in this run and every re-run,
+  gets the ticket file with those fields replaced (only `description`, `contract` and
+  `acceptance_criteria`; any other key there is an error), and `ticket.json` in the run folder
+  records the merged ticket. Everything else, `caps` included, still comes from the ticket file.
+- **Editing a passed step's output by hand.** Edit the file (for example `plan/plan.json`), then
+  `uv run python -m factory redo <run folder> <step> --by <who> [--note "..."] [--rerun]`. Every
+  later step's record becomes an earlier round (`steps/NN-<step>.roundK.json`), so the next `run`
+  resumes after the edited step; `--rerun` archives the step's own record too, so it runs again.
+  It writes `steps/NN-<step>.redoK.json` (who, when, the note, and the sha256 of the step's
+  artifact files before, as the step's record kept them when it passed, and after, as found when
+  `redo` runs; `unknown` for a missing file or a record from before records kept hashes) and prints
+  what it archived. It refuses a step that has not passed and a run waiting at a gate, and says what to
+  do instead.
 - A re-run skips passed steps and runs failed ones again. The spend so far lives in `rounds.json`
   in the run folder and survives re-runs; the caps are read from the ticket (`caps`) on every run.
 - A Verify stopped at its spend cap after every check passed (the report says `"resumable": true`
@@ -258,7 +314,8 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   writer round. To continue, raise `caps.usd` in the ticket file and run the same command again.
   A cap hit in a writer round or a stronger-model call starts a fresh writer round on re-run.
 - Ship commits the tests and the readable cases on `qa/<ticket id>` in the head worktree and runs
-  the suite there. Nothing is pushed.
+  the suite there. Nothing is pushed. Under `gates.ship: person` it asks first and writes nothing
+  to the worktree until approved.
 - With Restate (optional): `restate-server --base-dir <data dir> &`, `uv run python -m factory
   restate serve &`, `uv run python -m factory restate register`, then `run ... --engine restate`;
   the service runs the steps, so start it under the key script, not the `run` command.

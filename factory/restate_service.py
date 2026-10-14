@@ -27,8 +27,9 @@ from pathlib import Path
 import restate
 from restate import RunOptions, TerminalError, Workflow, WorkflowContext, WorkflowSharedContext
 
-from factory import driver
+from factory import driver, gates
 from factory.driver import STEP_NAMES, StepFn
+from factory.envelope import Gate
 
 WORKFLOW = "factory"
 # A Verify of about 15 minutes runs as one step, and Restate hears nothing from the service while it
@@ -54,11 +55,20 @@ def prepare(ticket_path: str, runs_root: str) -> dict:
     return {"ticket": ticket, "repo": repo, "run_dir": str(run_dir)}
 
 
-def answer_hint(key: str) -> str:
+def answer_hint(key: str, gate: Gate | None = None) -> str:
+    """How to answer over HTTP; the example is the gate's first accepted answer, so it is never refused.
+
+    A gate with no accepted answers (any decision is read) gets `approve`.
+    """
+    answers = gate.answers if gate else []
+    decision = (answers[0].get("decision") if answers else None) or "approve"
+    who = (gate.who if gate else "") or gates.DEFAULT_APPROVER
+    example = json.dumps({"decision": decision, "by": who, "note": ""})
     return (
-        f"\nUnder Restate, answer over HTTP instead of writing the file:\n\n"
+        f"\nUnder Restate, answer over HTTP instead of writing the file, with the same JSON "
+        f"(`by` is required):\n\n"
         f"    curl -X POST {INGRESS}/{WORKFLOW}/{key}/answer -H 'content-type: application/json' "
-        f'-d \'{{"approved": true, "by": "Oleg", "note": ""}}\'\n'
+        f"-d '{example}'\n"
     )
 
 
@@ -78,7 +88,7 @@ def step(steps: dict[str, StepFn], key: str, index: int, name: str, run: dict, a
         )
     question = run_dir / "question.md"
     if output.status == "needs_person" and question.exists():
-        hint = answer_hint(key)
+        hint = answer_hint(key, output.gate)
         if hint not in question.read_text():
             with question.open("a") as f:
                 f.write(hint)

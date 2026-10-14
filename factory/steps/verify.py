@@ -32,7 +32,7 @@ import subprocess
 import sys
 import time
 
-from factory import blind, escalate, headless, rounds
+from factory import blind, escalate, gates, headless, rounds
 from factory.checks import devtests, lint, mutants, revert, suite
 from factory.steps.ship import restore_tests
 
@@ -72,6 +72,27 @@ BLIND_CHANGE_SECTION = (
 )
 RULE_VERIFY = "every Verify check passed"
 RULE_REVIEW_FIX = "every check passed after the review's fix round"
+
+APPROVAL_ANSWERS = [
+    {"decision": "approve", "means": "the tests and their readable cases join the application's suite"},
+    {"decision": "decline", "means": "the step fails with the note as its reason"},
+]
+ESCALATION_ANSWERS = [
+    {
+        "decision": "retry",
+        "means": "one more writer round, guided by what the person writes",
+        "carries": "guidance",
+    },
+    {
+        "decision": "recheck",
+        "means": "check the tests of round n again with no writer call, after fixing the environment "
+        "or the factory",
+        "carries": "round",
+    },
+    {"decision": "change_is_wrong", "means": "the tests are right and the change is wrong; the step fails"},
+    {"decision": "environment", "means": "an environment problem; the step fails with the note"},
+    {"decision": "fail", "means": "the step fails with the note"},
+]
 
 
 class CheckFailed(Exception):
@@ -966,17 +987,20 @@ def _advise(ctx, failure, allow_retry):
 def _escalation_gate(ctx, failure, record):
     ctx["gate_kind"], ctx["last_failure"], ctx["status"] = "escalation", failure, "needs_person"
     report = _write_report(ctx)
+    who = gates.approver(ctx["app"])
     return {
         "status": "needs_person",
         "artifacts": dict(ctx["artifacts_out"]),
         "reason": f"the stronger model could not decide about {failure['check']}: {record.get('why', '')}",
         "gate": {
-            "who": "Oleg",
+            "kind": "escalation",
+            "answers": ESCALATION_ANSWERS,
+            "who": who,
             "question": f"Verify still fails for '{ctx['ticket']['title']}' ({failure['check']}: "
             f"{failure['reason'][:300]}) and the stronger model could not decide. Answer with "
-            '{"decision": "retry", "guidance": "<what the writer should do>", "by": "Oleg"} for one '
-            'more guided round; {"decision": "recheck", "round": <n>, "by": "Oleg"} to check the tests of '
-            "round n again with no writer call, after fixing the environment or the factory; or any other "
+            f'{{"decision": "retry", "guidance": "<what the writer should do>", "by": "{who}"}} for one '
+            f'more guided round; {{"decision": "recheck", "round": <n>, "by": "{who}"}} to check the tests '
+            "of round n again with no writer call, after fixing the environment or the factory; or any other "
             'decision (for example "change_is_wrong") with a "note" to fail the step.',
             "context": {
                 "kind": "escalation",
@@ -1046,10 +1070,11 @@ def _approve(ctx, rule):
         "time_s": metrics["time_s"],
     }
     # The factory does not stop for a person when every check passed (Oleg, 2026-10-10). The
-    # approval is recorded as the factory's own; a ticket or app that sets "gate": "person" still
-    # stops here, for a risk rule that wants a human.
-    gate_mode = ticket.get("gate") or app.get("gate") or "auto"
-    if gate_mode == "auto":
+    # approval is recorded as the factory's own; a ticket or app whose Verify mode is `person`
+    # (`gates.verify`, or the old `"gate": "person"`) still stops here, for a risk rule that wants a
+    # human. `model` (the default) and `auto` both approve here: the stronger model only decides
+    # failing work, in _settle.
+    if gates.mode_for("verify", ticket, app) != "person":
         ctx["status"] = "pass"
         approval_path = os.path.join(ctx["out"], "approval.json")
         _dump(approval_path, {"approved": True, "by": "factory", "rule": rule, "context": context})
@@ -1069,7 +1094,9 @@ def _approve(ctx, rule):
         "artifacts": dict(ctx["artifacts_out"]),
         "reason": "the tests and their readable cases are ready for approval",
         "gate": {
-            "who": "Oleg",
+            "kind": "approval",
+            "answers": APPROVAL_ANSWERS,
+            "who": gates.approver(app),
             "question": f"Approve the generated tests and their test cases for '{ticket['title']}' "
             "so they join the application's suite?",
             "context": context,
@@ -1126,11 +1153,10 @@ def _restore(ctx, artifacts):
 
 def _answer(inp, report_path):
     artifacts = _field(inp, "artifacts")
-    with open(artifacts["answer"]) as f:
-        answer = json.load(f)
+    answer = gates.read_answer(artifacts["answer"])  # the driver checked it against the gate's answers
     with open(report_path) as f:
         report = json.load(f)
-    by = answer.get("by", "a person")
+    by = answer["by"]
     done = {"artifacts": report["artifacts"], "gate": None, "metrics": report.get("metrics", {})}
 
     def ended(status, reason):
@@ -1139,10 +1165,10 @@ def _answer(inp, report_path):
         return {"status": status, "reason": reason.strip(), **done}
 
     if (report.get("gate_kind") or "approval") == "approval":
-        if answer.get("approved") is True:
+        if answer["decision"] == "approve":
             return ended("pass", f"approved by {by}: {answer.get('note', '')}")
         return ended("fail", f"declined by {by}: {answer.get('note', '')}")
-    decision = answer.get("decision")
+    decision = answer["decision"]
     if decision == "recheck":  # the environment or the factory was fixed: judge the same tests again
         ctx = _context(inp, previous=report)
         kinds = {r.get("kind") for r in ctx["rounds"]}

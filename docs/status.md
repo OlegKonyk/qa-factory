@@ -33,7 +33,17 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
   resumable at the readable cases. The developers' tests check judges tests modified in place
   (0, 6 and 0 found on the three finished runs). Built by Opus agents from written specs in a
   workflow, reviewed by Opus, merged here; `docs/log.md` has the path. 271 factory tests.
-- Items 4 and 1 follow in the next two pull requests of the same session.
+- **Roadmap item 4 done (pull request #27).** Every person point of the brief is a gate on the
+  step envelope: one contract (kind, who, question, context, the accepted answers), a gate in
+  Frame (a criterion that cannot be made checkable, or a missing public contract), Plan (high
+  risk or an unknown pattern), Review (still requesting changes after its fix round), Ship
+  (when configured), Verify as before; `gates.<step>` per recipe or ticket; an answer may
+  correct (a clarified ticket, an edited plan, a sign-off note) and `python -m factory redo`
+  reopens a passed step after a hand edit; a notification, `python -m factory waiting`, the
+  answerer in `status` and the report. Proved on a deliberately vague ticket for about 0.25 USD
+  (`docs/runs/2026-10-14-linkding-sort-by-modified-vague/`); the first prompt asked for test
+  mechanics and was tightened, with the shipped blind ticket as the control. 341 factory tests.
+- Item 1 follows in the next pull request of the same session.
 
 ## Where things stand, 2026-10-14
 
@@ -242,14 +252,8 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
 `docs/roadmap.md` is the ordered list; `docs/next-session.md` has the kickoffs.
 
-1. Run a shipped feature's readable cases against linkding started from its Docker image
-   (roadmap item 1, kickoff A). Docker runs here through colima (server 29.5.2, checked
-   2026-10-12).
-2. The three factory fixes: mutation in `__init__.py` and decorated functions, resuming Verify
-   after the spend cap, the developers' tests check on modified tests (item 2, kickoff B, a cloud
-   session).
-3. A third application shaped like a small team service, with a bug-fix ticket (item 3,
-   kickoff C).
-4. Every person point exposed: a gate at every step, correct as well as approve, a notification
-   and a listing of waiting runs (item 4, kickoff D, a cloud session to build and a 1 USD run to
-   prove).
+1. A third application shaped like a small team service, with a bug-fix ticket (item 3,
+   kickoff C in `docs/next-session.md`): the next test of `docs/adopt.md`, which items 2 and 4
+   changed (`gates`, the Frame readiness check, `python -m factory mutation`).
+2. Then the Next group: the factory writes the change itself (item 5), Ship as a pull request
+   (item 6).

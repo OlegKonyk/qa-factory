@@ -191,8 +191,28 @@ def test_cannot_decide_stops_for_a_person(tmp_path, monkeypatch):
     assert out["status"] == "needs_person"
     assert out["gate"]["context"]["failure"]["check"] == "suite"
     assert "suite broke" in out["gate"]["question"]
+    assert out["gate"]["kind"] == "escalation" and out["gate"]["who"] == "Oleg"
+    answers = {a["decision"]: a.get("carries") for a in out["gate"]["answers"]}
+    assert answers == {
+        "retry": "guidance",
+        "recheck": "round",
+        "change_is_wrong": None,
+        "environment": None,
+        "fail": None,
+    }
     report = _report(tmp_path)
     assert report["gate_kind"] == "escalation" and report["last_failure"]["check"] == "suite"
+
+
+def test_the_escalation_question_names_the_recipes_approver(tmp_path, monkeypatch):
+    Fakes(monkeypatch, tmp_path, suite=["fail"])
+    Advisor(monkeypatch, "cannot_decide")
+    inp = _inp(tmp_path)
+    inp["repo"]["app"]["approver"] = "Dana"
+    out = verify.run(inp)
+    assert out["status"] == "needs_person" and out["gate"]["who"] == "Dana"
+    question = out["gate"]["question"]
+    assert question.count('"by": "Dana"') == 2 and "Oleg" not in question
 
 
 def test_a_failure_after_the_guided_round_goes_back_without_retry(tmp_path, monkeypatch):

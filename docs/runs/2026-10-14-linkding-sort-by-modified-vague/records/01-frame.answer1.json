@@ -1,0 +1,21 @@
+{
+  "decision": "clarify",
+  "by": "Oleg (the session, standing in for the proof run)",
+  "note": "the contract from the original ticket, after the prompt fix",
+  "ticket": {
+    "description": "The bookmark list can be sorted by the date a bookmark was added or by title. Add sorting by the date a bookmark was last modified, ascending and descending. The option is available wherever the existing sort options are: the sort dropdown of the bookmark list and the `sort` query parameter of the bookmarks REST API (`GET /api/bookmarks/?sort=modified_asc` and `sort=modified_desc`), including the archived bookmarks list.",
+    "contract": [
+      "GET /api/bookmarks/?sort=modified_asc and sort=modified_desc; the same values on /api/bookmarks/archived/",
+      "Sort dropdown options labelled 'Modified \u2191' (oldest modified first) and 'Modified \u2193' (newest first), on the bookmark list and the archived list",
+      "An unknown sort value falls back to the default order, added newest first, with HTTP 200"
+    ],
+    "acceptance_criteria": [
+      "GET /api/bookmarks/?sort=modified_asc returns the user's bookmarks ordered by date_modified ascending",
+      "GET /api/bookmarks/?sort=modified_desc returns them ordered by date_modified descending",
+      "The bookmark list page offers 'Modified \u2191' and 'Modified \u2193' in the sort dropdown and selecting one reorders the list accordingly",
+      "The archived bookmarks list and its API accept the same two sort values",
+      "An unknown sort value still falls back to the default order (added, newest first)"
+    ]
+  },
+  "answered_at": "2026-10-14T12:53:46+00:00"
+}

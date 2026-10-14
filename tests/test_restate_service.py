@@ -10,8 +10,9 @@ import pytest
 from restate import TerminalError
 
 from factory import __main__ as cli
-from factory import restate_service, stub_steps
+from factory import gates, restate_service, stub_steps
 from factory.driver import STEP_NAMES
+from factory.envelope import Gate
 
 
 class Parked(Exception):
@@ -117,7 +118,8 @@ def test_a_gate_parks_on_a_promise_and_the_answer_resumes_the_step(ticket, tmp_p
     result = drive(replay, req)
     assert result["status"] == "pass"
     assert replay.journal[-4:] == ["answer verify-1", "04-verify #2", "05-review", "06-ship"]
-    assert (run_dir / "steps" / "04-verify.answer1.json").exists()
+    assert (run_dir / "steps" / "04-verify.answer2.json").exists()
+    assert (run_dir / "steps" / "04-verify.round1.json").exists(), "the question it answered is kept"
     assert not (run_dir / "answer.json").exists()
     starts = [
         line.split()[1] for line in (run_dir / "stub_calls.log").read_text().splitlines() if "start" in line
@@ -126,9 +128,33 @@ def test_a_gate_parks_on_a_promise_and_the_answer_resumes_the_step(ticket, tmp_p
     assert (run_dir / "question.md").read_text().count("Under Restate") == 1
 
 
+def hinted_answer(hint: str) -> dict:
+    """The JSON the hint's curl command sends."""
+    return json.loads(hint.split("-d '", 1)[1].rsplit("'", 1)[0])
+
+
+def test_the_answer_hint_sends_the_gates_first_accepted_answer_and_who(tmp_path):
+    answers = [{"decision": "sign_off"}, {"decision": "another_round"}, {"decision": "decline"}]
+    gate = Gate(who="Dana", question="Sign off?", kind="review", answers=answers)
+    hint = restate_service.answer_hint("t-1", gate)
+    assert "/factory/t-1/answer" in hint
+    sent = hinted_answer(hint)
+    assert sent == {"decision": "sign_off", "by": "Dana", "note": ""}
+    path = tmp_path / "answer.json"
+    path.write_text(json.dumps(sent))
+    assert gates.read_answer(path, answers)["decision"] == "sign_off"  # the driver would take it
+
+
+def test_the_answer_hint_without_accepted_answers_says_approve():
+    sent = hinted_answer(restate_service.answer_hint("t-1", Gate(who="", question="q")))
+    assert sent == {"decision": "approve", "by": "Oleg", "note": ""}
+    assert hinted_answer(restate_service.answer_hint("t-1"))["decision"] == "approve"
+
+
 def test_a_declined_answer_fails_the_run_at_that_step(ticket):
     result = drive(
-        FakeContext(promises={"verify-1": {"approved": False, "note": "no"}}), ticket(gate="person")
+        FakeContext(promises={"verify-1": {"approved": False, "by": "Oleg", "note": "no"}}),
+        ticket(gate="person"),
     )
     assert result["status"] == "fail"
     assert result["step"] == "verify"

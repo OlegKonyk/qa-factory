@@ -1,0 +1,45 @@
+{
+ "summary": "The ticket adds `Cache-Control: no-store` to successful (status below 400) responses of `GET /?uri=` (fetch) and `GET /id/<id>` (view) only, leaving error responses, other routes, bodies and status codes unchanged. All five criteria are checkable through REST calls by inspecting response headers, status and JSON body. The main gaps are what \"same as before\" is compared against, the exact absence check for error responses, and whether other pre-existing headers on those endpoints matter.",
+ "acceptance_criteria": [
+  {
+   "id": "AC1",
+   "text": "After POSTing a comment to a thread, GET /?uri=<thread> returns status 200 and a Cache-Control header whose value is exactly 'no-store'.",
+   "testable": true,
+   "surface": "api"
+  },
+  {
+   "id": "AC2",
+   "text": "Using the edit cookie set by POST /new (cookie name = comment id), GET /id/<id> returns 200 and a Cache-Control header whose value is exactly 'no-store' (also with ?plain=1).",
+   "testable": true,
+   "surface": "api"
+  },
+  {
+   "id": "AC3",
+   "text": "GET /?uri=<thread>&sort=bogus returns 400 and the response has no Cache-Control: no-store header (no Cache-Control header added by this change).",
+   "testable": true,
+   "surface": "api"
+  },
+  {
+   "id": "AC4",
+   "text": "GET /id/<id> for a nonexistent comment id returns 404 and the response has no Cache-Control: no-store header.",
+   "testable": true,
+   "surface": "api"
+  },
+  {
+   "id": "AC5",
+   "text": "For the same data and requests, the JSON bodies (and 200 status) of GET /?uri=<thread> and GET /id/<id> equal what the unchanged code returns, e.g. fields id, text, author, replies, total_replies, hidden_replies, config are intact.",
+   "testable": true,
+   "surface": "api"
+  }
+ ],
+ "ambiguities": [
+  "AC5 'same as before the change' needs a baseline: there is no recorded pre-change body, so a test writer must assert the expected shape/values from the documented API (fields, rendered vs plain text, config) rather than diff against old output.",
+  "'Without a Cache-Control: no-store header' (AC3/AC4): is the check that the header is absent, or only that its value is not 'no-store'? The contract says 'no Cache-Control header from this change', but a header might already exist from elsewhere (e.g. the web framework or a proxy layer); not stated.",
+  "The contract's third bullet lists GET /id/<id> without the edit cookie (403) but no acceptance criterion covers it; also 400s from limit/offset/parent/nested_limit non-integers and missing uri (400) are not enumerated.",
+  "Status codes between 200 and 399 for the listing (e.g. 304 conditional responses) are covered by 'below 400' in the contract but no scenario for producing them is given.",
+  "Case/format of the header value: 'exactly that value' implies the string 'no-store' with no additional directives like 'no-cache' or 'max-age'; header-name case-insensitivity is assumed.",
+  "Listing of an empty thread or a thread with no comments (uri with zero comments) returns 200 on this code; the ticket does not say whether it must carry the header, though 'every response below 400' implies yes.",
+  "Whether HEAD/OPTIONS requests to these routes are in scope is not stated; only GET is named.",
+  "The 'other routes keep their headers' bullet has no acceptance criterion, so its verification (which headers to compare, e.g. POST /new Set-Cookie, GET /latest, GET /config) is left to the test writer."
+ ]
+}

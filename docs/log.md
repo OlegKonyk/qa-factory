@@ -55,6 +55,28 @@ about 200k on the second (the tool's own numbers; nothing priced them).
    modified in place were found, all failing on the old code only for a missing name, as the new
    ones do (`docs/trust.md` numbers unchanged in kind).
 
+**Item 4 (pull request #27), measured.**
+
+1. *Built.* `factory/gates.py` (modes, the answer check, the notifier, the listing), `Gate` with
+   `kind` and the accepted answers, a gate in Frame, Plan, Review and Ship, the clarified ticket,
+   `redo`, `waiting`, the "Who answered" section; 97 new factory tests, all with fakes.
+2. *The proof run.* The sort ticket rewritten as a ticket at work arrives, no routes, values or
+   labels. Frame stopped with four missing facts (the parameter values, the labels, the
+   direction, whether the response changes), `waiting` listed it, the answer carried the original
+   ticket's contract, Frame and Plan then passed, the report names the answerer. Frame 0.04 to
+   0.07 USD a call, Plan 0.07 USD; the proof in all about 0.25 USD. Evidence in
+   `docs/runs/2026-10-14-linkding-sort-by-modified-vague/`.
+3. *What the run found and fixed.* (a) With the first prompt Frame stopped again on the clarified
+   ticket, which carries the same contract the shipped blind ticket had, asking for test
+   mechanics: a DOM locator, fixture setup, URL behaviour. The prompt now asks only for the
+   public contract the change introduces and names what is not a missing contract; the control
+   run of the original blind ticket passes Frame (`missing_contract` empty, 7 ambiguities) and
+   the vague ticket still stops (4). (b) A step that stops twice overwrote its first archived
+   answer: the asking record now becomes an earlier round when its answer is consumed, so both
+   questions and both answers are kept.
+4. *Decided on the way* (`docs/decisions.md`): answers are strict; a refusal keeps the run waiting
+   and is listed; `redo` records the artifact hashes at pass time.
+
 **Left open from item 2.** The line mapping's cost (about 0.85 s per parse, once per mutant;
 cache the parse per module). `@property` and setters not measured. Decorated functions used at
 module level before the module ends run undecorated in the copy (not the case in isso or

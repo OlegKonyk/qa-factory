@@ -1,5 +1,6 @@
 """Tests for the frame, plan and review steps. No real calls: the runner is injected."""
 
+import io
 import json
 import string
 import subprocess
@@ -7,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from factory import headless, rounds
+from factory import driver, headless, rounds
 from factory.steps import frame, plan, review
 
 PROMPT_DIR = Path(headless.__file__).parent / "prompts"
@@ -90,7 +91,7 @@ def test_review_approve_passes(inp):
     assert out["status"] == "pass"
 
 
-def test_review_request_changes_fails_with_high_findings(inp, tmp_path):
+def test_review_request_changes_without_a_round_left_stops_with_high_findings(inp, tmp_path):
     manifest = tmp_path / "manifest.json"
     manifest.write_text(json.dumps({"files": ["bookmarks/tests/test_x_api.py"]}))
     inp["artifacts"]["tests_manifest"] = str(manifest)
@@ -101,8 +102,9 @@ def test_review_request_changes_fails_with_high_findings(inp, tmp_path):
     inp["ticket"]["caps"] = {"writer_rounds": 0}  # no writer round left: no fix round
     runner = canned({"findings": findings, "verdict": "request_changes"})
     out = review.run(inp, runner=runner)
-    assert out["status"] == "fail"
+    assert out["status"] == "needs_person" and out["gate"]["kind"] == "review"
     assert "a.py:3 weak assert" in out["reason"] and "b.py" not in out["reason"]
+    assert out["gate"]["context"]["findings"] == findings
     assert "bookmarks/tests/test_x_api.py" in runner.seen["argv"][2]
     assert Path(out["artifacts"]["review"]).is_file()
 
@@ -161,11 +163,13 @@ def test_review_fix_round_then_approve_passes_with_the_new_tests(inp, fix_round)
     assert len(runner.calls) == 2
 
 
-def test_review_still_requesting_changes_after_the_fix_fails(inp, fix_round):
+def test_review_still_requesting_changes_after_the_fix_stops_instead_of_failing(inp, fix_round):
     out = review.run(inp, runner=verdicts("request_changes", "request_changes"))
-    assert out["status"] == "fail"
+    assert out["status"] == "needs_person" and out["gate"]["kind"] == "review"
     assert out["reason"].startswith("review still requests changes after the fix round: a.py:3")
-    assert "review_round1" in out["artifacts"]
+    assert [a["decision"] for a in out["gate"]["answers"]] == ["sign_off", "another_round", "decline"]
+    assert out["gate"]["context"]["findings"] == [HIGH]
+    assert "review_round1" in out["artifacts"] and out["artifacts"]["tests_manifest"] == "NEW-MANIFEST"
 
 
 def test_review_fix_round_that_fails_is_returned(inp, fix_round):
@@ -177,17 +181,17 @@ def test_review_fix_round_that_fails_is_returned(inp, fix_round):
     assert len(runner.calls) == 1
 
 
-def test_review_without_a_writer_round_left_fails_without_a_fix(inp, fix_round):
+def test_review_without_a_writer_round_left_stops_without_a_fix(inp, fix_round):
     inp["ticket"]["caps"] = {"writer_rounds": 0}
     out = review.run(inp, runner=verdicts("request_changes"))
-    assert out["status"] == "fail" and out["reason"].startswith("review requests changes")
+    assert out["status"] == "needs_person" and out["reason"].startswith("review requests changes")
     assert "inp" not in fix_round
 
 
 def test_review_uses_its_fix_round_once_per_ticket(inp, fix_round):
     rounds.Ledger(inp["run_dir"]).add("review", "review_fix", 0.1)
     out = review.run(inp, runner=verdicts("request_changes"))
-    assert out["status"] == "fail" and "inp" not in fix_round
+    assert out["status"] == "needs_person" and "inp" not in fix_round
 
 
 def test_review_never_runs_blind_and_its_cost_is_in_the_ledger(inp):
@@ -265,3 +269,192 @@ def test_a_declined_answer_to_the_fix_round_fails_review_without_a_review(inp, m
     out = review.run(inp, runner=runner)
     assert out["status"] == "fail" and out["reason"] == "review fix round: declined by Oleg: no"
     assert runner.calls == []
+
+
+# The gates of Plan and Review, through the driver's run_step so the record that asked is on disk.
+
+
+def step_run(fn, inp, index, name):
+    run_dir = Path(inp["run_dir"])
+    (run_dir / "steps").mkdir(parents=True, exist_ok=True)
+    return driver.run_step(
+        index, name, fn, inp["ticket"], inp["repo"], run_dir, inp["artifacts"], out=io.StringIO()
+    ).to_dict()
+
+
+def answer(inp, data):
+    (Path(inp["run_dir"]) / "answer.json").write_text(json.dumps(data))
+
+
+PLAN = {"tests": [{"surface": "api", "file": "t.py", "name": "n", "covers": ["AC1"], "reason": "r"}]}
+
+
+def planned(**fields):
+    runner = canned({**PLAN, "placement_reason": "r", "risk": "low", "unknown_patterns": [], **fields})
+    return lambda step_input: plan.run(step_input, runner=runner)
+
+
+@pytest.mark.parametrize(
+    "fields, shown",
+    [({"risk": "high"}, "risk: high"), ({"unknown_patterns": ["a fake clock"]}, "a fake clock")],
+)
+def test_plan_stops_on_high_risk_and_on_unknown_patterns(inp, fields, shown):
+    out = step_run(planned(**fields), inp, 2, "plan")
+    assert out["status"] == "needs_person" and out["gate"]["kind"] == "plan"
+    assert shown in out["gate"]["question"]
+    assert [a["decision"] for a in out["gate"]["answers"]] == ["approve", "edit", "decline"]
+
+
+def test_plan_passes_on_low_risk_and_stops_under_person(inp):
+    assert step_run(planned(), inp, 2, "plan")["status"] == "pass"
+    inp["ticket"]["gates"] = {"plan": "person"}
+    inp["run_dir"] = inp["run_dir"] + "-person"
+    assert step_run(planned(), inp, 2, "plan")["status"] == "needs_person"
+
+
+def test_plan_approve_passes_with_the_recorded_plan(inp):
+    asked = step_run(planned(risk="high"), inp, 2, "plan")
+    answer(inp, {"decision": "approve", "by": "Oleg"})
+    out = step_run(planned(), inp, 2, "plan")
+    assert out["status"] == "pass" and out["reason"] == "plan approved by Oleg:"
+    assert out["artifacts"]["plan"] == asked["artifacts"]["plan"]
+
+
+@pytest.mark.parametrize("how", ["path", "relative path", "inline"])
+def test_plan_edit_replaces_the_plan_and_keeps_the_old_one(inp, tmp_path, how):
+    asked = step_run(planned(risk="high"), inp, 2, "plan")
+    edited = {"tests": [], "placement_reason": "none needed", "risk": "low", "unknown_patterns": []}
+    carried = edited
+    if how != "inline":
+        (Path(inp["run_dir"]) / "edited-plan.json").write_text(json.dumps(edited))
+        carried = (
+            "edited-plan.json" if how == "relative path" else str(Path(inp["run_dir"]) / "edited-plan.json")
+        )
+    answer(inp, {"decision": "edit", "plan": carried, "by": "Oleg"})
+    out = step_run(planned(), inp, 2, "plan")
+    assert out["status"] == "pass" and out["reason"] == "plan edited by Oleg"
+    path = Path(out["artifacts"]["plan"])
+    assert path == Path(asked["artifacts"]["plan"])
+    assert json.loads(path.read_text())["structured"] == edited
+    assert json.loads(path.with_name("plan.before-edit.json").read_text())["structured"]["risk"] == "high"
+
+
+def test_plan_edit_may_point_at_the_plan_file_edited_in_place(inp):
+    asked = step_run(planned(risk="high"), inp, 2, "plan")
+    path = Path(asked["artifacts"]["plan"])
+    wrapper = json.loads(path.read_text())
+    edited = {**wrapper["structured"], "tests": [], "risk": "low"}
+    path.write_text(json.dumps({**wrapper, "structured": edited}))
+    answer(inp, {"decision": "edit", "plan": "plan/plan.json", "by": "Oleg"})
+    out = step_run(planned(), inp, 2, "plan")
+    assert out["status"] == "pass" and out["reason"] == "plan edited by Oleg"
+    written = json.loads(path.read_text())
+    assert written["structured"] == edited and written["edited_by"] == "Oleg"
+    assert "structured" not in written["structured"]
+
+
+def test_plan_edit_with_an_unusable_plan_asks_again_naming_both_forms(inp):
+    step_run(planned(risk="high"), inp, 2, "plan")
+    (Path(inp["run_dir"]) / "not-a-plan.json").write_text(json.dumps({"steps": []}))
+    answer(inp, {"decision": "edit", "plan": "not-a-plan.json", "by": "Oleg"})
+    out = step_run(planned(), inp, 2, "plan")
+    assert out["status"] == "needs_person" and out["gate"]["kind"] == "plan"
+    assert out["reason"].startswith("answer by Oleg not used: ")
+    assert 'an object with a "tests" list' in out["reason"]
+    assert 'the plan file itself (plan/plan.json, with that object under "structured")' in out["reason"]
+
+
+def test_plan_decline_fails(inp):
+    step_run(planned(risk="high"), inp, 2, "plan")
+    answer(inp, {"decision": "decline", "by": "Oleg", "note": "wrong folder"})
+    out = step_run(planned(), inp, 2, "plan")
+    assert out["status"] == "fail" and out["reason"] == "plan declined by Oleg: wrong folder"
+
+
+def reviewed(runner):
+    return lambda step_input: review.run(step_input, runner=runner)
+
+
+def test_review_sign_off_passes_with_the_review_and_the_note(inp, fix_round):
+    runner = verdicts("request_changes", "request_changes")
+    asked = step_run(reviewed(runner), inp, 5, "review")
+    assert asked["status"] == "needs_person"
+    answer(inp, {"decision": "sign_off", "note": "the finding is cosmetic", "by": "Oleg"})
+    out = step_run(reviewed(runner), inp, 5, "review")
+    assert out["status"] == "pass" and out["reason"] == "review signed off by Oleg: the finding is cosmetic"
+    assert out["artifacts"]["review"] == asked["artifacts"]["review"]
+    assert out["artifacts"]["tests_manifest"] == "NEW-MANIFEST" and len(runner.calls) == 2
+
+
+def test_review_another_round_with_a_round_left_fixes_and_reviews_again(inp, fix_round):
+    runner = verdicts("request_changes", "request_changes", "approve")
+    step_run(reviewed(runner), inp, 5, "review")
+    fix_round.clear()
+    answer(inp, {"decision": "another_round", "by": "Oleg"})
+    out = step_run(reviewed(runner), inp, 5, "review")
+    assert out["status"] == "pass", out["reason"]
+    assert fix_round["review"]["findings"] == [HIGH] and "answer" not in fix_round["inp"]["artifacts"]
+    assert fix_round["inp"]["artifacts"]["tests_manifest"] == "NEW-MANIFEST"
+    assert len(runner.calls) == 3
+    folder = Path(inp["run_dir"]) / "review"
+    assert (folder / "review.round1.json").is_file() and (folder / "review.round2.json").is_file()
+    assert out["artifacts"]["review_round2"] == str(folder / "review.round2.json")
+
+
+def test_review_another_round_without_a_round_left_fails_with_the_reason(inp, fix_round):
+    inp["ticket"]["caps"] = {"writer_rounds": 0}
+    runner = verdicts("request_changes")
+    step_run(reviewed(runner), inp, 5, "review")
+    answer(inp, {"decision": "another_round", "by": "Oleg"})
+    out = step_run(reviewed(runner), inp, 5, "review")
+    assert out["status"] == "fail"
+    assert out["reason"].startswith(
+        "another round asked by Oleg, but no writer round is left: review requests"
+    )
+    assert "inp" not in fix_round and len(runner.calls) == 1
+
+
+def test_review_decline_fails(inp, fix_round):
+    runner = verdicts("request_changes", "request_changes")
+    step_run(reviewed(runner), inp, 5, "review")
+    answer(inp, {"decision": "decline", "by": "Oleg", "note": "write them again"})
+    out = step_run(reviewed(runner), inp, 5, "review")
+    assert out["status"] == "fail" and out["reason"] == "review declined by Oleg: write them again"
+
+
+def test_review_under_person_stops_on_approve_for_sign_off(inp):
+    inp["ticket"]["gates"] = {"review": "person"}
+    runner = verdicts("approve")
+    asked = step_run(reviewed(runner), inp, 5, "review")
+    assert asked["status"] == "needs_person" and asked["gate"]["kind"] == "review"
+    assert [a["decision"] for a in asked["gate"]["answers"]] == ["sign_off", "decline"]
+    answer(inp, {"decision": "another_round", "by": "Oleg"})  # not an answer this question accepts
+    assert step_run(reviewed(runner), inp, 5, "review")["status"] == "needs_person"
+    answer(inp, {"decision": "sign_off", "by": "Oleg"})
+    assert step_run(reviewed(runner), inp, 5, "review")["status"] == "pass"
+
+
+def test_verify_gate_in_the_fix_round_is_still_answered_through_verify(inp, fix_round, monkeypatch):
+    fix_round.update(status="needs_person", reason="ready for approval")
+    real_fake = review.verify.repair_from_review
+
+    def gated(step_input, review_data):
+        out = real_fake(step_input, review_data)
+        return {**out, "gate": {"kind": "approval", "who": "Oleg", "question": "Approve?", "answers": []}}
+
+    monkeypatch.setattr(review.verify, "repair_from_review", gated)
+    resumed = []
+
+    def resume(step_input):
+        resumed.append(step_input["artifacts"]["answer"])
+        return {"status": "pass", "artifacts": {"tests_manifest": "APPROVED"}, "reason": "", "gate": None}
+
+    monkeypatch.setattr(review.verify, "resume", resume)
+    runner = verdicts("request_changes", "approve")
+    asked = step_run(reviewed(runner), inp, 5, "review")
+    assert asked["status"] == "needs_person" and asked["gate"]["kind"] == "approval"
+    answer(inp, {"decision": "approve", "by": "Oleg"})
+    out = step_run(reviewed(runner), inp, 5, "review")
+    assert out["status"] == "pass", out["reason"]
+    assert len(resumed) == 1 and out["artifacts"]["tests_manifest"] == "APPROVED"
+    assert out["artifacts"]["review_round1"].endswith("review.round1.json") and len(runner.calls) == 2

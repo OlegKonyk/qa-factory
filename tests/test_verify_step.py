@@ -53,6 +53,24 @@ def test_an_approval_passes_the_step_without_redoing_the_checks(tmp_path):
     assert result["metrics"]["cost_usd"] == 1.5
 
 
+def test_the_new_answer_form_approves_and_declines(tmp_path):
+    out, report = _report(tmp_path)
+    answer = tmp_path / "run" / "answer.json"
+    inp = {
+        "repo": {"app": {"name": "demo"}, "head_tree": "", "base_tree": ""},
+        "ticket": {"id": "demo-x", "title": "x"},
+        "artifacts": {"answer": str(answer)},
+        "round": 1,
+        "run_dir": str(tmp_path / "run"),
+    }
+    answer.write_text(json.dumps({"decision": "approve", "by": "Dana", "note": "fine"}))
+    result = verify.run(inp)
+    assert result["status"] == "pass" and result["reason"] == "approved by Dana: fine"
+    answer.write_text(json.dumps({"decision": "decline", "by": "Dana", "note": "weak"}))
+    result = verify.run(inp)
+    assert result["status"] == "fail" and result["reason"] == "declined by Dana: weak"
+
+
 def test_a_refusal_fails_the_step(tmp_path):
     out, report = _report(tmp_path)
     answer = tmp_path / "run" / "answer.json"
@@ -145,6 +163,24 @@ def test_a_ticket_can_still_ask_for_a_person(tmp_path, monkeypatch):
     out = verify.run(_inp(tmp_path, {"gate": "person"}))
     assert out["status"] == "needs_person"
     assert out["gate"]["who"] == "Oleg"
+    assert out["gate"]["kind"] == "approval"
+    assert [a["decision"] for a in out["gate"]["answers"]] == ["approve", "decline"]
+    assert all(a["means"] for a in out["gate"]["answers"])
+
+
+def test_gates_verify_person_stops_and_the_recipe_names_who_is_asked(tmp_path, monkeypatch):
+    _fake_checks(monkeypatch)
+    inp = _inp(tmp_path, {"gates": {"verify": "person"}})
+    inp["repo"]["app"]["approver"] = "Dana"
+    out = verify.run(inp)
+    assert out["status"] == "needs_person" and out["gate"]["who"] == "Dana"
+
+
+@pytest.mark.parametrize("mode", ["auto", "model"])
+def test_auto_and_model_approve_passing_work(tmp_path, monkeypatch, mode):
+    _fake_checks(monkeypatch)
+    out = verify.run(_inp(tmp_path, {"gates": {"verify": mode}, "gate": "person"}))
+    assert out["status"] == "pass" and out["gate"] is None
 
 
 def _writer_ctx(tmp_path, app_extra, mode, blind):

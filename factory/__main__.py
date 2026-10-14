@@ -1,5 +1,5 @@
-"""Command line: python -m factory run <ticket.json> | status | summary | report | devtests | mutation |
-roadmap | restate ..."""
+"""Command line: python -m factory run <ticket.json> | status | waiting | redo | summary | report | devtests |
+mutation | roadmap | restate ..."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import argparse
 import json
 import sys
 
-from factory import driver, report, roadmap, summary
+from factory import driver, gates, report, roadmap, summary
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -28,6 +28,15 @@ def main(argv: list[str] | None = None) -> int:
     run_p.add_argument("--key", default=None, help="restate: the workflow key (default: the ticket id)")
     status_p = sub.add_parser("status", help="show the step records of a run")
     status_p.add_argument("run_dir", help="path to a run folder")
+    redo_p = sub.add_parser("redo", help="after a hand edit of a passed step's artifact: redo later steps")
+    redo_p.add_argument("run_dir", help="path to a run folder")
+    redo_p.add_argument("step", help="the step whose artifact was edited (e.g. plan)")
+    redo_p.add_argument("--by", required=True, help="who edited it")
+    redo_p.add_argument("--note", default="", help="what was changed and why")
+    redo_p.add_argument("--rerun", action="store_true", help="run the step itself again too")
+    waiting_p = sub.add_parser("waiting", help="list the runs that wait for a person")
+    waiting_p.add_argument("--runs-root", default=".artifacts/runs", help="folder holding run folders")
+    waiting_p.add_argument("--json", action="store_true", help="print JSON instead of lines")
     summary_p = sub.add_parser("summary", help="print the comparison numbers of one or more runs")
     summary_p.add_argument("run_dirs", nargs="+", help="paths to run folders")
     summary_p.add_argument("--json", default=None, help="write the numbers here as JSON")
@@ -71,6 +80,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(result))
         return 0
+    if args.command == "redo":
+        return driver.redo(args.run_dir, args.step, args.by, args.note, args.rerun)
+    if args.command == "waiting":
+        return gates.main(args.runs_root, args.json)
     if args.command == "summary":
         return summary.main(args.run_dirs, args.json)
     if args.command == "roadmap":

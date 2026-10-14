@@ -1,0 +1,18 @@
+{
+  "id": "linkding-sort-by-modified-vague",
+  "app": "targets/linkding/app.json",
+  "base": "0837b5186979e4a52e75582bd295cc73e43d2612",
+  "head": "0490013e4f67f0d31ccd764a5cb723dcafaf4acd",
+  "qa_mode": "blind",
+  "caps": {
+    "usd": 1.0
+  },
+  "source": "the sort ticket (linkding pull request #1363) rewritten the way a ticket at work arrives: no routes, no values, no labels; the proof run of roadmap item 4 (the Frame gate)",
+  "title": "Add sort by modification date option",
+  "description": "Users want to sort their bookmarks by when they last changed them, not only by when they were added or by title. Add that option wherever bookmarks can be sorted.",
+  "acceptance_criteria": [
+    "Bookmarks can be sorted by modification date in both directions",
+    "The option is available in the UI and in the API",
+    "Sorting by modification date works as expected for archived bookmarks too"
+  ]
+}
