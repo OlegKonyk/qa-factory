@@ -1,77 +1,10 @@
 # The next session
 
-Paste one of these as the first message of the next session. They follow the order of
-`docs/roadmap.md` (items 1 to 4); if Oleg puts an agent writing the change first (question 1
-there), the kickoff for that is written then. B and D run in a cloud session and can run beside
-A or C.
+Paste this as the first message of the next session. Items 1, 2 and 4 of `docs/roadmap.md` were
+done on 2026-10-14 (`docs/log.md`); item 3 is next. Kickoffs for items 5 and 6 are written when
+item 3 is done.
 
-## A. Run the tests against a running application (roadmap item 1)
-
-Start in ~/dev/qa-factory. Read CLAUDE.md, then docs/status.md (its "Waiting on Oleg" list first),
-docs/log.md, docs/decisions.md and docs/exploration.md. Tracks 1 and 2 are done; do not reopen
-them. This session runs track 3, item 1 of docs/roadmap.md.
-
-**The question.** Can the factory's tests run against a deployed environment? Use case UC2: trusted
-end-to-end tests that also run on the deployed app. This is the second verification point of the
-scheme in docs/trust.md (develop on mocks, validate on the deployed environment).
-
-1. Run linkding from its own Docker image on this laptop as the deployed app. Docker runs here
-   through colima. The image must be a linkding release that contains the feature under test:
-   1.47.0 contains the sort ticket's change (0490013). Check which release first contains the
-   bundles change (573b6f5) before using that ticket.
-2. Take the readable cases of one shipped feature, for example
-   `docs/runs/2026-10-10-linkding-sort-by-modified-blind/testcases/`. Turn them into a thin suite
-   that takes a base URL and creates its data through linkding's REST API with a token, never
-   through the database. Run that suite against the container.
-3. Measure: which cases pass on the deployed app; what had to change from the in-suite tests, and
-   why; how long the suite takes; what the container needs (the image, a superuser, a token, the
-   data). Test the agent-friendly checklist in `docs/exploration.md` against what it took.
-4. Record the findings in docs/exploration.md and docs/trust.md (the second verification point).
-   Update the architecture page's sections 10, 14 and 15 (`python3 docs/pages/architecture/build.py`),
-   read https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa, then republish the built file to that URL.
-
-**Billing.** Any model call goes through `scripts/with-console-key.sh`. Under Restate, start the
-service under that script, not the `run` command.
-
-**Cap:** one session, about 5 USD of model spend (estimate). The track ends with the commands and
-their output, or says plainly what did not run and why.
-
-**Leave alone:** the finished run folders under `.artifacts/runs/` and their worktrees.
-
-- A test for every factory change.
-- A branch per change, with `just check` green.
-- A squash PR with the output in the body.
-- A `docs/log.md` entry, the item's `State:` line in `docs/roadmap.md`, and `docs/status.md`
-  updated last.
-
-Report to Oleg in plain English: what ran, what it showed, and what is his to decide. Never ask him
-to approve passing work. What is truly his goes at the end as a short numbered list.
-
-## B. Three factory fixes, in a cloud session (roadmap item 2)
-
-Start in the qa-factory repository. Read CLAUDE.md, then docs/roadmap.md (item 2),
-docs/status.md and the 2026-10-13 entry of docs/log.md. Build only: no model calls, no
-applications cloned, nothing run against linkding or isso. Oleg's plugins are not loaded in a
-cloud session; write a spec per slice and use a general-purpose subagent where delegation helps.
-
-1. **Mutation where mutmut makes no mutants.** The factory skips every `__init__.py`
-   (`factory/steps/verify.py`, the filter on changed files), and mutmut 3.8.0 makes no mutant for
-   most decorated functions or a decorator with an inner function (isso 7e91d59). Mutate non-empty
-   `__init__.py` files; for decorated functions, find what mutmut 3.8.0 can do, from its source and
-   documentation, and fix it, or replace the tool for that case if it cannot be fixed. Record the
-   choice in docs/decisions.md.
-2. **Resume Verify after the spend cap.** When Verify stops at its cap after every check passed,
-   a re-run must keep the passing tests and continue at the readable cases, not start a fresh
-   writer round (`factory/rounds.py`, `factory/steps/verify.py`).
-3. **The developers' tests check judges modified tests too**, not only tests new at head
-   (`factory/checks/devtests.py`).
-
-A factory test for each fix; `just check` green. Push the branch and open the pull request; do
-not merge it. The laptop session that merges it rescans it with the guard's term list (which
-exists only on the laptop) and runs isso's mutation check again on its shipped tests, with no
-writer call, to show mutants for the changed code.
-
-## C. A third application shaped like a small team service (roadmap item 3)
+## Kickoff: a third application shaped like a small team service (roadmap item 3)
 
 Start in ~/dev/qa-factory. Read CLAUDE.md, then docs/adopt.md. That guide is the whole procedure
 (its section 3 now starts with the checklist score and the application's agent file);
@@ -94,38 +27,12 @@ the running app and record the writer's tokens and cost against the bundles run 
 as `docs/research/2026-10-14-agent-friendly-repositories.md` asks; adopt or drop on that number.
 Oleg's answers of 2026-10-14 apply: a public application, chosen here.
 
-## D. Every person point exposed, in a cloud session (roadmap item 4)
-
-Start in the qa-factory repository. Read CLAUDE.md, then docs/roadmap.md (the table "Where a
-person steps in" and item 4), docs/brief.md (the steps table), docs/decisions.md (2026-10-10,
-"stronger models before people": a question can never approve failing work, and passing work
-never waits for a person), and factory/envelope.py, factory/driver.py, factory/steps/verify.py
-(the two gates that exist). Build only: no model calls, no applications cloned. Oleg's plugins are
-not loaded in a cloud session; write a spec per slice and use a general-purpose subagent where
-delegation helps.
-
-1. **One gate contract.** Extend `Gate` with `kind` and the accepted answers; keep `who`,
-   `question`, `context`. Verify's two gates adopt it unchanged in behaviour.
-2. **A gate per step, from the brief.** Frame stops when a criterion cannot be made checkable
-   (the ambiguities it already lists), answer: clarified criteria or proceed. Plan stops when
-   configured or when it reports unknown patterns or risk, answer: approve or an edited plan.
-   Review stops when still `request_changes` after the fix round or when configured, answer:
-   sign off with a note or one more round. Ship stops when configured, answer: approve.
-3. **Correct, not only approve.** An answer may carry a replacement artifact and the step resumes
-   with it. `python -m factory redo <run folder> <step>` reopens a passed step after a person
-   edited its artifact, archiving the later records as earlier rounds.
-4. **Configuration per step.** `gates` in `app.json` or the ticket, per step: `auto`, `model`,
-   `person`. Today's single `gate` field keeps working as `gates.verify`.
-5. **Told, listed, recorded.** A notification when a run stops (a system notification on macOS
-   through `osascript` when available; `notify_url` in the recipe posts the question as JSON).
-   `python -m factory waiting` lists every run under `.artifacts/runs/` that waits, with its
-   question. The answer file requires `by`; the run report shows who answered what and when.
-
-A factory test for each gate with a fake runner, and for the listing, the redo and the
-notification; `just check` green. Push the branch and open the pull request; do not merge it. The
-laptop session that merges it rescans it with the guard's term list and runs the proof: a
-linkding ticket copied with one deliberately vague criterion, `python -m factory run` under
-`scripts/with-console-key.sh`, stops at Frame with the question, is listed by `waiting`, is
-answered with the clarification, and runs `--until plan` (about 0.10 USD, estimated from the
-first run's Frame and Plan). The output goes in docs/log.md and docs/status.md.
-
+What changed in the factory on 2026-10-14 that an onboarding agent meets (all in `docs/adopt.md`):
+`gates.<step>` in the recipe or the ticket (`auto`, `model`, `person`); Frame stops the run when a
+criterion cannot be made checkable or the ticket leaves out the public contract, and the answer
+may carry the clarified ticket; a stopped run is listed by `python -m factory waiting`; the
+answer file needs `by`; decorated functions and `__init__.py` get mutants now, and
+`python -m factory mutation <run folder>` re-runs that check with no model call; a spend cap hit
+after the checks resumes at the readable cases once `caps.usd` is raised. The deployed-instance
+suite (`targets/linkding/deployed/`, section 10 of the guide) is the shape to copy if the third
+application is to be run against its container too; that is optional for this kickoff.

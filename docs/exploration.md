@@ -2,7 +2,8 @@
 
 Proposed 2026-10-10 in answer to Oleg's input of that day (`docs/inputs.md`). **Approved the same
 day** (`docs/decisions.md`): the three tracks run in order, track 1 first. The review surface is
-section 10 onward of https://claude.ai/artifact/6eVbvKyNdsBA7RjXkeq3wa.
+section 10 onward of the architecture page, https://claude.ai/artifact/VLRBAcB5WEatQ4Lh6LsSPL
+(republished 2026-10-14; the earlier link could not be read from that session).
 
 | Track | State |
 |---|---|

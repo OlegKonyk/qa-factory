@@ -124,7 +124,7 @@ Kickoff C.
 
 ### 4. Every person point exposed
 
-State: planned
+State: done (2026-10-14, pull request #27; estimated one cloud session to build and about 1 USD to prove, measured: one laptop session, built by Opus agents in a workflow, the proof run about 0.25 USD)
 
 Added 2026-10-14 from his review. Built on the step envelope (status `needs_person` with a gate),
 so both engines get it; the plain driver keeps exiting with the question, Restate keeps parking
