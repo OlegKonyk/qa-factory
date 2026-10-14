@@ -373,15 +373,15 @@ def test_undecorate_does_not_list_a_lone_staticmethod():
 REWRITE_NOTE = "# Decorators moved here by qa-factory"
 
 
-def _write_meta(cwd: Path, codes: dict) -> None:
-    (cwd / "mutants" / "pkg").mkdir(parents=True, exist_ok=True)
-    (cwd / "mutants" / "pkg" / "mod.py").write_text("")
-    (cwd / "mutants" / "pkg" / "mod.py.meta").write_text(json.dumps({"exit_code_by_key": codes}))
+def _write_meta(cwd: Path, codes: dict, relpath: str = "pkg/mod.py") -> None:
+    (cwd / "mutants" / relpath).parent.mkdir(parents=True, exist_ok=True)
+    (cwd / "mutants" / relpath).write_text("")
+    (cwd / "mutants" / f"{relpath}.meta").write_text(json.dumps({"exit_code_by_key": codes}))
 
 
-def _decorated_head(tmp_path: Path) -> Path:
+def _decorated_head(tmp_path: Path, relpath: str = "pkg/mod.py") -> Path:
     head = tmp_path / "head"
-    (head / "pkg").mkdir(parents=True)
+    (head / relpath).parent.mkdir(parents=True)
     src = (
         "class C:\n"
         "    _lock = 1\n"
@@ -395,7 +395,7 @@ def _decorated_head(tmp_path: Path) -> Path:
         "def f(a):\n"
         "    return a\n"
     )
-    (head / "pkg" / "mod.py").write_text(src)
+    (head / relpath).write_text(src)
     return head
 
 
@@ -445,4 +445,52 @@ def test_run_lists_what_it_left_decorated_and_does_not_fall_back_after_checking_
     assert "undecorate" not in result and result["checked"] == 1
     assert result["left_decorated"] == [
         {"file": "pkg/mod.py", "function": "C.put", "reason": "its decorator names _lock from the class body"}
+    ]
+
+
+@pytest.mark.parametrize(
+    ("relpath", "module"),
+    [
+        ("src/pkg/__init__.py", "pkg"),
+        ("pkg/sub/__init__.py", "pkg.sub"),
+        ("pkg/a.py", "pkg.a"),
+        ("src/pkg/a.py", "pkg.a"),
+        ("source/pkg/a.py", "source.pkg.a"),
+        ("pkg/__init__.py", "pkg"),
+    ],
+)
+def test_module_of_names_a_path_as_mutmut_keys_it(relpath, module):
+    assert mutants.module_of(relpath) == module
+
+
+@pytest.mark.parametrize(
+    ("source_package", "name"),
+    [("src/pkg", "pkg"), ("pkg", "pkg"), ("src/pkg/sub", "pkg.sub")],
+)
+def test_package_module_is_the_import_name_of_the_source_package(source_package, name):
+    assert mutants.package_module(source_package) == name
+
+
+def test_changed_functions_in_a_src_layout_drop_the_src_prefix():
+    head = "def f():\n    pass\n\n\nclass C:\n    def m(self):\n        pass\n"
+    assert mutants.changed_functions(None, head, mutants.module_of("src/pkg/f.py")) == [
+        "pkg.f.x_f__mutmut_*",
+        f"pkg.f.x{mutants.BAR}C{mutants.BAR}m__mutmut_*",
+    ]
+
+
+def test_run_lists_what_it_left_decorated_in_a_src_layout(tmp_path, monkeypatch):
+    relpath = "src/pkg/mod.py"
+    head = _decorated_head(tmp_path, relpath)
+
+    def fake_mutmut(cmd, cwd, **kwargs):
+        # as mutmut 3.8.0 writes them: the .meta keeps the path, the key drops `src.`
+        _write_meta(Path(cwd), {"pkg.mod.x_f__mutmut_1": 1}, relpath)
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    globs = ["pkg.mod.x_f__mutmut_*", f"pkg.mod.x{mutants.BAR}C{mutants.BAR}put__mutmut_*"]
+    result = mutants.run(head, "py", "src/pkg", [relpath], [], globs, tmp_path / "w", [], [], [], {})
+    assert result["left_decorated"] == [
+        {"file": relpath, "function": "C.put", "reason": "its decorator names _lock from the class body"}
     ]

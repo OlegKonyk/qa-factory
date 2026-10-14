@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.checks import lint
+from factory.checks import lint, mutants
 
 SOURCE = """\
 import time
@@ -92,6 +92,17 @@ def test_patching_the_applications_own_code_is_flagged_only_when_the_package_is_
 
     assert "mocks-own-code" not in rules_for(without["findings"])
     assert "mocks-own-code" in rules_for(given["findings"])
+
+
+def test_a_src_layout_package_is_compared_by_its_import_name(tree):
+    # verify.run_lint passes mutants.package_module(source_package), never the path itself
+    assert mutants.package_module("src/bookmarks") == "bookmarks"
+
+    report = lint.run(
+        tree, sys.executable, ["tests/test_gen.py"], app_package=mutants.package_module("src/bookmarks")
+    )
+
+    assert "mocks-own-code" in rules_for(report["findings"])
 
 
 def test_ruff_findings_come_through_with_file_and_line(tree):

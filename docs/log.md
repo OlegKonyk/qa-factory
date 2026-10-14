@@ -8,6 +8,26 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · Module names for a `src/` layout
+
+**Asked.** Roadmap item 3 (a third application) may bring a `src/<package>/` layout, which the
+adoption guide listed as not verified. Spec: `docs/specs/2026-10-14-third-application/s0-src-layout.md`.
+
+**Found (read in the source, not measured on an application).** mutmut 3.8.0 names every mutant by
+the file's path with the suffix dropped, slashes to dots and a leading `src.` stripped
+(`mutmut/utils/format_utils.py`, `get_mutant_name`), while its `.meta` file keeps the path
+(`mutants/src/pkg/views.py.meta`, `mutmut/mutation/data.py`). The factory built module names
+without the stripping in three places: the globs mutmut is told to run (no glob would match, so
+the check would report no mutant checked), the match of functions left decorated, and the package
+name the lint compares mock targets with (the mocks-own-code rule would never fire).
+
+**Built.** `mutants.module_of(path)` and `mutants.package_module(source_package)` in
+`factory/checks/mutants.py`, used for the globs, the left-decorated match, the lint call and the
+survivor source-line lookup in `factory/steps/verify.py`. Paths stay paths everywhere else.
+
+**Measured.** The factory's own tests only (`just check`); nothing has run on a `src/`-layout
+application yet. The onboarding run that follows measures it.
+
 ## 2026-10-14 · The "Now" items built in one session: three fixes, every person point, the deployed run
 
 **Asked.** Oleg: check the roadmap, pick up the first chunks, use workflows for speed, Opus for

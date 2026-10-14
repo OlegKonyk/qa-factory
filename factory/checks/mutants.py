@@ -23,6 +23,10 @@ Facts measured on linkding at commit 0490013 with mutmut 3.8.0:
   body is a decorated inner function (`@wraps(func) def wrapper`) still gets none.
 - In `pkg/__init__.py` the key drops `__init__`: `pkg.x_f__mutmut_1` (mutmut's `get_mutant_name`;
   measured on isso `isso/utils/__init__.py`).
+- A leading `src.` is stripped from the module part of the key: `src/pkg/views.py` gives
+  `pkg.views.x_f__mutmut_1` (read in `mutmut/utils/format_utils.py`, `get_mutant_name`; not measured
+  on an application). The `.meta` file keeps the path: `mutants/src/pkg/views.py.meta`
+  (`mutmut/mutation/data.py`).
 """
 
 import ast
@@ -374,9 +378,24 @@ def _symbol_of(mutant_key: str) -> tuple[str, str]:
     return mangled, mangled[2:] if mangled.startswith("x_") else mangled
 
 
-def _module_of(relpath: str) -> str:
-    module = relpath[:-3].replace("/", ".")
-    return module[: -len(".__init__")] if module.endswith(".__init__") else module
+def _dotted(relpath: str) -> str:
+    """A path relative to the repository root as dotted parts, a first `src` component dropped."""
+    parts = relpath.split("/")
+    if parts[0] == "src" and len(parts) > 1:
+        parts = parts[1:]
+    return ".".join(parts)
+
+
+def module_of(relpath: str) -> str:
+    """The dotted module of a `.py` path as mutmut 3.8.0 keys its mutants (`get_mutant_name`): a
+    leading `src.` stripped, a trailing `.__init__` collapsed (`src/pkg/a.py` -> `pkg.a`)."""
+    module = _dotted(relpath.removesuffix(".py"))
+    return module.removesuffix(".__init__")
+
+
+def package_module(source_package: str) -> str:
+    """The import name of the recipe's `source_package` directory (`src/pkg` -> `pkg`)."""
+    return _dotted(source_package)
 
 
 def _prepare(head_tree, tree, only_mutate, config, pre_create_dirs, exclude_copy, rewrite):
@@ -516,7 +535,7 @@ def run(
     for relpath, qualified, why in kept:
         cls, _, name = qualified.rpartition(".")
         mangled = f"x{BAR}{cls}{BAR}{name}" if cls else f"x_{name}"
-        if any(fnmatchcase(f"{_module_of(relpath)}.{mangled}__mutmut_", g) for g in globs):
+        if any(fnmatchcase(f"{module_of(relpath)}.{mangled}__mutmut_", g) for g in globs):
             left_decorated.append({"file": relpath, "function": qualified, "reason": why})
     result = {
         "status": status,
