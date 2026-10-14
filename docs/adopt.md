@@ -32,11 +32,12 @@ Pointing the factory at a work repository is Oleg's call, not a session's (`CLAU
 | An application with no Python browser tests (API only) | built 2026-10-13, measured on isso (one ticket shipped) | `tests/test_verify_step.py`, the isso run |
 | A helper file not named `helpers.py` (`test_helpers`) | built 2026-10-13, measured on isso | `targets/isso/app.json` |
 | Mutation on decorated functions or code in `__init__.py` | built 2026-10-14, measured on isso; a decorator whose body is a decorated inner function still gets none | section 7 |
-| The same tests run against a deployed environment | not built | track 3, `docs/next-session.md` |
+| The same cases run against a deployed instance, data through the public API | built 2026-10-14, measured on linkding from its Docker image (4 of 4 cases); a session writes the thin suite, not a step | section 10, `docs/exploration.md` track 3 |
 | Tests run against mocked dependencies, then the deployed run | not built; nothing decided | `docs/inputs.md` 2026-10-13 |
 | A pull request to the application's repository instead of a local commit | not built | `docs/architecture.md`, point F |
 | The factory writing the change itself (an agent-written Implement) | not built | the ticket points at a finished commit |
-| Approval on a pull request; notifications | not built | approval is a file in the run folder |
+| A gate at every step: stop, tell, list, answer, correct | built 2026-10-14, proved on one ticket through Plan | section 6, `docs/runs/2026-10-14-linkding-sort-by-modified-vague/` |
+| Approval on a pull request | not built | approval is a file in the run folder |
 | A `src/` layout for the source package | not verified | section 4, `source_package` |
 | Anything not Python: the checks read pytest tracebacks and run mutmut | not built | |
 
@@ -367,7 +368,8 @@ An agent onboarding an application reports these, each with the command and its 
 ## 9. What is not covered
 
 The factory has not run on a bug-fix ticket, on a service with external dependencies, on a `src/`
-layout, on Windows, on more than one ticket at a time, or against a deployed environment. Each is
+layout, on Windows, or on more than one ticket at a time; against a deployed instance only one
+feature of linkding has run (section 10). Each is
 a run away, not a design away; the first run of each will find what this guide does not say.
 
 ## 10. The same cases against a deployed instance
