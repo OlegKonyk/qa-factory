@@ -3,6 +3,29 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-14 · Would deepeval help?
+
+> https://github.com/confident-ai/deepeval Hey, I found this project looks pretty cool. Do you
+> think we can get some benefit from adopting it?
+
+How it was read: a question about one named tool, answered in the session with the factory's
+rules applied (`CLAUDE.md` rules 1, 2 and 5: no bake-off against other tools, research short,
+every claim labelled). deepeval (4.2.8, 2026-10-02, Apache 2.0, Python 3.9 to 3.14; documentation
+only, not installed here) is a test framework for applications that call a language model: a test
+is an input, the application's output and a metric, most metrics a model's judgement of that
+output against a threshold, run through its own pytest runner. Two reasons it brings nothing
+today: none of the factory's applications (linkding, isso, gafaelfawr) has a language-model
+feature, so there is no output for its metrics to judge; and using it to grade the generated tests
+or the readable cases would put a model's opinion where `docs/trust.md` says a deterministic check
+decides, the scorer machinery `docs/reference/lab.md` names as what sank the lab. Its place is
+later, if a target application gains a language-model feature: then it is the obvious current tool
+for that feature's own tests, and the factory's checks (revert, mutation, lint, suite) still decide
+whether those tests prove anything. Notes for that day: telemetry is on by default and goes to
+PostHog, off with `DEEPEVAL_TELEMETRY_OPT_OUT=1`; its cloud service is optional and off without a
+login (both from its data privacy page, documentation only).
+
+What it changed: nothing. The decision is his; the recommendation is no for now.
+
 ## 2026-10-14 · Check progress and continue
 
 > Just wanted to check on the progress: where we are, how far we got, anything that is blocking
