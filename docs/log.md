@@ -8,6 +8,46 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · The roadmap reviewed: person points, Restate, the research
+
+**Asked.** Oleg (`docs/inputs.md`, second entry of 2026-10-14): review the roadmap; every point
+where a person corrects or approves must be exposed; what Restate is and whether it is needed;
+the research on software factories and AI SDLC practice he never saw, and the latest on it.
+
+**Done.** No factory code, as asked (rule 4's exception). Three things:
+
+- **The person points.** The brief's seven "when a person steps in" rows were set against the
+  code: only Verify raises a gate (`factory/steps/verify.py`, two places: the stronger model
+  cannot decide; `gate: person`). Frame lists ambiguities and goes on, Plan never stops and a plan
+  cannot be edited and resumed, Review fails after its fix round, Ship commits locally. Nobody is
+  notified, nothing lists waiting runs, an answer can approve or refuse but not correct. Written as
+  a table in `docs/roadmap.md` and a diagram on its page; closed by a new item 4 in Now (one gate
+  contract, a gate per step from the brief, correct as well as approve, per-step configuration,
+  notification, listing, the answerer recorded), kickoff D in `docs/next-session.md`. Later items
+  renumbered by one.
+- **Restate.** Explained in one paragraph in `docs/roadmap.md` and on the page, with what track 2
+  measured and its footprint (205 lines of service, 45 of stubs, 396 of tests, one dependency, a
+  server and a service process). Recommendation unchanged: behind the flag until item 6; removal
+  is his question 4.
+- **The research.** It exists only in the old lab (`~/dev/assay/docs/research/`, five files,
+  fetched 2026-10-06 to 08) and was never shown to him; `docs/reference/lab.md` had it in one row.
+  A fresh pass was run with five web searches and eleven page fetches, no agents (rule 7):
+  `docs/research/2026-10-14-factory-landscape.md`, six points, each claim labelled checked,
+  documentation only, or not verified. The one finding that changes the roadmap: the published
+  factories put the person at specification and merge, the two gates the factory lacks.
+
+**Then, his third input of the day:** always portable to a generic application on another machine.
+Filed, made rule 9 of `CLAUDE.md`, and a portability table added to `docs/roadmap.md` with what
+is not yet true (no full run off this Mac; the key from the Keychain here).
+
+**What failed.** The three links recorded as published pages (architecture, trust, roadmap) could
+not be read from this session: the Artifact tool answered "not found" for the roadmap and the
+architecture pages, and the account's list of 45 artifacts holds none of the three. The roadmap
+page was republished at a new link (`docs/status.md`). Whether the earlier pages were published
+from another account is for Oleg to say; the built files are in `docs/pages/` either way.
+
+**Left open.** His four questions (`docs/status.md`). Nothing was run against an application.
+
 ## 2026-10-14 · The roadmap
 
 **Asked.** Oleg (`docs/inputs.md`, 2026-10-14): discuss the roadmap and the next work items.

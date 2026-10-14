@@ -90,13 +90,14 @@
 </style>
 
 <div class="wrap">
-  <div class="eyebrow">QA factory · roadmap · 14 October 2026</div>
+  <div class="eyebrow">QA factory · roadmap · 14 October 2026 · revised after your review</div>
   <h1>What the factory builds next</h1>
-  <p class="lede">The QA part runs end to end on two real open-source applications and has shipped five tickets. This page lays out what comes next, in the order I recommend, and the three choices that are yours.</p>
+  <p class="lede">The QA part runs end to end on two real open-source applications and has shipped five tickets. This page lays out what comes next, in the order I recommend, and the four choices that are yours. Revised the same day after your review: where a person steps in, what Restate is for, and what the published practice of 2026 says.</p>
 
   <div class="answer">
-    <p><strong>Recommended: make it adoptable by a real service first.</strong> Run the generated tests against a running copy of the application, fix three gaps the last runs found, and onboard a third application shaped like a small team service with a bug-fix ticket. About 11 USD of model spend and three sessions, one of them a cloud session (estimated).</p>
+    <p><strong>Recommended: make it adoptable by a real service first.</strong> Run the generated tests against a running copy of the application, fix three gaps the last runs found, onboard a third application shaped like a small team service with a bug-fix ticket, and expose every point where a person approves or corrects. About 12 USD of model spend and four sessions, two of them cloud sessions (estimated).</p>
     <p><strong>Then the whole factory:</strong> an agent writes the change itself, and Ship opens a pull request instead of a local commit.</p>
+    <p><strong>Standing rule, from your note today:</strong> at every merge this repository can be cloned on another machine and pointed at a generic Python application by an agent that reads the adoption guide (<code>docs/adopt.md</code>) and nothing else. That guide was tested that way on 13 October. Not yet true, said plainly: no full ticket run off this Mac yet, and the billing key comes from this Mac's Keychain here and an environment variable elsewhere.</p>
     <p>Every cost on this page is an estimate from the runs so far. Nothing on it has been built yet.</p>
   </div>
 
@@ -154,10 +155,10 @@
       <path class="arrow" d="M658,79 L668,79"/>
 
       <!-- item tags under the steps -->
-      <rect class="tag" x="39"  y="126" width="40" height="20" rx="10"/><text class="tagtext" x="59"  y="140" text-anchor="middle">6</text>
-      <rect class="tag" x="369" y="126" width="40" height="20" rx="10"/><text class="tagtext" x="389" y="140" text-anchor="middle">4</text>
+      <rect class="tag" x="39"  y="126" width="40" height="20" rx="10"/><text class="tagtext" x="59"  y="140" text-anchor="middle">7</text>
+      <rect class="tag" x="369" y="126" width="40" height="20" rx="10"/><text class="tagtext" x="389" y="140" text-anchor="middle">5</text>
       <rect class="tag" x="479" y="126" width="40" height="20" rx="10"/><text class="tagtext" x="499" y="140" text-anchor="middle">2</text>
-      <rect class="tag" x="699" y="126" width="40" height="20" rx="10"/><text class="tagtext" x="719" y="140" text-anchor="middle">5</text>
+      <rect class="tag" x="699" y="126" width="40" height="20" rx="10"/><text class="tagtext" x="719" y="140" text-anchor="middle">6</text>
 
       <!-- row 2: what is not built at all -->
       <text class="head" x="10" y="184">NOT BUILT</text>
@@ -170,7 +171,7 @@
       <rect class="box none" x="10" y="196" width="428" height="56" rx="5"/>
       <text x="26" y="219">Learn: each run's repairs and findings become rule edits</text>
       <text class="lbl" x="26" y="238">proposed by pull request; the knowledge base starts here</text>
-      <rect class="tag" x="398" y="262" width="40" height="20" rx="10"/><text class="tagtext" x="418" y="276" text-anchor="middle">7</text>
+      <rect class="tag" x="398" y="262" width="40" height="20" rx="10"/><text class="tagtext" x="418" y="276" text-anchor="middle">8</text>
     </svg>
     </div>
     <div class="legend">
@@ -178,14 +179,87 @@
       <span><i class="sw part"></i>works, but not yet the factory's own</span>
       <span><i class="sw none"></i>not built</span>
     </div>
-    <figcaption>Item 2 sits under Verify because two of its fixes are there: mutation testing cannot reach some changed code, and a run stopped at its spend cap cannot resume. Item 3 (a third application) and items 8 and 9 (scale, other languages) cut across every step.</figcaption>
+    <figcaption>Item 2 sits under Verify because two of its fixes are there: mutation testing cannot reach some changed code, and a run stopped at its spend cap cannot resume. Item 3 (a third application), item 4 (every person point) and items 9 and 10 (scale, other languages) cut across every step.</figcaption>
+  </figure>
+
+  <h2>Where a person steps in</h2>
+  <p>The brief names one point per step where a person corrects or approves. Your review asks that all of them exist. The diagram shows which do: a run stops there, the person is told, they answer, the answer is recorded.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 780 250" role="img" aria-label="Seven steps in a row with a person marker under each. Only Verify's markers are built: one when the stronger model cannot decide, one when a rule asks for a person. Frame, Plan, Review and Ship have no stop at all. Ticket waits for item 7, Implement for item 5.">
+      <!-- steps -->
+      <rect class="box" x="10"  y="20" width="98" height="44" rx="5"/><text x="59"  y="47" text-anchor="middle">Ticket</text>
+      <rect class="box" x="120" y="20" width="98" height="44" rx="5"/><text x="169" y="47" text-anchor="middle">Frame</text>
+      <rect class="box" x="230" y="20" width="98" height="44" rx="5"/><text x="279" y="47" text-anchor="middle">Plan</text>
+      <rect class="box" x="340" y="20" width="98" height="44" rx="5"/><text x="389" y="47" text-anchor="middle">Implement</text>
+      <rect class="box" x="450" y="20" width="98" height="44" rx="5"/><text x="499" y="47" text-anchor="middle">Verify</text>
+      <rect class="box" x="560" y="20" width="98" height="44" rx="5"/><text x="609" y="47" text-anchor="middle">Review</text>
+      <rect class="box" x="670" y="20" width="98" height="44" rx="5"/><text x="719" y="47" text-anchor="middle">Ship</text>
+      <path class="arrow" d="M108,42 L118,42"/><path class="arrow" d="M218,42 L228,42"/><path class="arrow" d="M328,42 L338,42"/>
+      <path class="arrow" d="M438,42 L448,42"/><path class="arrow" d="M548,42 L558,42"/><path class="arrow" d="M658,42 L668,42"/>
+
+      <!-- the person point under each step -->
+      <text class="head" x="10" y="92">THE PERSON POINT, FROM THE BRIEF</text>
+      <rect class="box none" x="10"  y="102" width="98" height="92" rx="5"/>
+      <text class="lbl" x="59"  y="124" text-anchor="middle">writes or fixes</text>
+      <text class="lbl" x="59"  y="138" text-anchor="middle">the ticket</text>
+      <text class="lbl" x="59"  y="166" text-anchor="middle">no stop</text>
+      <text class="lbl" x="59"  y="180" text-anchor="middle">(item 7)</text>
+
+      <rect class="box none" x="120" y="102" width="98" height="92" rx="5"/>
+      <text class="lbl" x="169" y="124" text-anchor="middle">criteria unclear:</text>
+      <text class="lbl" x="169" y="138" text-anchor="middle">clarifies</text>
+      <text class="lbl" x="169" y="166" text-anchor="middle">lists them,</text>
+      <text class="lbl" x="169" y="180" text-anchor="middle">goes on</text>
+
+      <rect class="box none" x="230" y="102" width="98" height="92" rx="5"/>
+      <text class="lbl" x="279" y="124" text-anchor="middle">plan risk:</text>
+      <text class="lbl" x="279" y="138" text-anchor="middle">approves, adjusts</text>
+      <text class="lbl" x="279" y="166" text-anchor="middle">no stop,</text>
+      <text class="lbl" x="279" y="180" text-anchor="middle">no edit</text>
+
+      <rect class="box part" x="340" y="102" width="98" height="92" rx="5"/>
+      <text class="lbl" x="389" y="124" text-anchor="middle">agent stuck:</text>
+      <text class="lbl" x="389" y="138" text-anchor="middle">takes over</text>
+      <text class="lbl" x="389" y="166" text-anchor="middle">developers' commit</text>
+      <text class="lbl" x="389" y="180" text-anchor="middle">(item 5)</text>
+
+      <rect class="box done" x="450" y="102" width="98" height="92" rx="5"/>
+      <text class="lbl" x="499" y="124" text-anchor="middle">too many rounds,</text>
+      <text class="lbl" x="499" y="138" text-anchor="middle">environment</text>
+      <text class="lbl" x="499" y="166" text-anchor="middle">built: 2 gates,</text>
+      <text class="lbl" x="499" y="180" text-anchor="middle">file or HTTP answer</text>
+
+      <rect class="box none" x="560" y="102" width="98" height="92" rx="5"/>
+      <text class="lbl" x="609" y="124" text-anchor="middle">impasse, risk:</text>
+      <text class="lbl" x="609" y="138" text-anchor="middle">signs off</text>
+      <text class="lbl" x="609" y="166" text-anchor="middle">one fix round,</text>
+      <text class="lbl" x="609" y="180" text-anchor="middle">then fails</text>
+
+      <rect class="box none" x="670" y="102" width="98" height="92" rx="5"/>
+      <text class="lbl" x="719" y="124" text-anchor="middle">by risk tier:</text>
+      <text class="lbl" x="719" y="138" text-anchor="middle">approves merge</text>
+      <text class="lbl" x="719" y="166" text-anchor="middle">local commit</text>
+      <text class="lbl" x="719" y="180" text-anchor="middle">(item 6)</text>
+
+      <text class="head" x="10" y="226">MISSING AT EVERY STEP: a notification · a list of waiting runs · correct and resume</text>
+      <rect class="tag" x="728" y="212" width="40" height="20" rx="10"/><text class="tagtext" x="748" y="226" text-anchor="middle">4</text>
+    </svg>
+    </div>
+    <div class="legend">
+      <span><i class="sw done"></i>stops, is answered, is recorded</span>
+      <span><i class="sw part"></i>nothing to stop for yet</span>
+      <span><i class="sw none"></i>never stops</span>
+    </div>
+    <figcaption>Four of the seven points never stop. The published practice of 2026 puts a person at the same two fixed gates, specification (Frame) and merge (Ship), with every loop between them capped and automatic; those two are the ones missing here. Item 4 closes all of it.</figcaption>
   </figure>
 
   <h2>The order</h2>
 
   <figure>
     <div class="scroll">
-    <svg viewBox="0 0 780 320" role="img" aria-label="Three columns. Now: items 1, 2 and 3. Next: items 4 and 5. Later: items 6 to 9. A dashed line marks that question 1 can swap Now and Next; item 6 notes that question 3 can move it into Now.">
+    <svg viewBox="0 0 780 400" role="img" aria-label="Three columns. Now: items 1 to 4. Next: items 5 and 6. Later: items 7 to 10. A dashed line marks that question 1 can swap Now and Next; item 7 notes that question 3 can move it into Now.">
       <text class="head" x="10"  y="20">NOW · RECOMMENDED FIRST</text>
       <text class="head" x="272" y="20">NEXT · THE WHOLE FACTORY</text>
       <text class="head" x="534" y="20">LATER · WHEN A RUN NEEDS IT</text>
@@ -203,31 +277,36 @@
       <text x="24" y="216">3  A service-shaped third app</text>
       <text class="lbl" x="24" y="238">laptop · about 6 USD, est.</text>
 
+      <rect class="box done" x="10" y="268" width="236" height="66" rx="5"/>
+      <text x="24" y="294">4  Every person point exposed</text>
+      <text class="lbl" x="24" y="316">cloud session · ~1 USD to prove, est.</text>
+
       <!-- Next -->
       <rect class="box part" x="272" y="34" width="236" height="66" rx="5"/>
-      <text x="286" y="60">4  An agent writes the change</text>
+      <text x="286" y="60">5  An agent writes the change</text>
       <text class="lbl" x="286" y="82">~10 USD a ticket to run, est.</text>
 
       <rect class="box part" x="272" y="112" width="236" height="66" rx="5"/>
-      <text x="286" y="138">5  Ship as a pull request</text>
+      <text x="286" y="138">6  Ship as a pull request</text>
       <text class="lbl" x="286" y="160">1 session · little model spend</text>
 
       <!-- Later -->
       <rect class="box" x="534" y="34" width="236" height="48" rx="5"/>
-      <text x="548" y="55">6  Tickets from a tracker</text>
+      <text x="548" y="55">7  Tickets from a tracker</text>
       <text class="forklbl" x="548" y="73">question 3 can move it to Now</text>
       <rect class="box" x="534" y="92" width="236" height="48" rx="5"/>
-      <text x="548" y="121">7  Learn from each run</text>
+      <text x="548" y="121">8  Learn from each run</text>
       <rect class="box" x="534" y="150" width="236" height="48" rx="5"/>
-      <text x="548" y="179">8  More tickets at once</text>
+      <text x="548" y="171">9  More tickets at once</text>
+      <text class="forklbl" x="548" y="189">question 4: Restate stays or goes</text>
       <rect class="box" x="534" y="208" width="236" height="48" rx="5"/>
-      <text x="548" y="237">9  Apps not in Python</text>
+      <text x="548" y="237">10  Apps not in Python</text>
 
       <!-- the fork between Now and Next -->
-      <path class="fork" d="M128,262 L128,282 L390,282 L390,184"/>
+      <path class="fork" d="M128,340 L128,360 L390,360 L390,184"/>
       <path class="fork" d="M390,186 L384,196 M390,186 L396,196"/>
-      <path class="fork" d="M128,264 L122,274 M128,264 L134,274"/>
-      <text class="forklbl" x="259" y="304" text-anchor="middle">question 1: you can swap Now and Next</text>
+      <path class="fork" d="M128,342 L122,352 M128,342 L134,352"/>
+      <text class="forklbl" x="259" y="382" text-anchor="middle">question 1: you can swap Now and Next</text>
     </svg>
     </div>
     <figcaption>Why this order: your service and the meetings at work need the factory to be adoptable, and an agent-written change is easier to trust once the checks have handled a bug fix and a service with outside dependencies. Later items wait for a run that shows the need, by the repository's own rule.</figcaption>
@@ -269,7 +348,20 @@
     </div>
 
     <div class="item">
-      <h3><span class="n">4</span>An agent writes the change itself <span class="pill next">next</span></h3>
+      <h3><span class="n">4</span>Every person point exposed <span class="pill now">now</span></h3>
+      <p>Added from your review. Built on the step contract every step already returns (a status, the files it made, and an optional question for a person), so the plain driver and Restate both get every gate.</p>
+      <dl>
+        <dt>Gates</dt><dd>One shape for every question: its kind, who answers, the question, the facts, and the answers it accepts. Frame stops when a criterion cannot be made checkable; Plan when a rule asks or the plan reports unknown patterns or risk; Review when the findings still stand after the fix round; Ship when a rule asks; Verify as today; Implement once item 5 makes it an agent's change.</dd>
+        <dt>Correct</dt><dd>An answer may carry a replacement: a clarified criterion, an edited plan, a test case to drop. A command reopens a passed step after you edit its artifact, so a correction made later runs through without a fresh ticket.</dd>
+        <dt>Configure</dt><dd>Per step, in the application's recipe or the ticket: automatic, the stronger model decides first, or a person. Replaces today's single on-or-off flag.</dd>
+        <dt>Tell, list, record</dt><dd>A notification when a run waits (this laptop, or a URL in the recipe). A command that lists every waiting run with its question. The answer names who gave it; the run report shows who answered what, when, and the note.</dd>
+        <dt>Done when</dt><dd>Every gate has a factory test, and a ticket with one deliberately vague criterion stops at Frame, is listed, is answered with the clarification, and runs through.</dd>
+        <dt>Cost</dt><dd>One cloud session to build, no model spend; one short run on the laptop to prove it, about 1 USD (estimated).</dd>
+      </dl>
+    </div>
+
+    <div class="item">
+      <h3><span class="n">5</span>An agent writes the change itself <span class="pill next">next</span></h3>
       <dl>
         <dt>Builds</dt><dd>Implement becomes an agent that writes the change test-first from Frame and Plan. In parallel, a separate session writes the acceptance tests from the ticket without seeing the change (built already). They meet at the deterministic checks; failures go back to Implement a capped number of times, with the stronger model consulted before a person.</dd>
         <dt>Known answer</dt><dd>Run it on tickets that already shipped. The developers' real commit and its tests are hidden from every session; after the change is written, the developers' tests run against the agent's code. That is a deterministic check of the agent's change, not a score.</dd>
@@ -278,19 +370,19 @@
     </div>
 
     <div class="item">
-      <h3><span class="n">5</span>Ship as a pull request, approve on it <span class="pill next">next</span></h3>
+      <h3><span class="n">6</span>Ship as a pull request, approve on it <span class="pill next">next</span></h3>
       <dl>
-        <dt>Builds</dt><dd>Ship pushes the ticket's test branch to a fork on your GitHub account and opens a pull request with the readable cases and the run report in its body. When a rule asks for a person, the pull request's approval is the answer. A notification when the factory waits for a person.</dd>
+        <dt>Builds</dt><dd>Ship pushes the ticket's test branch to a fork on your GitHub account and opens a pull request with the readable cases and the run report in its body. When the Ship gate asks for a person, the pull request's approval is the answer and the notification of item 4 carries its link. This is the merge gate, the one fixed human gate the published practice keeps besides the specification.</dd>
         <dt>Cost</dt><dd>One session, little model spend (estimated).</dd>
       </dl>
     </div>
   </div>
 
   <h3>Later, when a run shows the need</h3>
-  <ol class="later" start="6">
+  <ol class="later" start="7">
     <li><strong>Tickets from an issue tracker,</strong> with a check in Frame that sends a ticket back when it does not state the public contract: field names, values, labels, routes.</li>
-    <li><strong>Learn from each run:</strong> escalations, review findings and repairs proposed as edits to the strategy rule and the prompts, by pull request.</li>
-    <li><strong>More tickets at once:</strong> Restate as the default engine, test selection when a suite gets slow, quarantine for flaky tests.</li>
+    <li><strong>Learn from each run:</strong> escalations, review findings, answers at the gates and repairs proposed as edits to the strategy rule and the prompts, by pull request.</li>
+    <li><strong>More tickets at once:</strong> a durable engine as the default (Restate, or Temporal if that is what work runs on), test selection when a suite gets slow, quarantine for flaky tests.</li>
     <li><strong>Applications not in Python.</strong> The checks read pytest output and run mutmut.</li>
   </ol>
 
@@ -298,13 +390,32 @@
   <ul>
     <li>Comparing writer models to lower the cost per ticket (about 5.5 USD, measured). The repository's rules forbid comparisons you did not ask for.</li>
     <li>Mock machinery before a service with a real outside dependency needs it.</li>
-    <li>A dashboard beyond Restate's own UI and the factory's run report.</li>
+    <li>A dashboard beyond Restate's own UI, the factory's run report and the waiting-runs listing of item 4.</li>
+    <li>A protocol language for the process, GitHub Agent HQ, Claude Code routines, the Temporal harness: looked at on 14 October, recorded with dates, none needed for the next step.</li>
   </ul>
+
+  <h2>Restate: what it is, and whether it is needed</h2>
+  <p>Restate is a durable-execution engine: one server program that keeps a journal of every step a run takes. A run that crashes resumes at the step it was in. A run that waits for a person parks at no cost and wakes on one HTTP call. It stands in for the role Temporal has in your team's backbone; it was chosen for the trial on 10 October because it is one process and one install, where Temporal is several processes plus a database, and the Temporal harness your team saw is still, by its own README, "very early and experimental" at version 0.6.0 with no Claude Code integration.</p>
+  <p><strong>What it gave, measured on 12 October:</strong> one real ticket end to end, a run killed mid-Verify that resumed at Verify, a gate that waited across restarts, a page per run. <strong>What it did not:</strong> the QA evidence (the run report covers it), a list view that shows a waiting run as "Running", and it ignores a normal stop signal. It holds about 250 lines of service code and 400 of tests, one dependency, and one more pair of processes to keep running. The plain driver gets the same result by exiting with the question and being run again.</p>
+  <div class="answer">
+    <p><strong>Is it needed? Not for one ticket at a time on one laptop.</strong> It earns its keep when runs wait for people for days and there are several at once, which is exactly what item 4 creates and item 9 scales. Recommended: keep it behind its flag, build item 4 on the step contract so both engines get every gate, and pick the default engine when item 6 puts approvals on pull requests. Removing it is a one-session chore, as cheap later as now (question 4).</p>
+  </div>
+
+  <h2>What the published practice says, 14 October 2026</h2>
+  <p>You had never seen the earlier research: it lives only in the old lab, written on 6 to 8 October for its comparisons, and was never put in front of you. It covers how companies have a model write tests, how regressions run when agents write code, factory front-ends, deterministic test layers, and what the QA role becomes. It does not cover how a factory is run as a whole. A fresh pass on that, with every claim labelled checked, documentation only, or not verified, is <code>docs/research/2026-10-14-factory-landscape.md</code>. Its six points:</p>
+  <ol>
+    <li><strong>The person sits at two fixed gates, specification and merge; every loop between is capped and automatic.</strong> Dropbox (about 1 in 12 pull requests from its agent platform; "a human makes the final judgment before any code reaches production", checked), Stripe (Slack message to reviewed pull request, about 1,300 a week, not verified), a vendor's factory guide (specification approval and merge as "the two human gates", documentation only). Here: the two gates the factory lacks.</li>
+    <li><strong>A process in prompts is not enforced; a process run as code is.</strong> A paper under review: "process encoded in prompts is flexible but unenforceable"; the same method run as a validated process gained 14 to 22 points on SWE-bench Verified (checked, the authors' numbers). A second paper: "execution grants no acceptance authority" (checked). Here: the driver and the deterministic checks are that enforcement; nothing to change.</li>
+    <li><strong>Durable execution is the common answer to a run that waits.</strong> Temporal, Restate and others journal the steps and park the wait (vendor blogs, not verified; Restate's own documentation checked). Here: nothing changed since October 8; the engine's value rises with gates, not tickets.</li>
+    <li><strong>The pull request is the approval surface; the code host is becoming the front.</strong> GitHub Agent HQ: issue to agent to draft pull request to a person's review, with organisation-wide policies and audit logs (checked). Here: item 6 is the right destination.</li>
+    <li><strong>Agent-written tests are verified by making them kill mutants, in every published account.</strong> Uber's generator validates with mutation testing (checked); an adversarial test-versus-mutant loop finds 8.56 % more faults than the best model-only method (checked, the authors' numbers). Here: the revert check plus mutmut is the published practice; the adversarial loop is a candidate for item 8.</li>
+    <li><strong>Measure delivery, not volume.</strong> Throughput up and stability down in the 2025 DORA report; experienced developers 19 % slower in one trial; ten reviewers wrote 61 % of comments on 878 agent pull requests at Microsoft (not verified here except the last, checked in the lab). Here: the person must not become the bottleneck; passing work is approved by the factory.</li>
+  </ol>
 
   <h2>Yours to decide</h2>
 
   <div class="q">
-    <p><strong>1. Which comes first?</strong> Make it adoptable by a real service (items 1 to 3), or an agent writing the change itself (item 4).</p>
+    <p><strong>1. Which comes first?</strong> Make it adoptable by a real service (items 1 to 4), or an agent writing the change itself (item 5).</p>
     <p class="rec">Recommended: adoptable first. It is what your service and the meetings need. Answer "adopt" or "agent".</p>
   </div>
   <div class="q">
@@ -313,8 +424,12 @@
   </div>
   <div class="q">
     <p><strong>3. Tickets at work.</strong> Will they state the public contract (field names, values, labels, routes) before coding starts?</p>
-    <p class="rec">If not, item 6 moves into Now, because tests written without seeing the change need that contract. Answer "yes" or "no".</p>
+    <p class="rec">If not, item 7 moves into Now, because tests written without seeing the change need that contract. Answer "yes" or "no".</p>
+  </div>
+  <div class="q">
+    <p><strong>4. Restate.</strong> Keep it behind its flag until item 6, or remove it now?</p>
+    <p class="rec">Recommended: keep. Answer "keep" or "remove".</p>
   </div>
 
-  <p class="meta">Source of record: docs/roadmap.md in the qa-factory repository, with docs/status.md, docs/log.md and docs/adopt.md (what is ready). Costs are estimates; the runs' measured numbers are in docs/runs/.</p>
+  <p class="meta">Source of record: docs/roadmap.md in the qa-factory repository, with docs/status.md, docs/log.md, docs/adopt.md (what is ready) and docs/research/2026-10-14-factory-landscape.md (the sources). Costs are estimates; the runs' measured numbers are in docs/runs/.</p>
 </div>

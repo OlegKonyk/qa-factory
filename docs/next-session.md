@@ -1,8 +1,9 @@
 # The next session
 
 Paste one of these as the first message of the next session. They follow the order of
-`docs/roadmap.md` (items 1, 2 and 3); if Oleg puts an agent writing the change first (question 1
-there), the kickoff for that is written then. B runs in a cloud session and can run beside A or C.
+`docs/roadmap.md` (items 1 to 4); if Oleg puts an agent writing the change first (question 1
+there), the kickoff for that is written then. B and D run in a cloud session and can run beside
+A or C.
 
 ## A. Run the tests against a running application (roadmap item 1)
 
@@ -85,3 +86,39 @@ a web API service (FastAPI or similar), a `src/` layout, a database run in Docke
 one outside HTTP service it calls. Its ticket is a bug fix from the application's own history,
 written blind. The outside service is mocked inside the application's suite; build mock machinery
 only if this run needs it, and record what keeping the mock reliable took.
+
+## D. Every person point exposed, in a cloud session (roadmap item 4)
+
+Start in the qa-factory repository. Read CLAUDE.md, then docs/roadmap.md (the table "Where a
+person steps in" and item 4), docs/brief.md (the steps table), docs/decisions.md (2026-10-10,
+"stronger models before people": a question can never approve failing work, and passing work
+never waits for a person), and factory/envelope.py, factory/driver.py, factory/steps/verify.py
+(the two gates that exist). Build only: no model calls, no applications cloned. Oleg's plugins are
+not loaded in a cloud session; write a spec per slice and use a general-purpose subagent where
+delegation helps.
+
+1. **One gate contract.** Extend `Gate` with `kind` and the accepted answers; keep `who`,
+   `question`, `context`. Verify's two gates adopt it unchanged in behaviour.
+2. **A gate per step, from the brief.** Frame stops when a criterion cannot be made checkable
+   (the ambiguities it already lists), answer: clarified criteria or proceed. Plan stops when
+   configured or when it reports unknown patterns or risk, answer: approve or an edited plan.
+   Review stops when still `request_changes` after the fix round or when configured, answer:
+   sign off with a note or one more round. Ship stops when configured, answer: approve.
+3. **Correct, not only approve.** An answer may carry a replacement artifact and the step resumes
+   with it. `python -m factory redo <run folder> <step>` reopens a passed step after a person
+   edited its artifact, archiving the later records as earlier rounds.
+4. **Configuration per step.** `gates` in `app.json` or the ticket, per step: `auto`, `model`,
+   `person`. Today's single `gate` field keeps working as `gates.verify`.
+5. **Told, listed, recorded.** A notification when a run stops (a system notification on macOS
+   through `osascript` when available; `notify_url` in the recipe posts the question as JSON).
+   `python -m factory waiting` lists every run under `.artifacts/runs/` that waits, with its
+   question. The answer file requires `by`; the run report shows who answered what and when.
+
+A factory test for each gate with a fake runner, and for the listing, the redo and the
+notification; `just check` green. Push the branch and open the pull request; do not merge it. The
+laptop session that merges it rescans it with the guard's term list and runs the proof: a
+linkding ticket copied with one deliberately vague criterion, `python -m factory run` under
+`scripts/with-console-key.sh`, stops at Frame with the question, is listed by `waiting`, is
+answered with the clarification, and runs `--until plan` (about 0.10 USD, estimated from the
+first run's Frame and Plan). The output goes in docs/log.md and docs/status.md.
+

@@ -3,6 +3,47 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-14 · Always portable
+
+**Decided, his words:** "this whole setup needs to be portable onto generic applications. If, on
+the other machine, I want to give this a try on a real app, this repository needs to be ready for
+that: have it ready with recipes describing what needs to be done."
+
+- Rule 9 of `CLAUDE.md`: at every merge, the repository can be cloned on another machine and
+  pointed at a generic Python application by an agent that reads `docs/adopt.md` and nothing
+  else; a change that alters what a run needs updates the guide in the same pull request;
+  anything that only works on this machine is named there.
+- `docs/adopt.md` is the recipe and stays the one tested procedure (2026-10-13). The roadmap
+  carries a table of where the rule is not yet true.
+
+## 2026-10-14 · After his review of the roadmap, by delegation
+
+Made by the session that answered his review of the same day (`docs/inputs.md`: every person
+point exposed, what Restate is for, the research he never saw); each can be overturned by a later
+entry.
+
+1. **"Every person point exposed" is roadmap item 4, in Now.** The brief's table already names a
+   person point per step; his review asks that all of them exist. Four of the seven never stop
+   today, nobody is told when a run waits, and a person can approve or refuse but never correct
+   an artifact and resume. The item is built on the step envelope (status `needs_person` with a
+   gate), so the plain driver and Restate get every gate; one gate contract (kind, who, question,
+   context, accepted answers), per-step configuration `auto | model | person` replacing the single
+   `gate` field, a notification, a listing of waiting runs, and the answerer in the record. Item
+   numbers after it shift by one; question 3's item is now 7.
+2. **Restate stays behind `--engine restate`, with the reason restated.** Its value is the
+   durable wait, which rises with the number of gates (item 4) and of runs at once (item 9), not
+   with the plain path. The default engine is decided when item 6 puts approvals on pull
+   requests. Removing it is his option (roadmap question 4); it is not done by delegation.
+3. **Research is recorded in the repository, labelled, and dated.** `docs/research/` starts with
+   `2026-10-14-factory-landscape.md`; the lab's five research files are pointed to from it with
+   what each covers, not copied. What the pass found that is not needed now (a protocol language,
+   Agent HQ, routines, the Temporal harness at 0.6.0) is recorded with dates so no session
+   researches it again.
+4. **The three pages recorded as published (architecture, trust, roadmap) could not be read from
+   this session**, so the roadmap page is republished at a new link, recorded in
+   `docs/status.md`. The old links stay in the record; which account published them is his to
+   say.
+
 ## 2026-10-14 · The roadmap's swappable choices, by delegation
 
 Made by the session that wrote `docs/roadmap.md` at his request (`docs/inputs.md`, 2026-10-14);
