@@ -251,6 +251,9 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
   - The Restate stand-ins: `restate-stub-1` and `restate-stub-laptop-2`.
   - If one is lost, its run starts over (about 5 USD and 15 to 20 minutes per ticket, estimated
     from the runs so far).
+- The proof run of item 4 ran in a session worktree that is removed; its evidence is in
+  `docs/runs/2026-10-14-linkding-sort-by-modified-vague/`, and the linkding cache keeps the worktree
+  pair of the vague ticket (`linkding-sort-by-modified-vague`).
 - `~/Library/Caches/qa-factory/linkding/`: the clone, its environment and one worktree pair per
   ticket. `targets/linkding/fetch.py --ticket <ticket> [--prepare-e2e]` rebuilds them; Review and
   Ship put the generated tests back from the run folder.
