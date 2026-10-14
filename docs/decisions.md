@@ -3,6 +3,21 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-14 · The roadmap's swappable choices, by delegation
+
+Made by the session that wrote `docs/roadmap.md` at his request (`docs/inputs.md`, 2026-10-14);
+each can be overturned by a later entry. The roadmap's order is a recommendation, not a decision:
+which group comes first is his (question 1 there).
+
+1. **Restate stays behind `--engine restate`.** The plain driver is what the adoption guide uses,
+   and Restate's gains (resume after a crash, a page per run) matter once runs are many or long.
+   Revisit with roadmap item 8 (more tickets at once). Closes the open question of 2026-10-12.
+2. **The third application is chosen by the session that onboards it**, from the shape in roadmap
+   item 3 (a web API service, a `src/` layout, a database in Docker, an outside HTTP service it
+   calls), unless he names his own. Its ticket is a bug fix, also chosen by that session.
+3. **The three factory fixes run in a cloud session** paid by the one-time credit: they are code
+   with factory tests and no model calls, which is what cloud sessions are for (2026-10-12).
+
 ## 2026-10-13 · Wrapping up for adoption, by delegation
 
 Made by the session that wrote the adoption guide and ran isso, under his direction of the same

@@ -8,6 +8,26 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · The roadmap
+
+**Asked.** Oleg (`docs/inputs.md`, 2026-10-14): discuss the roadmap and the next work items.
+
+**Done.** A plan, no factory code, as asked. Written from the record only, no new research:
+`docs/adopt.md` section 1 (what is not built), the leftovers in the old "Next" of
+`docs/status.md`, the brief's steps that are not the factory's own yet, and his input of
+2026-10-13, which sets the near-term order. `docs/roadmap.md` has nine items in three groups and
+three questions for him; its page is https://claude.ai/artifact/TesENWMdg67e3p15kwiaZX (one local
+render at desktop and phone width before publishing: the step diagram was clipped at desktop
+width and was made to scale). `docs/next-session.md` now holds kickoffs for items 1 to 3 in
+roadmap order; item 2 is written for a cloud session. The small leftovers of the first runs moved
+into the roadmap. Restate stays behind its flag, by delegation (`docs/decisions.md`).
+
+**Housekeeping.** The remote branches the status asked him to delete were already gone, and
+`git push --delete` of the two newer ones answered "remote ref does not exist"; `git fetch
+--prune` cleared the stale tracking refs. GitHub holds only `main`.
+
+**Left open.** His three questions (`docs/status.md`). Nothing was run against an application.
+
 ## 2026-10-13 · Wrap up for adoption: the guide, isso onboarded from it by an agent, the trust answer
 
 **Asked.** Oleg (`docs/inputs.md`, 2026-10-13): make sure the remote work is merged; wrap up so a

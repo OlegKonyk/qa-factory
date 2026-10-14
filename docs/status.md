@@ -4,16 +4,31 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg
 
-1. Delete the three stale remote branches (the squash-merged heads of pull requests 16, 17, 18):
-   `git push origin --delete claude/restate-driver-k4pqfg docs/inputs-2026-10-12 docs/track2-real-run`.
-   The session's permission rules refused it.
-2. Will tickets at work state the public contract (field names, values, labels, routes) before
+The same three questions are at the end of `docs/roadmap.md` and on its page,
+https://claude.ai/artifact/TesENWMdg67e3p15kwiaZX.
+
+1. Which comes first: make the factory adoptable by a real service (roadmap items 1 to 3), or an
+   agent writing the change itself (item 4)? Recommended: adoptable first.
+2. His microservice: is it the third application on his side, and what is its shape (framework,
+   database, the services it calls)? Or does the session pick a public application with that
+   shape? Recommended: a public one here.
+3. Will tickets at work state the public contract (field names, values, labels, routes) before
    coding starts? Both linkding blind tickets and the isso ticket had it written from finished
-   commits. If not, Plan has to fix the contract first.
-3. Make Restate the default engine now, or keep it behind `--engine restate`? Recommended: keep it
-   behind the flag; the plain driver is what the adoption guide uses.
-4. Does the Console show the factory's spend (about 5.44 USD on 2026-10-12 and 5.4 USD on
-   2026-10-13) against the Max plan's API credits?
+   commits. If not, the readiness check in Frame (roadmap item 6) moves into Now.
+
+A check, not a decision: does the Console show the factory's spend (about 5.44 USD on 2026-10-12
+and 5.4 USD on 2026-10-13) against the Max plan's API credits?
+
+## Where things stand, 2026-10-14
+
+- **A roadmap, no new code.** He asked to discuss the roadmap; `docs/roadmap.md` and its page
+  order the work in three groups: now (tests against a running application, three factory fixes,
+  a service-shaped third application with a bug-fix ticket), next (an agent writes the change,
+  Ship as a pull request), later (tickets from a tracker, learning from each run, scale, other
+  languages). The kickoffs for the first three are in `docs/next-session.md`.
+- **Restate stays behind `--engine restate`**, decided by delegation (`docs/decisions.md`).
+- **Housekeeping:** the stale remote branches are gone; GitHub holds only `main`.
+- `just check` green: 231 passed, 1 skipped (output in the pull request).
 
 ## Where things stand, 2026-10-13
 
@@ -178,23 +193,13 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Next
 
-0. Adoption of a third application by `docs/adopt.md` (kickoff A in `docs/next-session.md`), or
-   track 3 (kickoff B). Then: mutate non-empty `__init__.py` files; the revert check on the
-   developers' own tests.
+`docs/roadmap.md` is the ordered list; `docs/next-session.md` has the kickoffs.
 
-0a. Track 3, the deployed environment: linkding's Docker image on this laptop, a feature's readable
-   cases as a thin suite run against it (`docs/next-session.md`). Docker runs here through colima
-   (server 29.5.2, checked 2026-10-12).
-
-1. From track 1: a Verify that stops at the spend cap after its checks passed has no way to
-   resume with the readable cases; a re-run starts from a fresh writer (about 4 USD of the writer
-   wasted). The sequential run of the bundles ticket was not done (cap); the writer's
-   placement of form tests in the API file follows the strategy loosely; a Fable call that runs
-   out of budget still counts as "cannot decide" (it now cannot start below 1.50 USD, but can still
-   overshoot); the raw writer transcript stays local because it holds this machine's hook output.
-2. From the first run: the plan step proposes file names the writer must ignore (fixed by
-   prompt, worth a schema); the review step's low findings (random titles in the API fixture)
-   could feed back into the writer as a second round; Frame and Plan run before the change exists
-   and read the code instead of a diff, which is right for a real ticket but confused the prompt.
-3. After the loop runs twice: the agent-written Implement step, the Learn step, flaky quarantine
-   and test selection, isso as the second application, and whether Temporal goes under the driver.
+1. Run a shipped feature's readable cases against linkding started from its Docker image
+   (roadmap item 1, kickoff A). Docker runs here through colima (server 29.5.2, checked
+   2026-10-12).
+2. The three factory fixes: mutation in `__init__.py` and decorated functions, resuming Verify
+   after the spend cap, the developers' tests check on modified tests (item 2, kickoff B, a cloud
+   session).
+3. A third application shaped like a small team service, with a bug-fix ticket (item 3,
+   kickoff C).
