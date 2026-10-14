@@ -369,3 +369,16 @@ An agent onboarding an application reports these, each with the command and its 
 The factory has not run on a bug-fix ticket, on a service with external dependencies, on a `src/`
 layout, on Windows, on more than one ticket at a time, or against a deployed environment. Each is
 a run away, not a design away; the first run of each will find what this guide does not say.
+
+## 10. The same cases against a deployed instance
+
+The readable cases Verify writes are the artifact that crosses from the application's suite to a
+deployed environment. `targets/linkding/deployed/` is the worked example: the four cases of the
+sort feature as a thin pytest suite that takes a base URL and a token from the environment and
+creates every bookmark through the REST API (its README has the container recipe, the variables,
+the command and what had to change from the in-suite tests). It needs the `deployed` dependency
+group (`uv sync --group deployed`, then `uv run --no-sync playwright install chromium`) and is
+run by path; the root `uv run pytest` does not collect it. For another application, write the
+same shape beside its recipe: one test per case, data through the public API only, every list
+request scoped by a marker unique to the test, cleanup in a `finally`. Writing that suite is
+still a session's work, not a factory step (`docs/roadmap.md`).

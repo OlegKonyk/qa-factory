@@ -92,7 +92,8 @@ mutants that survived, the cases, the rounds and the spend on one page per ticke
   change, not that it ran at the same time as the implementation.
 - Approval is a file in the run folder, Ship is a local commit on a `qa/` branch. A pull request
   and a notification are not built.
-- Nothing has run against a deployed environment yet.
+- One feature's cases have run against a deployed instance (linkding from its Docker image,
+  2026-10-14): the second verification point exists for one feature of one application.
 
 ## The scenarios Oleg raised
 
@@ -124,10 +125,14 @@ one set of acceptance tests:
    This is where the factory runs today: the revert check, mutation testing and the suite all run
    here, and they are what makes the tests trustworthy at this point.
 2. The same cases against the deployed environment, with real dependencies, reached by a base URL
-   and creating their data through the public API. This is the second point. It is not built
-   (track 3 of `docs/exploration.md` is the plan for it on linkding's Docker image). The tests
-   written at point 1 can only run at point 2 if they create data through the API and not the
-   database; `docs/exploration.md` lists what that takes of the repository.
+   and creating their data through the public API. Built once, 2026-10-14: the four readable
+   cases of the sort feature, as a thin suite (`targets/linkding/deployed/`), pass against
+   linkding 1.47.0 from its Docker image, data through the REST API only, 4 of 4 twice in about
+   3.5 s (measured; `docs/exploration.md`, "Track 3 results"). What had to change from the
+   in-suite tests is recorded there: the API cannot set dates, so the order is built by edits;
+   every request is scoped by a marker; one token cannot act as a second user. The readable case
+   is the artifact that crosses from point 1 to point 2: the in-suite test and the deployed test
+   are two implementations of the same case.
 
 Keeping mocks reliable is a separate problem the factory has not touched: what a mock is kept
 from (a recorded exchange, the dependency's interface document, the dependency's own test
@@ -160,5 +165,5 @@ skipped.
    assertion, kills mutants on the changed lines, the suite stays green, a readable case per test.
 3. On four runs the blind tests met the real change with no mismatch and were as strong as tests
    written with the change in view. Limits: one application, four runs, contracts stated.
-4. The deployed-environment run and anything about mocks are not built. The adoption guide
+4. The deployed-environment run exists for one feature; anything about mocks is not built. The adoption guide
    (`docs/adopt.md`) says what is ready and what a service needs to use it.

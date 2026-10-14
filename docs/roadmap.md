@@ -70,7 +70,7 @@ What his microservice and the meetings at work need first (his input of 2026-10-
 
 ### 1. Run the tests against a running application
 
-State: planned
+State: done (2026-10-14, pull request #28; estimated one session and about 5 USD, measured: no factory model call, one Opus agent in a workflow wrote the suite; 4 of 4 cases pass against the container in about 3.5 s)
 
 The second verification point of his scheme: develop on mocks, then the same cases run against
 the deployed application. Already approved on 2026-10-10; kickoff A in `docs/next-session.md`.

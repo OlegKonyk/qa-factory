@@ -9,7 +9,50 @@ section 10 onward of the architecture page, https://claude.ai/artifact/VLRBAcB5W
 |---|---|
 | 1 · The loop, measured | done 2026-10-10: results below |
 | 2 · Watch it run | done 2026-10-12: built in a cloud session, the real ticket run on the laptop; results below |
-| 3 · The deployed environment | after track 2 |
+| 3 · The deployed environment | done 2026-10-14: the four sort cases pass against linkding 1.47.0 from its Docker image; results below |
+
+## Track 3 results, 2026-10-14
+
+Roadmap item 1. The question: can the factory's tests, written and checked inside the
+application's own suite, run against a deployed instance with their data created through the
+public REST API only? Built by an Opus agent from `docs/specs/2026-10-14-now-items/s1-deployed-run.md`,
+reviewed, then run again by the session. All numbers measured on this laptop (colima, Docker
+server 29.5.2, image `sissbruecker/linkding:1.47.0`; release 1.46.0 is the first that contains
+both shipped linkding features, checked with `git tag --contains` in the clone).
+
+- **The instance.** `docker run` with `LD_SUPERUSER_NAME` and `LD_SUPERUSER_PASSWORD`; healthy
+  after 2.8 s. The API token is read once from the container with `manage.py shell` (linkding
+  1.47.0 keeps it in its own `ApiToken` model, not Django REST framework's); that is environment
+  setup, the way a test account's credentials reach a suite in a shared environment, not test data.
+- **The suite.** `targets/linkding/deployed/`: the four readable cases of the shipped sort run
+  (`docs/runs/2026-10-10-linkding-sort-by-modified-blind/testcases/`), one pytest test each,
+  Playwright's `APIRequestContext` for the three API cases and pytest-playwright's `page` for the
+  browser case, in a `deployed` dependency group of the factory (`uv sync --group deployed`).
+  Its README has the commands and the case-to-test table.
+- **The result.** 4 of 4 cases pass, twice in a row, 3.66 s and 3.24 s wall for the four against
+  the local container; the second run on the data the first left behind (its cleanup had run, so
+  on clean data). Without the environment variables the four skip with a message naming the
+  README.
+- **What had to change from the in-suite tests, and why** (the README has the full list):
+  the API cannot set `date_modified` or `date_added`, so the modified order is built by editing
+  the bookmarks in the order the case needs and reading `date_modified` back after each edit
+  (every `PATCH` moves it, microsecond resolution, about 8 ms each) and the added order by
+  creation order; every list request is scoped by a marker unique to the test (`q=` beside
+  `sort=`) so "exactly three" holds on an instance with other data; each test deletes what it
+  created, also on failure; the other user's bookmark of case 001 is dropped, because one token
+  cannot act as a second user; the browser case logs in through the form; locators by role.
+- **A defect in linkding 1.47.0 found on the way:** once a sort is applied, the search form's
+  hidden `sort` input gets the same id as the sort select, so the "Sort by" label points at the
+  hidden input and `get_by_label` finds nothing. The test uses the page's one combobox instead,
+  with a comment.
+- **The checklist below, tested.** Needed by this run and present in linkding: 1 (one start
+  command; partly: the image and env-var superuser, but no seeded data), 4 (role and label
+  selectors; mostly, one label broken), 5 (data through the public API; central to the run, and
+  partly: create, edit, archive and delete work, dates cannot be set), 6 (base URL, account,
+  cleanup; partly: the token only through the shell or the settings page), 11 (an isolated
+  instance; yes). Would have helped: 10 (a machine-readable API description: the token model and
+  `is_archived` on create were found by probing). Not needed by this run: 2, 3, 7, 8, 9, 12.
+  linkding has no agent file at its root (9).
 
 ## Track 2 results, 2026-10-12
 
