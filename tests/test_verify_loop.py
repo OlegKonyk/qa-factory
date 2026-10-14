@@ -787,6 +787,30 @@ def test_the_test_cases_of_an_earlier_round_never_stay_beside_the_new_ones(tmp_p
     assert not stale.exists()
 
 
+def test_cases_written_outside_the_area_folder_fail_the_check(trees, monkeypatch):
+    trees["repo"]["app"]["source_package"] = "src/pkg"
+    ctx = verify._context(trees)
+    ctx["files"] = []
+    cases_dir = Path(ctx["out"]) / "testcases"
+
+    def fake_claude(argv, **kwargs):
+        nested = cases_dir / "src" / "pkg" / "TC-src"
+        nested.mkdir(parents=True)
+        (nested / "pkg-001.md").write_text("# TC-src/pkg-001: astray\n")
+        raw = {
+            "structured_output": {"files": ["src/pkg/TC-src/pkg-001.md"]},
+            "is_error": False,
+            "total_cost_usd": 0.1,
+        }
+        return subprocess.CompletedProcess(argv, 0, json.dumps(raw), "")
+
+    monkeypatch.setattr(verify, "RUNNER", fake_claude)
+    monkeypatch.setattr(verify, "_lint_cases", lambda d: (0, "0 cases checked, 0 findings"))
+    with pytest.raises(verify.CheckFailed) as failed:
+        verify.write_cases(ctx)
+    assert "outside testcases/pkg/" in str(failed.value) and "src/pkg/TC-src/pkg-001.md" in str(failed.value)
+
+
 def test_files_changed_before_the_writer_ran_are_not_blamed_on_it_nor_undone(trees, monkeypatch):
     # fetch.py's npm install rewrote linkding's package-lock.json at 573b6f5 before any writer ran.
     claude = FakeClaude()

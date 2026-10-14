@@ -652,9 +652,17 @@ def _lint_cases(cases_dir):
     return p.returncode, (p.stdout + p.stderr).strip()
 
 
+def default_area(source_package: str) -> str:
+    """The readable cases' area when the ticket names none: the package directory's own name in
+    kebab case (`src/gafaelfawr` -> `gafaelfawr`, `my_pkg` -> `my-pkg`). The whole path gave
+    `TC-src/gafaelfawr-001` under `testcases/src/gafaelfawr/TC-src/`, which the linter never saw
+    and Ship could not copy (measured on gafaelfawr, 2026-10-14)."""
+    return os.path.basename(source_package.rstrip("/")).replace("_", "-")
+
+
 def write_cases(ctx):
     app, head_tree, out = ctx["app"], ctx["head_tree"], ctx["out"]
-    area = ctx["ticket"].get("area") or app["source_package"]
+    area = ctx["ticket"].get("area") or default_area(app["source_package"])
     cases_dir = os.path.join(out, "testcases")
     shutil.rmtree(cases_dir, ignore_errors=True)  # a later round's cases replace the earlier ones
     os.makedirs(cases_dir, exist_ok=True)
@@ -728,6 +736,12 @@ def write_cases(ctx):
         raise CheckFailed(f"test case writer ended with an error: {result.error_text()[:300]}")
     if rc != 0:
         raise CheckFailed(f"test cases fail their linter: {findings[:500]}")
+    astray = [f for f in written if f.split("/")[:-1] != [area]]
+    if astray:  # the linter and Ship read testcases/<area>/*.md only
+        raise CheckFailed(
+            f"test cases written outside testcases/{area}/: {', '.join(astray[:5])}"
+            " (the area must be one folder, and the id TC-<area>-<nnn>)"
+        )
     if len(written) < len(listing):
         raise CheckFailed(f"{len(written)} test cases for {len(listing)} tests")
     return report

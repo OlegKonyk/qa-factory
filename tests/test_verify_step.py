@@ -118,6 +118,19 @@ def test_prompts_have_every_placeholder_the_step_fills():
     assert "TC-bookmarks-001" in cases
 
 
+@pytest.mark.parametrize(
+    ("source_package", "area"),
+    [
+        ("bookmarks", "bookmarks"),
+        ("isso", "isso"),
+        ("src/gafaelfawr", "gafaelfawr"),
+        ("src/my_pkg/", "my-pkg"),
+    ],
+)
+def test_the_default_area_is_the_package_directorys_own_name(source_package, area):
+    assert verify.default_area(source_package) == area
+
+
 def _fake_checks(monkeypatch):
     """Every check passes with the minimal result the end of Verify reads."""
 

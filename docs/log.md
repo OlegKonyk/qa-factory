@@ -8,6 +8,19 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · The readable cases' area on a `src/` layout
+
+**Found (measured on the gafaelfawr run).** With no `area` in the ticket the cases writer was told
+`area = src/gafaelfawr`; it wrote six cases to `testcases/src/gafaelfawr/TC-src/gafaelfawr-00N.md`
+with the id `TC-src/gafaelfawr-001`. The linter, which reads `testcases/<area>/*.md`, reported
+`0 cases checked, 0 findings` and the check passed; Ship then failed with
+`IsADirectoryError: ... verify/testcases/src/gafaelfawr`. The onboarding agent had flagged the
+slash in the id before the run reached Ship.
+
+**Built.** `verify.default_area`: the package directory's own name in kebab case. Cases written
+outside `testcases/<area>/` fail the check with their paths. Factory tests only; the gafaelfawr
+run's cases were moved by hand to the right folder and `redo` recorded it (`docs/runs/`).
+
 ## 2026-10-14 · Finish a run after a cap hit in Review's fix round, and three smaller defects
 
 **Asked.** Spec `docs/specs/2026-10-14-third-application/s3-finish-after-cap.md`, from the
