@@ -4,8 +4,9 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg
 
-The same three questions are at the end of `docs/roadmap.md` and on its page,
-https://claude.ai/artifact/TesENWMdg67e3p15kwiaZX.
+The same four questions are at the end of `docs/roadmap.md` and on its page,
+https://claude.ai/artifact/DS1jXmWm67BPXzL1ma7cCy (republished 2026-10-14; the earlier link could
+not be read from this machine's session).
 
 1. Which comes first: make the factory adoptable by a real service (roadmap items 1 to 3), or an
    agent writing the change itself (item 4)? Recommended: adoptable first.
@@ -14,13 +15,27 @@ https://claude.ai/artifact/TesENWMdg67e3p15kwiaZX.
    shape? Recommended: a public one here.
 3. Will tickets at work state the public contract (field names, values, labels, routes) before
    coding starts? Both linkding blind tickets and the isso ticket had it written from finished
-   commits. If not, the readiness check in Frame (roadmap item 6) moves into Now.
+   commits. If not, the readiness check in Frame (roadmap item 7) moves into Now.
+4. Restate: keep it behind `--engine restate` until Ship opens pull requests (roadmap item 6,
+   recommended), or remove it now?
 
 A check, not a decision: does the Console show the factory's spend (about 5.44 USD on 2026-10-12
 and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
 ## Where things stand, 2026-10-14
 
+- **The roadmap reviewed on his three points, no new code** (his second input of the day).
+  Where a person steps in: of the brief's seven person points only Verify's two exist; a table
+  in `docs/roadmap.md` and a diagram on its page show the rest, and a new item 4 in Now ("every
+  person point exposed": a gate per step, correct as well as approve, per-step configuration, a
+  notification, a listing of waiting runs, the answerer recorded; kickoff D) closes it. Restate
+  is explained in one paragraph there with the measured facts; it stays behind its flag, and
+  removing it is his question 4. The research he never saw lives only in the old lab, fetched
+  2026-10-06 to 08; a fresh labelled pass on how factories are run in 2026 is
+  `docs/research/2026-10-14-factory-landscape.md`, and its one roadmap-changing finding is that
+  the published practice puts the person at specification and merge, the two gates missing
+  here. Items after 4 are renumbered by one. The three page links recorded earlier could not be
+  read from this session; the roadmap page is republished (link above).
 - **A roadmap, no new code.** He asked to discuss the roadmap; `docs/roadmap.md` and its page
   order the work in three groups: now (tests against a running application, three factory fixes,
   a service-shaped third application with a bug-fix ticket), next (an agent writes the change,
@@ -203,3 +218,6 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
    session).
 3. A third application shaped like a small team service, with a bug-fix ticket (item 3,
    kickoff C).
+4. Every person point exposed: a gate at every step, correct as well as approve, a notification
+   and a listing of waiting runs (item 4, kickoff D, a cloud session to build and a 1 USD run to
+   prove).

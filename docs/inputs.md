@@ -3,6 +3,34 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-14 · Review the roadmap: every person point exposed, what Restate is for, the research he never saw
+
+> Please review the roadmap and current implementation plan. A couple of things I want to make
+> sure we have in the works: if you think about a factory line, there are multiple points where
+> people need to interact to correct or approve something. We need to have all those interfaces
+> exposed. That restate tool: I still don't clearly understand what it's about or if it's needed.
+> Also, I have never seen the research report that we did before on finding the latest online
+> trends and recommendations on implementing software factory and AI SDLC. I want to make sure
+> that we have the latest on that as well.
+
+How it was read:
+
+- **Three asks, no build.** A review of the roadmap against the brief's person points, a plain
+  explanation of Restate with a recommendation on keeping it, and the research. He asked for
+  exactly these, so this session produces no new factory code (rule 4's exception); it changes
+  `docs/roadmap.md` and its page, and records the research.
+- **"All those interfaces exposed."** Read against the brief's table (one "when a person steps in"
+  row per step) and against what the factory emits today: a gate from Verify only, answered by a
+  file or one HTTP call, nobody notified, no way to correct an artifact and resume. The review
+  lists every point, what exists, and what the roadmap has to add.
+- **"That restate tool."** Restate is the durable-execution engine standing in for the role
+  Temporal has in his team's backbone (track 2, 2026-10-12). Explained in plain words with what
+  it measured, and the choice of keeping it is his (`docs/roadmap.md`, questions).
+- **"The research report I have never seen."** It exists only in the old lab (`~/dev/assay`,
+  `docs/research/`, fetched 2026-10-06 to 08) and was never carried into this repository or put
+  in front of him as a report. He is told what it covers, and a short fresh pass on software
+  factory and AI SDLC practice is run and recorded, each claim labelled (rule 5).
+
 ## 2026-10-14 · Discuss the roadmap and the next work items
 
 > let's discuss roadmap and come up uth next work items for factory
