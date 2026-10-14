@@ -54,7 +54,7 @@ def _run_folder(tmp_path):
 
 
 def _fake(result, seen):
-    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest):
+    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest, **kw):
         seen.append(
             {
                 "files": files,

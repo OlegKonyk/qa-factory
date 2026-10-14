@@ -41,7 +41,8 @@ FAILED_REPORT = {
 
 
 class Fakes:
-    """Scripted checks. `outcomes[name]` lists per call: "pass", "repairable" or "fail" (last repeats)."""
+    """Scripted checks. `outcomes[name]` lists per call: "pass", "repairable", "recipe_gap" or "fail"
+    (last repeats)."""
 
     def __init__(self, monkeypatch, tmp_path, cases_cost=None, **outcomes):
         self.outcomes, self.calls, self.writes, self.cases = outcomes, {}, [], 0
@@ -79,7 +80,10 @@ class Fakes:
             if outcome == "pass":
                 return PASS[name]
             raise verify.CheckFailed(
-                f"{name} broke", repairable=outcome == "repairable", report=FAILED_REPORT.get(name)
+                f"{name} broke",
+                repairable=outcome == "repairable",
+                report=FAILED_REPORT.get(name),
+                recipe_gap=outcome == "recipe_gap",
             )
 
         return check
@@ -241,6 +245,16 @@ def test_with_one_writer_round_the_stronger_model_cannot_ask_for_a_retry(tmp_pat
     assert advisor.calls[0]["allow_retry"] is False
 
 
+def test_a_recipe_gap_ends_the_step_with_no_writer_round_and_no_stronger_model_call(tmp_path, monkeypatch):
+    fakes = Fakes(monkeypatch, tmp_path, mutation=["recipe_gap"])
+    advisor = Advisor(monkeypatch, "retry")
+    out = verify.run(_inp(tmp_path))
+    assert out["status"] == "fail"
+    assert out["reason"] == "mutation: mutation broke (a recipe gap: no model call made)"
+    assert [w["kind"] for w in fakes.writes] == ["write"]
+    assert advisor.calls == []
+
+
 def test_without_a_stronger_model_call_left_the_step_fails_naming_the_cap(tmp_path, monkeypatch):
     Fakes(monkeypatch, tmp_path, suite=["fail"])
     advisor = Advisor(monkeypatch, "retry")
@@ -351,7 +365,7 @@ def test_the_developers_mutation_set_runs_once_per_verify_run(tmp_path, monkeypa
     )
     runs = []
 
-    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest):
+    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest, **kw):
         runs.append(os.path.basename(workdir))
         return {"status": "pass", "generated": 2, "checked": 2, "killed": 2, "on_changed_lines": {}}
 
@@ -383,7 +397,7 @@ def test_mutation_is_skipped_when_mutmut_makes_no_mutant_for_the_changed_functio
     )
     runs = []
 
-    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest):
+    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest, **kw):
         runs.append(os.path.basename(workdir))
         return {
             "status": "pass",
@@ -398,6 +412,72 @@ def test_mutation_is_skipped_when_mutmut_makes_no_mutant_for_the_changed_functio
     ctx["files"] = ["tests/test_x.py"]
     report = verify.run_mutation(ctx)  # no CheckFailed: nothing for the writer to repair
     assert runs == ["generated"] and "pkg.mod.x_f*" in report["skipped"]
+
+
+def _mutation_ctx(tmp_path, monkeypatch, mutmut, result):
+    (tmp_path / "pkg").mkdir()
+    (tmp_path / "pkg" / "mod.py").write_text("def f(x):\n    return x\n")
+    source = tmp_path / "source.json"
+    source.write_text(json.dumps([{"path": "pkg/mod.py", "status": "M"}]))
+    tests = tmp_path / "tests.json"
+    tests.write_text(json.dumps([]))
+    inp = _inp(tmp_path, artifacts={"changed_source": str(source), "changed_tests": str(tests)})
+    inp["repo"]["app"].update(
+        source_package="pkg", api_tests_dir="tests", python="python", exclude_copy=[], mutmut=mutmut
+    )
+    seen = []
+
+    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest, **kw):
+        seen.append(kw)
+        return dict(result)
+
+    monkeypatch.setattr(verify.mutants, "changed_functions", lambda base, head, module: [module + ".x_f*"])
+    monkeypatch.setattr(verify.mutants, "changed_lines", lambda base, head: {2})
+    monkeypatch.setattr(verify.mutants, "run", fake_run)
+    ctx = verify._context(inp)
+    ctx["files"] = ["tests/test_x.py"]
+    return ctx, seen
+
+
+RAN = {"status": "pass", "generated": 2, "checked": 2, "killed": 2, "on_changed_lines": {}}
+
+
+def test_mutation_passes_the_recipes_also_copy_to_mutmut(tmp_path, monkeypatch):
+    mutmut = {"pytest_add_cli_args": [], "pre_create_dirs": [], "also_copy": ["alembic", "alembic.ini"]}
+    ctx, seen = _mutation_ctx(tmp_path, monkeypatch, mutmut, RAN)
+    verify.run_mutation(ctx)
+    assert seen and all(kw["also_copy"] == ["alembic", "alembic.ini"] for kw in seen)
+
+
+def test_mutation_without_also_copy_in_the_recipe_passes_an_empty_list(tmp_path, monkeypatch):
+    ctx, seen = _mutation_ctx(tmp_path, monkeypatch, {"pytest_add_cli_args": [], "pre_create_dirs": []}, RAN)
+    verify.run_mutation(ctx)
+    assert seen and all(kw["also_copy"] == [] for kw in seen)
+
+
+def test_pytest_failing_in_mutmuts_copy_is_not_sent_to_the_writer(tmp_path, monkeypatch):
+    reason = (
+        "mutmut could not run the tests in its working tree: CommandError: x; "
+        "check mutmut.also_copy and mutmut.pytest_add_cli_args in the recipe"
+    )
+    broke = {"status": "fail", "reason": reason, "no_mutants": False, "generated": 534, "checked": 0}
+    ctx, _ = _mutation_ctx(tmp_path, monkeypatch, {"pytest_add_cli_args": [], "pre_create_dirs": []}, broke)
+    with pytest.raises(verify.CheckFailed) as failed:
+        verify.run_mutation(ctx)
+    assert failed.value.repairable is False
+    assert reason in str(failed.value) and "never reach" not in str(failed.value)
+
+
+def test_a_recipe_gap_in_the_generated_set_stops_before_the_other_sets(tmp_path, monkeypatch):
+    reason = "mutmut could not run the tests in its working tree: CommandError: x; check mutmut.also_copy"
+    broke = {"status": "fail", "reason": reason, "no_mutants": False, "recipe_gap": True}
+    ctx, seen = _mutation_ctx(
+        tmp_path, monkeypatch, {"pytest_add_cli_args": [], "pre_create_dirs": []}, broke
+    )
+    with pytest.raises(verify.CheckFailed) as failed:
+        verify.run_mutation(ctx)
+    assert failed.value.recipe_gap is True
+    assert len(seen) == 1  # generated only; generated_and_developers was not run
 
 
 def test_mutation_globs_in_a_src_layout_use_the_name_mutmut_keys(tmp_path, monkeypatch):
@@ -417,7 +497,7 @@ def test_mutation_globs_in_a_src_layout_use_the_name_mutmut_keys(tmp_path, monke
     )
     seen = {}
 
-    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest):
+    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest, **kw):
         seen.update(pkg=pkg, only=only)
         return {"status": "pass", "generated": 2, "checked": 2, "killed": 2, "on_changed_lines": {}}
 

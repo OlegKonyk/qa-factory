@@ -23,6 +23,12 @@ Facts measured on linkding at commit 0490013 with mutmut 3.8.0:
   body is a decorated inner function (`@wraps(func) def wrapper`) still gets none.
 - In `pkg/__init__.py` the key drops `__init__`: `pkg.x_f__mutmut_1` (mutmut's `get_mutant_name`;
   measured on isso `isso/utils/__init__.py`).
+- mutmut copies only `source_paths`, `tests/`, `test/`, `setup.cfg`, `pyproject.toml`, the lock files and
+  `test*.py` into `mutants/`, plus each path in `also_copy` (`mutmut/configuration.py`, `Config.also_copy`;
+  `mutmut/utils/file_utils.py`, `copy_also_copy_files`, which skips a path that does not exist), before
+  it generates mutants and runs pytest there (`mutmut/__main__.py`, `_run`). Measured on gafaelfawr:
+  without `alembic.ini` and `alembic/` in the copy, a fixture raised alembic's `CommandError`, mutmut
+  printed "failed to collect stats. runner returned 1" and exited 1, 534 generated and 0 checked.
 - A leading `src.` is stripped from the module part of the key: `src/pkg/views.py` gives
   `pkg.views.x_f__mutmut_1` (read in `mutmut/utils/format_utils.py`, `get_mutant_name`; not measured
   on an application). The `.meta` file keeps the path: `mutants/src/pkg/views.py.meta`
@@ -33,6 +39,7 @@ import ast
 import difflib
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -295,9 +302,33 @@ def _first_difference(orig: list[str], mutant: list[str]) -> int | None:
 
 
 NOTHING_MATCHES = "Filtered for specific mutants, but nothing matches"
+# What mutmut 3.8.0 prints when pytest itself fails in `mutants/` (`mutmut/__main__.py`, `_run`).
+PYTEST_BROKE = ("failed to collect stats. runner returned", "Failed to run clean test")
+_EXCEPTION_LINE = re.compile(r"^(?:E\s+)?[A-Za-z_][\w.]*(?:Error|Exception)\b")
 
 
-def classify_exit(timed_out, returncode, found_meta, output, timeout) -> tuple[str, str, bool]:
+def _pytest_error_line(output: str) -> str:
+    """The line that says why pytest failed: the last exception line (`pkg.SomeError: message`),
+    else the last `ERROR `/`FAILED ` summary line, else the last line; mutmut's own lines skipped."""
+    lines = [ln.strip() for ln in output.splitlines() if ln.strip()]
+    lines = [ln for ln in lines if not any(ln.startswith(s) for s in PYTEST_BROKE)]
+    for pick in (
+        lambda ln: _EXCEPTION_LINE.match(ln),
+        lambda ln: ln.startswith(("ERROR ", "FAILED ")),
+        lambda ln: True,
+    ):
+        found = next((ln for ln in reversed(lines) if pick(ln)), None)
+        if found is not None:
+            return re.sub(r"^E\s+", "", found)
+    return ""
+
+
+RECIPE_GAP = "mutmut could not run the tests in its working tree"
+
+
+def classify_exit(
+    timed_out, returncode, found_meta, output, timeout, all_codes=None
+) -> tuple[str, str, bool]:
     """(status, reason, no_mutants) for one mutmut run.
 
     mutmut 3.8.0 makes no mutant for some function shapes (measured on isso 7e91d59: a decorator
@@ -305,11 +336,26 @@ def classify_exit(timed_out, returncode, found_meta, output, timeout) -> tuple[s
     NOTHING_MATCHES and exit code 1. That is not a failure of the tests, so it is reported as "no
     mutants" and the caller skips the mutation verdict instead of sending the writer into a repair
     round.
+
+    When pytest could not run in mutmut's copy (PYTEST_BROKE in the output, a non-zero exit and no
+    mutant in `all_codes` with an exit code), the run fails with a reason that names the recipe
+    fields: the tests did not get to reach anything, so a writer round cannot fix it. mutmut's
+    "Stopping early, because we could not find any test case for any mutant" is not that case:
+    pytest ran and the tests reached nothing.
     """
     if timed_out:
         return "fail", f"mutmut did not finish within {timeout} seconds", False
     if returncode != 0 and NOTHING_MATCHES in output:
         return "pass", "mutmut made no mutant for any changed function (it skips some shapes)", True
+    if any(s in output for s in PYTEST_BROKE) and _broke_before_checking(
+        timed_out, returncode, output, all_codes or {}
+    ):
+        return (
+            "fail",
+            f"{RECIPE_GAP}: {_pytest_error_line(output)}; "
+            "check mutmut.also_copy and mutmut.pytest_add_cli_args in the recipe",
+            False,
+        )
     if returncode != 0 and not found_meta:
         return "fail", f"mutmut exited with code {returncode} and wrote no results", False
     return "pass", "mutmut ran", False
@@ -359,14 +405,16 @@ def _toml_list(items) -> str:
     return "[" + ", ".join(json.dumps(str(i)) for i in items) + "]"
 
 
-def _mutmut_config(only_mutate, test_files, pytest_add_cli_args, source_package) -> str:
+def _mutmut_config(only_mutate, test_files, pytest_add_cli_args, source_package, also_copy=()) -> str:
+    """The `[tool.mutmut]` table; `also_copy` (paths relative to the repository root) only when given."""
     return (
         "\n[tool.mutmut]\n"
         f"source_paths = {_toml_list([source_package])}\n"
         f"only_mutate = {_toml_list(only_mutate)}\n"
         f"pytest_add_cli_args_test_selection = {_toml_list(test_files)}\n"
         f"pytest_add_cli_args = {_toml_list(pytest_add_cli_args)}\n"
-        "use_git_change_detection = false\n"
+        + (f"also_copy = {_toml_list(also_copy)}\n" if also_copy else "")
+        + "use_git_change_detection = false\n"
     )
 
 
@@ -506,14 +554,16 @@ def run(
     exclude_copy,
     changed_lines_by_file,
     timeout=1800,
+    also_copy=(),
 ) -> dict:
     """Copy the head tree, run mutmut on the chosen mutants and report kills and survivors.
 
     The copy goes through `undecorate` first. When mutmut then stops before checking any mutant, it
     runs once more on a plain copy and the result says `"undecorate": "fallen back: <reason>"`.
+    `also_copy` lists paths, relative to the repository root, that mutmut copies into `mutants/`.
     """
     tree = Path(workdir) / "mutation"
-    config = _mutmut_config(only_mutate, test_files, pytest_add_cli_args, source_package)
+    config = _mutmut_config(only_mutate, test_files, pytest_add_cli_args, source_package, also_copy)
     rewritten, kept = _prepare(head_tree, tree, only_mutate, config, pre_create_dirs, exclude_copy, True)
     timed_out, returncode, output, wall_s = _invoke(python, tree, globs, timeout)
     mutants, all_codes, found_meta = _collect(tree, only_mutate, changed_lines_by_file)
@@ -532,7 +582,7 @@ def run(
     ck = sum(m["status"] == "killed" for m in on_changed)
     cs = sum(m["status"] == "survived" for m in on_changed)
 
-    status, reason, no_mutants = classify_exit(timed_out, returncode, found_meta, output, timeout)
+    status, reason, no_mutants = classify_exit(timed_out, returncode, found_meta, output, timeout, all_codes)
     unmutated = [g for g in globs if not any(fnmatchcase(k, g) for k in all_codes)] if found_meta else []
     left_decorated = []
     for relpath, qualified, why in kept:
@@ -544,6 +594,7 @@ def run(
         "status": status,
         "reason": reason,
         "no_mutants": no_mutants,
+        "recipe_gap": status == "fail" and reason.startswith(RECIPE_GAP),
         "wall_s": wall_s,
         "returncode": returncode,
         **{

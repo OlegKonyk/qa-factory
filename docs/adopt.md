@@ -171,6 +171,7 @@ the steps index the required keys directly and fail with a `KeyError` on a missi
 | `exclude_copy` | folders not copied when a tree is copied (`.git`, `node_modules`, `.venv`, `mutants`...) | revert, mutation |
 | `mutmut.pytest_add_cli_args` | pytest arguments mutmut passes (`-p no:cacheprovider` at least; `-o django_find_project=false` for Django) | mutation |
 | `mutmut.pre_create_dirs` | folders the application needs to exist inside the mutated copy; `[]` if none | mutation, Implement |
+| `mutmut.also_copy` (optional) | files or folders relative to the repository root that the tests need beside the code when mutmut runs them in its `mutants/` copy, for example `["alembic", "alembic.ini"]` for a suite whose fixtures stamp or migrate the database; `[]` if none. mutmut skips a path that does not exist without a word, so check the spelling | mutation |
 | `suite` | list of pytest invocations that make up the suite; the first is the API/unit suite, run again by Ship | suite check, Ship |
 | `strategy` | the strategy rule's path, relative to the factory root | the writer prompt |
 | `caps` (optional) | `{"writer_rounds": 3, "advice": 2, "usd": 15.0}` overrides | Verify, Review |
@@ -369,6 +370,13 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   all and on the changed lines, for the generated tests alone, with the developers' tests, and
   the developers' alone. Scores are reported, not thresholded; the check fails only when mutmut
   could not run, no mutant was checked, or the generated tests kill no mutant on the changed lines.
+  `mutmut could not run the tests in its working tree: <pytest's error>; check mutmut.also_copy and
+  mutmut.pytest_add_cli_args in the recipe` means pytest failed inside mutmut's `mutants/` copy
+  before any mutant was checked, usually because a file the tests read (a config, a migrations
+  folder) is not in the copy. That is a recipe gap, not a test failure: the step ends with that reason at once, with no
+  repair round and no stronger-model call (the other mutmut sets are not run either). Add the
+  missing path to `mutmut.also_copy` and run the same command again; the re-run starts Verify
+  afresh, which is one more writer round.
 - **The developers' own tests** (`verify/developers_revert.json`): the same revert check on the
   tests the change itself added or modified, reported with the same verdicts, each test labelled
   new or modified, and never a failure. It answers, per ticket, whether the tests written with the

@@ -97,10 +97,11 @@ ESCALATION_ANSWERS = [
 
 
 class CheckFailed(Exception):
-    def __init__(self, message, repairable: bool = False, report=None):
+    def __init__(self, message, repairable: bool = False, report=None, recipe_gap: bool = False):
         super().__init__(message)
         self.repairable = repairable
         self.report = report
+        self.recipe_gap = recipe_gap  # the recipe, not the tests, must change: no model call helps
 
 
 def _field(inp, name):
@@ -580,17 +581,24 @@ def run_mutation(ctx):
             app["mutmut"]["pre_create_dirs"],
             app["exclude_copy"],
             lines_by_file,
+            also_copy=app["mutmut"].get("also_copy", []),
         )
         report["runs"][name]["test_files"] = files
         ctx["timings"][f"mutation.{name}"] = round(time.time() - t0, 1)
         if name == "generated" and report["runs"][name].get("no_mutants"):
             report["skipped"] = f"{report['runs'][name]['reason']}: {', '.join(globs)}"
             return report
+        if (
+            name == "generated" and report["runs"][name]["status"] != "pass"
+        ):  # the other sets would fail the same way
+            raise CheckFailed(
+                f"mutmut did not run: {report['runs'][name].get('reason')}",
+                report=report,
+                recipe_gap=bool(report["runs"][name].get("recipe_gap")),
+            )
         if name == "developers":
             ctx["developers_mutation"] = report["runs"][name]
     gen = report["runs"]["generated"]
-    if gen["status"] != "pass":
-        raise CheckFailed(f"mutmut did not run: {gen.get('reason')}", report=report)
     if gen.get("generated", 0) and not gen.get("checked", 0):
         raise CheckFailed(
             "mutmut checked no mutant: the generated tests never reach the changed functions",
@@ -861,7 +869,12 @@ def _attempt(ctx, kind, findings="", guidance=""):
         try:
             entry = {"status": "pass", "result": check(ctx)}
         except CheckFailed as e:
-            entry = {"status": "fail", "reason": str(e), "repairable": e.repairable}
+            entry = {
+                "status": "fail",
+                "reason": str(e),
+                "repairable": e.repairable,
+                "recipe_gap": e.recipe_gap,
+            }
             if e.report is not None:
                 entry["result"] = e.report
         secs = round(time.time() - t0, 1)
@@ -879,6 +892,7 @@ def _attempt(ctx, kind, findings="", guidance=""):
                 "check": name,
                 "reason": entry["reason"],
                 "repairable": entry["repairable"],
+                "recipe_gap": entry.get("recipe_gap", False),
                 "report": path,
             }
             break
@@ -1024,6 +1038,10 @@ def _settle(ctx, failure):
     """Repair, ask the stronger model, retry, until an attempt passes (None) or the step ends."""
     ledger = ctx["ledger"]
     while failure:
+        if failure.get(
+            "recipe_gap"
+        ):  # the recipe must change; neither a writer round nor the stronger model helps
+            return _fail(ctx, f"{failure['check']}: {failure['reason']} (a recipe gap: no model call made)")
         if failure["repairable"] and not ctx["repaired"] and ledger.rounds_left() > 0:
             ctx["repaired"] = True
             failure = _attempt(ctx, "repair", findings=_findings(ctx, failure))

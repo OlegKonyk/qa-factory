@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -326,6 +327,7 @@ def test_run_mutates_an_undecorated_copy_and_names_globs_without_a_mutant(tmp_pa
 
     def fake_mutmut(cmd, cwd, **kwargs):
         seen["copy"] = (Path(cwd) / "pkg" / "mod.py").read_text()
+        seen["config"] = tomllib.loads((Path(cwd) / "pyproject.toml").read_text())["tool"]["mutmut"]
         (Path(cwd) / "mutants" / "pkg").mkdir(parents=True)
         (Path(cwd) / "mutants" / "pkg" / "mod.py").write_text("")
         meta = {"exit_code_by_key": {"pkg.mod.x_f__mutmut_1": 1}}
@@ -334,7 +336,21 @@ def test_run_mutates_an_undecorated_copy_and_names_globs_without_a_mutant(tmp_pa
 
     monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
     globs = ["pkg.mod.x_f__mutmut_*", "pkg.mod.x_dec__mutmut_*"]
-    result = mutants.run(head, "py", "pkg", ["pkg/mod.py"], [], globs, tmp_path / "w", [], [], [], {})
+    result = mutants.run(
+        head,
+        "py",
+        "pkg",
+        ["pkg/mod.py"],
+        [],
+        globs,
+        tmp_path / "w",
+        [],
+        [],
+        [],
+        {},
+        also_copy=["alembic", "alembic.ini"],
+    )
+    assert seen["config"]["also_copy"] == ["alembic", "alembic.ini"]
     assert seen["copy"] == mutants.undecorate(src) != src
     assert (head / "pkg" / "mod.py").read_text() == src  # the worktree keeps its decorators
     assert result["killed"] == 1 and result["unmutated"] == ["pkg.mod.x_dec__mutmut_*"]
@@ -517,3 +533,91 @@ def test_run_lists_what_it_left_decorated_in_a_src_layout(tmp_path, monkeypatch)
     assert result["left_decorated"] == [
         {"file": relpath, "function": "C.put", "reason": "its decorator names _lock from the class body"}
     ]
+
+
+def test_mutmut_config_lists_also_copy_only_when_given():
+    given = tomllib.loads(mutants._mutmut_config(["pkg/a.py"], [], [], "pkg", ["alembic", "alembic.ini"]))
+    assert given["tool"]["mutmut"]["also_copy"] == ["alembic", "alembic.ini"]
+    for none in ((), []):
+        config = tomllib.loads(mutants._mutmut_config(["pkg/a.py"], [], [], "pkg", none))
+        assert "also_copy" not in config["tool"]["mutmut"]
+
+
+# The end of mutmut's output on gafaelfawr's first run (alembic.ini and alembic/ absent from mutants/).
+PYTEST_BROKE_TAIL = """\
+  File "mutants/tests/conftest.py", line 178, in empty_database
+    await stamp_database_async(engine)
+    raise util.CommandError(
+        "No 'script_location' key found in configuration."
+    )
+alembic.util.exc.CommandError: No 'script_location' key found in configuration.
+=========================== short test summary info ============================
+ERROR tests/handlers/test_oidc_client_updates_api.py::test_patch_by_other_admin[github-oidc-server]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 error in 1.93s
+failed to collect stats. runner returned 1
+"""
+PYTEST_BROKE_REASON = (
+    "mutmut could not run the tests in its working tree: alembic.util.exc.CommandError: No "
+    "'script_location' key found in configuration.; check mutmut.also_copy and "
+    "mutmut.pytest_add_cli_args in the recipe"
+)
+
+
+def test_classify_exit_says_pytest_could_not_run_in_the_copy():
+    codes = {"pkg.mod.x_f__mutmut_1": None}
+    assert mutants.classify_exit(False, 1, True, PYTEST_BROKE_TAIL, 10, codes) == (
+        "fail",
+        PYTEST_BROKE_REASON,
+        False,
+    )
+
+
+@pytest.mark.parametrize(
+    ("output", "line"),
+    [
+        (
+            "E   ModuleNotFoundError: No module named 'x'\n1 error\nFailed to run clean test\n",
+            "ModuleNotFoundError: No module named 'x'",
+        ),
+        (
+            "FAILED tests/test_a.py::test_a - assert 1 == 2\nFailed to run clean test\n",
+            "FAILED tests/test_a.py::test_a - assert 1 == 2",
+        ),
+    ],
+)
+def test_classify_exit_names_the_last_pytest_error_line(output, line):
+    status, reason, _ = mutants.classify_exit(False, 1, True, output, 10, {"m.x_f__mutmut_1": None})
+    assert status == "fail" and f"working tree: {line};" in reason
+
+
+@pytest.mark.parametrize(
+    ("returncode", "output", "codes"),
+    [
+        # pytest ran and the tests reached no mutant: mutmut stops early, every code null
+        (1, "Stopping early, because we could not find any test case for any mutant.\n", None),
+        # a mutant was checked, so pytest did run in the copy
+        (1, PYTEST_BROKE_TAIL, 0),
+        (0, PYTEST_BROKE_TAIL, None),
+    ],
+)
+def test_classify_exit_keeps_mutmut_ran_when_pytest_ran(returncode, output, codes):
+    all_codes = {"m.x_f__mutmut_1": codes}
+    result = mutants.classify_exit(False, returncode, True, output, 10, all_codes)
+    assert result == ("pass", "mutmut ran", False)
+
+
+def test_run_reports_that_pytest_could_not_run_in_the_copy(tmp_path, monkeypatch):
+    head = tmp_path / "head"
+    (head / "pkg").mkdir(parents=True)
+    (head / "pkg" / "mod.py").write_text("def f(a):\n    return a\n")
+
+    def fake_mutmut(cmd, cwd, **kwargs):  # as measured: .meta written, every code null, exit 1
+        _write_meta(Path(cwd), {"pkg.mod.x_f__mutmut_1": None, "pkg.mod.x_f__mutmut_2": None})
+        return subprocess.CompletedProcess(cmd, 1, PYTEST_BROKE_TAIL, "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    globs = ["pkg.mod.x_f__mutmut_*"]
+    result = mutants.run(head, "py", "pkg", ["pkg/mod.py"], [], globs, tmp_path / "w", [], [], [], {})
+    assert (result["status"], result["reason"]) == ("fail", PYTEST_BROKE_REASON)
+    assert result["generated"] == 2 and result["checked"] == 0
