@@ -8,6 +8,32 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · Files mutmut's copy needs: `mutmut.also_copy`, and a truthful failure reason
+
+**Asked.** Spec `docs/specs/2026-10-14-third-application/s2-mutmut-also-copy.md`, from the first
+gafaelfawr run (round 1).
+
+**Found (measured on that run).** mutmut 3.8.0 copies only the source paths, the tests and the
+project and lock files into `mutants/` and runs pytest there; that run's `mutants/` held
+`pyproject.toml`, `src`, `tests` and `uv.lock`. gafaelfawr's `empty_database` fixture stamps the
+database through safir, which reads `alembic.ini` and `alembic/` from the current directory;
+alembic raised `CommandError: No 'script_location' key found in configuration.`, pytest reported
+`1 error`, mutmut printed `failed to collect stats. runner returned 1` and exited 1, with 534
+mutants generated and 0 checked, in all three mutation runs. The factory read that as "the
+generated tests never reach the changed functions", marked it repairable, and spent a writer round
+on tests that could not fix it.
+
+**Built.** The recipe field `mutmut.also_copy` (default `[]`), written into `[tool.mutmut]` as
+mutmut's own `also_copy`, which it copies into `mutants/` before generating mutants and running
+pytest (read in `mutmut/configuration.py` and `mutmut/utils/file_utils.py`; a path that does not
+exist is skipped silently; not yet measured on gafaelfawr). When mutmut's output says pytest
+failed (`failed to collect stats. runner returned <code>` or `Failed to run clean test`) with a
+non-zero exit and no mutant checked, the mutation check now fails with `mutmut could not run the
+tests in its working tree: <pytest's last error line>; check mutmut.also_copy and
+mutmut.pytest_add_cli_args in the recipe`, not repairable, so it goes to the stronger model and
+the person instead of a writer round. mutmut's "Stopping early, because we could not find any test
+case for any mutant" keeps the old, repairable reason: pytest ran there.
+
 ## 2026-10-14 · The application's environment in every check: PATH, and mutmut on macOS
 
 **Asked.** Two generic facts from the scouting of roadmap item 3's application (gafaelfawr, a
