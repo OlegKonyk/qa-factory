@@ -281,7 +281,12 @@ The model is `targets/linkding/tickets/bundle-filters-blind-2.json` (blind, with
   these three fields for the run (section 6, the clarified ticket); the ticket file is not changed.
 - `notify_url` (optional): overrides the recipe's for this ticket.
 - `caps.usd` is the hard model-spend cap of Verify and Review together.
-- `area` (optional) names the folder of the readable cases; defaults to `source_package`.
+- `area` (optional) names the folder of the readable cases (`testcases/<area>/TC-<area>-<nnn>.md`);
+  defaults to the package directory's own name in kebab case (`src/gafaelfawr` gives
+  `gafaelfawr`, `my_pkg` gives `my-pkg`). Before 2026-10-14 the default was the whole
+  `source_package`, which on a `src/` layout put the cases under `testcases/src/gafaelfawr/TC-src/`
+  where the linter checked none of them and Ship failed on the folder (measured). Cases written
+  outside `testcases/<area>/` now fail the check and say so.
 
 ## 6. Run it
 
