@@ -40,6 +40,18 @@ the research on software factories and AI SDLC practice he never saw, and the la
 Filed, made rule 9 of `CLAUDE.md`, and a portability table added to `docs/roadmap.md` with what
 is not yet true (no full run off this Mac; the key from the Keychain here).
 
+**His answers, later the same day:** "adopt, public, no, keep", plus: keep Restate unless something
+better turns up; continue the research, QA-centric, on what makes a repository factory-friendly
+and agent-efficient and on tools we can use. Recorded in `docs/decisions.md`; the readiness
+check moved into item 4's Frame gate; research made a standing part of the roadmap. A second
+pass was run the same way (four searches, fourteen fetches, no agents):
+`docs/research/2026-10-14-agent-friendly-repositories.md`, six points on repositories, four on
+the test writer's needs, eleven tools with a verdict each. It grew the checklist in
+`docs/exploration.md` from eight items to twelve, pointed `docs/adopt.md` section 3 at it, and
+added two tries to kickoff C (score the application against the checklist; the Playwright CLI in
+the writer's session, measured). Uber's AutoCover numbers in the first pass were verified
+against the paper's PDF (`pdftotext`).
+
 **What failed.** The three links recorded as published pages (architecture, trust, roadmap) could
 not be read from this session: the Artifact tool answered "not found" for the roadmap and the
 architecture pages, and the account's list of 45 artifacts holds none of the three. The roadmap

@@ -412,23 +412,25 @@
     <li><strong>Measure delivery, not volume.</strong> Throughput up and stability down in the 2025 DORA report; experienced developers 19 % slower in one trial; ten reviewers wrote 61 % of comments on 878 agent pull requests at Microsoft (not verified here except the last, checked in the lab). Here: the person must not become the bottleneck; passing work is approved by the factory.</li>
   </ol>
 
-  <h2>Yours to decide</h2>
+  <h2>What makes a repository factory-friendly, 14 October 2026</h2>
+  <p>Your standing question, QA at the centre. The second research pass, <code>docs/research/2026-10-14-agent-friendly-repositories.md</code>, read Stripe's own account of its agents, Anthropic's guidance for Claude Code, the AGENTS.md specification, Thoughtworks' radar and the tools' own pages. What the published practice agrees on, and what it changed here:</p>
+  <ol>
+    <li><strong>A short agent file with exact commands</strong> and nothing an agent can read from the code; Stripe applies its rule files per subdirectory (checked). Added to the checklist; the next onboarding reads the application's file first and writes one if missing.</li>
+    <li><strong>A check the agent can run, and evidence instead of assertion.</strong> Anthropic: "Give Claude a check it can run: tests, a build, a screenshot to compare" (checked). The factory's shape already; a sentence for the meetings.</li>
+    <li><strong>Feedback in seconds locally, the big suite selected, rounds capped.</strong> Stripe: lints in under 5 seconds on every push, selected tests from over 3 million, at most two CI rounds, "if it's good for humans, it's good for LLMs, too" (checked, Stripe's numbers). The checklist's timing item now has numbers; test selection is what makes a slow suite usable.</li>
+    <li><strong>An isolated, pre-warmed environment per run.</strong> Stripe's devboxes start in about 10 seconds, cut off from production; Thoughtworks put Dev Containers in Trial as sandboxes for coding agents (checked). A container recipe joins the checklist as the preferred form of "one command to bring the app up".</li>
+    <li><strong>Context through tools, not prose.</strong> Stripe's agents pull tickets, docs and build status through 400 tools before a run (checked). The cheap version is a ticket that states the contract: your "no" put that check into item 4.</li>
+    <li><strong>Reliability is a property of the system around the model</strong>: "Many apparent model failures originate elsewhere in the system" (checked, a 2026 monograph). The stronger model's four answers are that sorting.</li>
+  </ol>
+  <p><strong>Tools, with a verdict each:</strong> try the Playwright CLI in the writer's session on the next browser-test run and measure its cost against the bundles run; adopt dev containers and an agent file as checklist items; keep mutmut (3.8.0 is current, nothing newer fixes the decorated-function gap); record Schemathesis for a service with an OpenAPI document and let you decide; watch Playwright's planner, generator and healer agents (TypeScript only on the page); look at Keploy when the mock question comes up; no to Mutahunter and Qodo-Cover (unmaintained, or AI inside the check); nothing new on durable engines. The full table is in the research file.</p>
 
+  <h2>Answered 14 October: "adopt, public, no, keep"</h2>
   <div class="q">
-    <p><strong>1. Which comes first?</strong> Make it adoptable by a real service (items 1 to 4), or an agent writing the change itself (item 5).</p>
-    <p class="rec">Recommended: adoptable first. It is what your service and the meetings need. Answer "adopt" or "agent".</p>
-  </div>
-  <div class="q">
-    <p><strong>2. Your microservice.</strong> Is it the third application on your side, and what is its shape: framework, database, and the kind of thing it calls (another HTTP service, a queue, a third-party API)? Only the generic shape goes into the repository; names stay on this machine. Or should the session pick a public application with the shape above?</p>
-    <p class="rec">Recommended: a public one here, yours at work from the adoption guide whenever you choose. Answer "public", or give its shape in a line.</p>
-  </div>
-  <div class="q">
-    <p><strong>3. Tickets at work.</strong> Will they state the public contract (field names, values, labels, routes) before coding starts?</p>
-    <p class="rec">If not, item 7 moves into Now, because tests written without seeing the change need that contract. Answer "yes" or "no".</p>
-  </div>
-  <div class="q">
-    <p><strong>4. Restate.</strong> Keep it behind its flag until item 6, or remove it now?</p>
-    <p class="rec">Recommended: keep. Answer "keep" or "remove".</p>
+    <p><strong>1. Adoptable first:</strong> items 1 to 4 before item 5.</p>
+    <p><strong>2. A public third application</strong>, chosen by the session that onboards it.</p>
+    <p><strong>3. Tickets at work will not state the contract</strong>, so the readiness check that sends a ticket back is now the Frame gate of item 4; the tracker itself stays item 7.</p>
+    <p><strong>4. Restate stays</strong> behind its flag until item 6; a better alternative is adopted only when a run shows a need it cannot meet or work settles on Temporal. No comparison is run.</p>
+    <p class="rec">Nothing is waiting on you. The next session starts with kickoff A (the deployed run); research continues as a standing part of the roadmap, one short labelled pass per session.</p>
   </div>
 
   <p class="meta">Source of record: docs/roadmap.md in the qa-factory repository, with docs/status.md, docs/log.md, docs/adopt.md (what is ready) and docs/research/2026-10-14-factory-landscape.md (the sources). Costs are estimates; the runs' measured numbers are in docs/runs/.</p>

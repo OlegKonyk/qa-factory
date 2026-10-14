@@ -84,6 +84,12 @@ Tests that need the linkding clone or a Restate server skip when those are absen
 
 ## 3. What the application must have
 
+Before the recipe, score the application against the twelve-item checklist in
+`docs/exploration.md` ("What makes a repository agent-friendly for this loop") and record what it
+lacks in the onboarding report; fix only what the run needs. Read the application's own agent
+file (`AGENTS.md`, `CLAUDE.md`) first; write one if there is none, with the commands this guide
+needed.
+
 1. A git repository with the change under test as a commit (or a branch head) whose parent is the
    code before the change. Today Implement is the developers' real commit: the ticket names
    `base` and `head` and the factory checks both out as worktrees.

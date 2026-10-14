@@ -3,7 +3,35 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
-## 2026-10-14 · Always portable: ready to try on a real application on another machine
+## 2026-10-14 · The four answers; keep Restate unless something better turns up; continue the research on factory-friendly repositories and tools
+
+> adopt, public, no, keep. Yeah, I definitely want to keep the state, or if there is a better
+> alternative, we can adopt that. I also do want to make sure that you continue the research,
+> since you're also saying that our research might be suboptimal.
+>
+> Like I said before, we are making this QA-centric, right? I want to learn what makes repository
+> factory-friendly and agent-efficient, right? That's sort of one of the main points. Also,
+> overall, any innovative tools or anything that we can use.
+
+How it was read ("keep the state" is "keep Restate"):
+
+- **The four answers** to the roadmap's questions: adoptable first (items 1 to 4 before 5);
+  the third application is a public one chosen by the session; tickets at work will not state
+  the public contract before coding, so the readiness check moves into Now; Restate stays.
+  Recorded in `docs/decisions.md`.
+- **"No" on the contract** is read as: the Frame gate of item 4 is where a ticket that does not
+  state the public contract stops and goes back to its owner with what is missing. That is the
+  readiness check of item 7, pulled forward; the tracker integration itself stays later.
+- **"A better alternative" to Restate**: no comparison is run (rule 2). A replacement is adopted
+  when a run shows a need Restate cannot meet, or when his team's factory settles on Temporal,
+  the fact the 2026-10-08 decision named. Research that passes by a candidate records it.
+- **"Continue the research."** Research is a standing part of the roadmap now: one short,
+  labelled pass per session on the question that blocks its build step (rule 5 unchanged), and,
+  from this input, two standing questions of his: what makes a repository factory-friendly and
+  agent-efficient, with QA at the centre; and which new tools the factory can use. The first pass
+  on both is `docs/research/2026-10-14-agent-friendly-repositories.md`.
+
+
 
 > One more thing that I wanted to drop and make sure that we always are mindful of: the fact that
 > this whole setup needs to be portable onto generic applications. If, on the other machine, I

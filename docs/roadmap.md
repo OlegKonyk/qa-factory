@@ -119,8 +119,11 @@ the run. Kickoff D. Code with factory tests and one cheap proof run.
 - **One gate contract for every step.** The gate carries its kind, who answers, the question,
   the context, and the answers it accepts, so a command or a page can render it without knowing
   the step. The triggers, from the brief:
-  - Frame: a criterion it cannot make checkable stops the run with the ambiguities it already
-    lists; the answer is the clarified criteria, or "proceed as read".
+  - Frame: a criterion it cannot make checkable, or a ticket that does not state the public
+    contract (field names, values, labels, routes), stops the run with what is missing; the
+    answer is the clarified ticket, or "proceed as read". This is the readiness check, pulled
+    forward from item 7 on his answer of 2026-10-14 that tickets at work will not state the
+    contract.
   - Plan: `plan` set to `person` in the ticket or app, or the plan reporting unknown patterns or
     risk; the answer is approve, or an edited plan file.
   - Verify: as today.
@@ -176,16 +179,17 @@ specification (`docs/research/2026-10-14-factory-landscape.md`, points 1 and 4).
 
 ## Later: when a run shows the need
 
-7. **Tickets from an issue tracker**, with a readiness check in Frame that sends a ticket back
-   when it does not state the public contract (field names, values, labels, routes). Moves up if
-   tickets at work do not state it (question 3). The Ticket person point of the brief is this.
+7. **Tickets from an issue tracker.** The readiness check that sends a ticket back for its
+   missing contract is in item 4 now (his answer of 2026-10-14); what stays here is reading the
+   ticket from a tracker and writing the answer back to it. The Ticket person point of the brief
+   is this.
 8. **The Learn step**: each run's escalations, review findings, answers at the gates and repairs
    proposed as edits to the strategy rule and the prompts, by pull request. The brief's knowledge
    base starts here. A repair round guided by surviving mutants (the adversarial loop of the
    research, point 5) is a candidate here.
-9. **Scale**: more than one ticket at once, a durable engine as the default (Restate, or Temporal
-   if that is what work runs on; question 4), test selection when a suite gets slow, quarantine
-   for flaky tests.
+9. **Scale**: more than one ticket at once, a durable engine as the default (Restate, kept on
+   2026-10-14; replaced only when a run shows a need it cannot meet or work settles on
+   Temporal), test selection when a suite gets slow, quarantine for flaky tests.
 10. **Applications not in Python.** The checks read pytest output and run mutmut.
 
 ## Restate: what it is and whether it is needed
@@ -209,6 +213,19 @@ keep it behind the flag, build item 4 on the envelope so both engines get every 
 the default engine when item 6 puts approvals on pull requests. Removing it is a one-session
 chore that is cheap now and cheap later. His call, question 4.
 
+## Research, continued
+
+His standing ask of 2026-10-14: keep the research going, short and labelled (rule 5), on two
+questions of his, with QA at the centre: what makes a repository factory-friendly and
+agent-efficient, and which new tools the factory can use. Each session's kickoff carries one
+short pass on the question that blocks its build step; findings go to `docs/research/`, and
+anything that changes a build step goes into that item. Passes so far:
+
+- `2026-10-14-factory-landscape.md`: how factories are run; the two fixed gates.
+- `2026-10-14-agent-friendly-repositories.md`: what makes a repository factory-friendly and
+  agent-efficient, and the tools worth using; folded into the checklist in `docs/exploration.md`
+  and into item 3's shape.
+
 ## Small leftovers, taken when a session is in that code
 
 Carried from the old "Next" of `docs/status.md`; none needs a session of its own.
@@ -231,16 +248,11 @@ Carried from the old "Next" of `docs/status.md`; none needs a session of its own
   harness: recorded with dates in the research so nobody looks them up again; none is needed for
   the next step.
 
-## Questions for Oleg
+## Answered 2026-10-14 ("adopt, public, no, keep")
 
-1. **Which first:** make it adoptable by a real service (items 1 to 4), or the factory writing the
-   change itself (item 5)? Recommended: adoptable first; it is what his service and the meetings
-   need, and item 5 is easier to trust once item 3 has shown a bug-fix ticket.
-2. **His microservice:** is it the third application at his side, and what is its shape
-   (framework, database, the kind of thing it calls: another HTTP service, a queue, a third-party
-   API)? Only the generic shape enters the repository; names go to `.local/`. Or should the session
-   pick a public application with the shape above? Recommended: a public one here; his at work
-   from `docs/adopt.md` when he chooses.
-3. **Tickets at work:** will they state the public contract before coding starts? If not, item 7
-   moves into Now.
-4. **Restate:** keep it behind the flag until item 6 (recommended), or remove it now?
+1. **Adoptable first:** items 1 to 4 before item 5.
+2. **The third application is a public one**, chosen by the session that onboards it.
+3. **Tickets at work will not state the public contract**, so the readiness check is in item 4.
+4. **Restate stays** behind its flag until item 6; replaced only on a need a run shows.
+
+Nothing is waiting on him. The next session starts with kickoff A (`docs/next-session.md`).

@@ -4,9 +4,10 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg
 
-The same four questions are at the end of `docs/roadmap.md` and on its page,
-https://claude.ai/artifact/DS1jXmWm67BPXzL1ma7cCy (republished 2026-10-14; the earlier link could
-not be read from this machine's session).
+Nothing. He answered the roadmap's four questions on 2026-10-14 ("adopt, public, no, keep";
+`docs/decisions.md`). The page is https://claude.ai/artifact/DS1jXmWm67BPXzL1ma7cCy
+(republished 2026-10-14; the earlier link could not be read from this machine's session). The
+questions as they stood, for the record:
 
 1. Which comes first: make the factory adoptable by a real service (roadmap items 1 to 4), or an
    agent writing the change itself (item 5)? Recommended: adoptable first.
@@ -24,6 +25,15 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
 ## Where things stand, 2026-10-14
 
+- **His four answers** (his fourth input of the day): adoptable first; a public third
+  application; tickets at work will not state the contract, so the readiness check is now the
+  Frame gate of item 4; Restate stays. Research continues as a standing part of the roadmap; the
+  second pass, on factory-friendly repositories and tools, is
+  `docs/research/2026-10-14-agent-friendly-repositories.md`. It grew the agent-friendly checklist
+  in `docs/exploration.md` to twelve items (an agent file, lint in seconds, a container recipe, a
+  machine-readable API description), which `docs/adopt.md` section 3 now applies first, and it
+  names one thing to try and measure in the next browser-test run: the Playwright CLI in the
+  writer's session.
 - **Rule 9, always portable** (his third input of the day): at every merge the repository can be
   cloned elsewhere and pointed at a generic Python application from `docs/adopt.md` alone. The
   roadmap's new portability table says where that is not yet true: no full ticket run off this
