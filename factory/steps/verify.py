@@ -464,7 +464,10 @@ def write_tests(ctx):
 
 def run_lint(ctx):
     report = lint.run(
-        ctx["head_tree"], ctx["app"]["python"], ctx["files"], app_package=ctx["app"]["source_package"]
+        ctx["head_tree"],
+        ctx["app"]["python"],
+        ctx["files"],
+        app_package=mutants.package_module(ctx["app"]["source_package"]),
     )
     if report["status"] != "pass":
         rows = "; ".join(f"{f['file']}:{f['line']} {f['rule']}" for f in report["findings"][:10])
@@ -536,7 +539,7 @@ def run_mutation(ctx):
             continue
         head_src = _read(os.path.join(head_tree, path))
         base_src = _read(os.path.join(base_tree, path)) if row["status"] == "M" else None
-        found = mutants.changed_functions(base_src, head_src, path[:-3].replace("/", "."))
+        found = mutants.changed_functions(base_src, head_src, mutants.module_of(path))
         if found:
             globs.extend(found)
             only_mutate.append(path)
@@ -887,7 +890,7 @@ def _source_line(tree, key, files, line):
     """The head tree's text of `line` in the file whose module the mutant key names."""
     module = key.rsplit(".", 1)[0]
     for path in files:
-        if path[:-3].replace("/", ".") == module:
+        if mutants.module_of(path) == module:  # the key's module is mutmut's: `src.` and `.__init__` dropped
             lines = _read(os.path.join(tree, path)).splitlines()
             return lines[line - 1].strip() if 0 < line <= len(lines) else ""
     return ""

@@ -38,7 +38,7 @@ Pointing the factory at a work repository is Oleg's call, not a session's (`CLAU
 | The factory writing the change itself (an agent-written Implement) | not built | the ticket points at a finished commit |
 | A gate at every step: stop, tell, list, answer, correct | built 2026-10-14, proved on one ticket through Plan | section 6, `docs/runs/2026-10-14-linkding-sort-by-modified-vague/` |
 | Approval on a pull request | not built | approval is a file in the run folder |
-| A `src/` layout for the source package | not verified | section 4, `source_package` |
+| A `src/` layout for the source package | built 2026-10-14, not yet measured on an application: modules are named as mutmut names them (a leading `src/` dropped) | section 3 item 4, section 4 `source_package` |
 | Anything not Python: the checks read pytest tracebacks and run mutmut | not built | |
 
 Model spend per ticket on linkding, measured: 5.4 to 5.6 USD and 13 to 20 minutes when every check
@@ -100,9 +100,11 @@ needed.
    client) with a helper file the writer reads for conventions (`helpers.py` by default; name
    another with `test_helpers` in the recipe). Optional: one folder of Python browser tests with a
    file-name pattern of their own, and its `helpers.py` (that name is fixed for browser tests).
-4. A source package directory at the repository root (`mypackage/`, flat layout). Mutation testing
-   mutates `source_package/<path>.py` and imports it as `source_package.path`; a `src/` layout is
-   not verified. Tests inside the source package (isso's `isso/tests/`) are copied into the
+4. A source package directory: at the repository root (`mypackage/`, flat layout) or under
+   `src/` (`src/mypackage/`). Mutation testing mutates `source_package/<path>.py`; mutmut 3.8.0
+   names its mutants by the module with a leading `src.` dropped (`src/mypackage/views.py` gives
+   `mypackage.views.x_f__mutmut_1`, its `get_mutant_name`), and the factory names modules the same
+   way. `src/` layout: built 2026-10-14, not yet measured on an application. Tests inside the source package (isso's `isso/tests/`) are copied into the
    mutated tree with the rest, and mutmut runs them there (measured on isso 7e91d59, 2026-10-14).
 5. ruff configured (or default); pytest able to run one file at a time with the arguments in the
    recipe.
@@ -131,7 +133,7 @@ the steps index the required keys directly and fail with a `KeyError` on a missi
 | `repo` | the clone the worktrees come from | fetch, Implement |
 | `worktrees` | folder holding `<ticket id>/base` and `<ticket id>/head` | driver, fetch |
 | `python` | the interpreter of the application's environment, absolute | every check |
-| `source_package` | the package directory, relative to the repo root | mutation, lint (mocks of own code) |
+| `source_package` | the package directory, relative to the repo root: `pkg`, or `src/pkg` for a src layout; the factory derives the import name from it (`src/pkg` is imported as `pkg`) | mutation, lint (mocks of own code) |
 | `pytest_args` | arguments for every pytest call, e.g. `["-p", "no:cacheprovider"]` | revert, suite, Ship |
 | `api_tests_dir` | the API tests folder; the writer adds `test_<slug>_api.py` there | Verify, Implement, Ship |
 | `test_helpers` (optional) | the helper file the writer reads first; default `<api_tests_dir>/helpers.py` | the writer prompt |

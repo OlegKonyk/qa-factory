@@ -400,6 +400,42 @@ def test_mutation_is_skipped_when_mutmut_makes_no_mutant_for_the_changed_functio
     assert runs == ["generated"] and "pkg.mod.x_f*" in report["skipped"]
 
 
+def test_mutation_globs_in_a_src_layout_use_the_name_mutmut_keys(tmp_path, monkeypatch):
+    (tmp_path / "src" / "pkg").mkdir(parents=True)
+    (tmp_path / "src" / "pkg" / "f.py").write_text("def f(x):\n    return x\n")
+    source = tmp_path / "source.json"
+    source.write_text(json.dumps([{"path": "src/pkg/f.py", "status": "A"}]))
+    tests = tmp_path / "tests.json"
+    tests.write_text(json.dumps([]))
+    inp = _inp(tmp_path, artifacts={"changed_source": str(source), "changed_tests": str(tests)})
+    inp["repo"]["app"].update(
+        source_package="src/pkg",
+        api_tests_dir="tests",
+        python="python",
+        exclude_copy=[],
+        mutmut={"pytest_add_cli_args": [], "pre_create_dirs": []},
+    )
+    seen = {}
+
+    def fake_run(tree, python, pkg, only, files, globs, workdir, *rest):
+        seen.update(pkg=pkg, only=only)
+        return {"status": "pass", "generated": 2, "checked": 2, "killed": 2, "on_changed_lines": {}}
+
+    monkeypatch.setattr(verify.mutants, "run", fake_run)
+    ctx = verify._context(inp)
+    ctx["files"] = ["tests/test_x.py"]
+    report = verify.run_mutation(ctx)
+    assert report["globs"] == ["pkg.f.x_f__mutmut_*"]
+    assert seen == {"pkg": "src/pkg", "only": ["src/pkg/f.py"]}  # paths stay paths
+
+
+def test_a_survivors_source_line_is_found_in_a_src_layout(tmp_path):
+    (tmp_path / "src" / "pkg").mkdir(parents=True)
+    (tmp_path / "src" / "pkg" / "mod.py").write_text("def f(x):\n    return x + 1\n")
+    line = verify._source_line(str(tmp_path), "pkg.mod.x_f__mutmut_1", ["src/pkg/mod.py"], 2)
+    assert line == "return x + 1"
+
+
 # ------------------------------------------------------------------ the writer in real git trees
 def git(cwd, *args):
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
