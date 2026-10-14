@@ -217,12 +217,6 @@ def run_step(
         print(f"question: {run_dir / 'question.md'}", file=out)
         return old.output
 
-    earlier = len(list(steps_dir.glob(f"{index:02d}-{name}.round*.json")))
-    if old and old.status == "fail":
-        earlier += 1
-        record_path.rename(steps_dir / f"{index:02d}-{name}.round{earlier}.json")
-    round_no = earlier + 1
-
     if old and old.status == "needs_person":  # an answer is there: check it before consuming it
         try:
             gates.read_answer(answer_path, old.output.gate.answers if old.output.gate else None)
@@ -230,6 +224,19 @@ def run_step(
             print(f"answer: {err}", file=out)
             print(f"question: {run_dir / 'question.md'}", file=out)
             return old.output
+
+    # A failed record becomes an earlier round now. A question that is being answered becomes one
+    # after the step ran (the step reads the asking record while it runs), so a step that stops
+    # twice keeps both questions and both answers: answer<round> never overwrites an earlier one.
+    earlier = len(list(steps_dir.glob(f"{index:02d}-{name}.round*.json")))
+    archive_asked: Path | None = None
+    if old and old.status == "fail":
+        earlier += 1
+        record_path.rename(steps_dir / f"{index:02d}-{name}.round{earlier}.json")
+    elif old and old.status == "needs_person":
+        earlier += 1
+        archive_asked = steps_dir / f"{index:02d}-{name}.round{earlier}.json"
+    round_no = earlier + 1
 
     step_artifacts = dict(artifacts)
     if old and old.status == "needs_person":
@@ -257,6 +264,8 @@ def run_step(
         data["artifact_sha256"] = {
             k: _sha256(v) for k, v in output.artifacts.items() if isinstance(v, str) and Path(v).is_file()
         }
+    if archive_asked is not None and record_path.exists():
+        record_path.rename(archive_asked)
     _write_json(record_path, data)
     if "answer" in step_artifacts and answer_path.exists():
         _archive_answer(answer_path, steps_dir / f"{index:02d}-{name}.answer{round_no}.json")

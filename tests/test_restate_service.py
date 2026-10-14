@@ -118,7 +118,8 @@ def test_a_gate_parks_on_a_promise_and_the_answer_resumes_the_step(ticket, tmp_p
     result = drive(replay, req)
     assert result["status"] == "pass"
     assert replay.journal[-4:] == ["answer verify-1", "04-verify #2", "05-review", "06-ship"]
-    assert (run_dir / "steps" / "04-verify.answer1.json").exists()
+    assert (run_dir / "steps" / "04-verify.answer2.json").exists()
+    assert (run_dir / "steps" / "04-verify.round1.json").exists(), "the question it answered is kept"
     assert not (run_dir / "answer.json").exists()
     starts = [
         line.split()[1] for line in (run_dir / "stub_calls.log").read_text().splitlines() if "start" in line

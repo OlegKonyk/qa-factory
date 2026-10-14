@@ -84,7 +84,7 @@ def test_person_mode_stops_on_a_clean_frame(inp):
 
 def test_the_prompt_asks_for_missing_contract():
     text = (Path(frame.__file__).parent.parent / "prompts" / "frame.md").read_text()
-    assert "missing_contract" in text and "Leave it empty when the ticket states the surface" in text
+    assert "missing_contract" in text and "Leave it empty when the ticket's contract" in text
 
 
 # Through the driver: the answers.

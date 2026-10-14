@@ -1,0 +1,57 @@
+{
+  "structured": {
+    "summary": "The ticket adds two sort values, modified_asc and modified_desc, to the bookmark list dropdown and to the bookmarks and archived REST API endpoints. Before the change, the sort values are added_asc/desc and title_asc/desc, and anything unknown falls back to date_added descending. The ticket's contract is mostly sufficient. Gaps remain around tie-breaking, the user's saved sort preference, and the exact dropdown placement.",
+    "acceptance_criteria": [
+      {
+        "id": "AC1",
+        "text": "GET /api/bookmarks/?sort=modified_asc returns 200 with the user's bookmarks ordered by date_modified from oldest to newest.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC2",
+        "text": "GET /api/bookmarks/?sort=modified_desc returns 200 with the user's bookmarks ordered by date_modified from newest to oldest.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC3",
+        "text": "The sort dropdown on the bookmark list page contains the options 'Modified \u2191' and 'Modified \u2193', and selecting each one reorders the displayed list by date_modified (\u2191 oldest first, \u2193 newest first).",
+        "testable": true,
+        "surface": "browser"
+      },
+      {
+        "id": "AC4",
+        "text": "The archived bookmarks list page dropdown offers both Modified options and reorders correctly. GET /api/bookmarks/archived/?sort=modified_asc and sort=modified_desc return archived bookmarks ordered by date_modified ascending and descending.",
+        "testable": true,
+        "surface": "api"
+      },
+      {
+        "id": "AC5",
+        "text": "An unrecognised sort value, on both the list and archived API endpoints, returns HTTP 200 with bookmarks in the default order (date_added descending).",
+        "testable": true,
+        "surface": "api"
+      }
+    ],
+    "ambiguities": [
+      "AC3/AC4: it is unclear whether the web page accepts ?sort=modified_asc in the URL and shows the matching dropdown option as selected. The ticket only mentions the dropdown.",
+      "AC3: the position of the new options in the dropdown is not stated, for example after the Added and Title options.",
+      "AC1/AC2: no tie-breaker is given for bookmarks with an identical date_modified.",
+      "AC1/AC2: it is unclear whether editing a bookmark, archiving it, or changing its tags updates date_modified and so changes the order. A test would have to guess which actions count as a modification.",
+      "The sort preference is stored in the user profile and applies as the default sort. It is unclear whether Modified values can be saved as that preference and whether the profile settings or API validate them.",
+      "AC3: it is unclear whether other bookmark views, such as shared bookmarks and bundles, also get the options. The ticket says 'wherever the existing sort options are'.",
+      "AC5: it is unclear whether an unknown value in the web UI also falls back silently. The contract only states HTTP 200 for the API.",
+      "The dropdown uses the 'Modified \u2191' and 'Modified \u2193' labels, but the exact option values are only given for the API. The ticket does not say whether the web form uses the same values."
+    ],
+    "missing_contract": []
+  },
+  "text": "{\"summary\":\"The ticket adds two sort values, modified_asc and modified_desc, to the bookmark list dropdown and to the bookmarks and archived REST API endpoints. Before the change, the sort values are added_asc/desc and title_asc/desc, and anything unknown falls back to date_added descending. The ticket's contract is mostly sufficient. Gaps remain around tie-breaking, the user's saved sort preference, and the exact dropdown placement.\",\"acceptance_criteria\":[{\"id\":\"AC1\",\"text\":\"GET /api/bookmarks/?sort=modified_asc returns 200 with the user's bookmarks ordered by date_modified from oldest to newest.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC2\",\"text\":\"GET /api/bookmarks/?sort=modified_desc returns 200 with the user's bookmarks ordered by date_modified from newest to oldest.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC3\",\"text\":\"The sort dropdown on the bookmark list page contains the options 'Modified \u2191' and 'Modified \u2193', and selecting each one reorders the displayed list by date_modified (\u2191 oldest first, \u2193 newest first).\",\"testable\":true,\"surface\":\"browser\"},{\"id\":\"AC4\",\"text\":\"The archived bookmarks list page dropdown offers both Modified options and reorders correctly. GET /api/bookmarks/archived/?sort=modified_asc and sort=modified_desc return archived bookmarks ordered by date_modified ascending and descending.\",\"testable\":true,\"surface\":\"api\"},{\"id\":\"AC5\",\"text\":\"An unrecognised sort value, on both the list and archived API endpoints, returns HTTP 200 with bookmarks in the default order (date_added descending).\",\"testable\":true,\"surface\":\"api\"}],\"ambiguities\":[\"AC3/AC4: it is unclear whether the web page accepts ?sort=modified_asc in the URL and shows the matching dropdown option as selected. The ticket only mentions the dropdown.\",\"AC3: the position of the new options in the dropdown is not stated, for example after the Added and Title options.\",\"AC1/AC2: no tie-breaker is given for bookmarks with an identical date_modified.\",\"AC1/AC2: it is unclear whether editing a bookmark, archiving it, or changing its tags updates date_modified and so changes the order. A test would have to guess which actions count as a modification.\",\"The sort preference is stored in the user profile and applies as the default sort. It is unclear whether Modified values can be saved as that preference and whether the profile settings or API validate them.\",\"AC3: it is unclear whether other bookmark views, such as shared bookmarks and bundles, also get the options. The ticket says 'wherever the existing sort options are'.\",\"AC5: it is unclear whether an unknown value in the web UI also falls back silently. The contract only states HTTP 200 for the API.\",\"The dropdown uses the 'Modified \u2191' and 'Modified \u2193' labels, but the exact option values are only given for the API. The ticket does not say whether the web form uses the same values.\"],\"missing_contract\":[]}",
+  "metrics": {
+    "cost_usd": 0.0444833,
+    "model": "claude-sonnet-5-5",
+    "turns": 6,
+    "duration_ms": 13897,
+    "input_tokens": 6,
+    "output_tokens": 1795
+  }
+}

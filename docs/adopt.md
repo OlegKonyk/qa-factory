@@ -269,7 +269,8 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   required: an answer without it, or with a decision the question does not accept, is left in
   place and the run prints `answer: <what is wrong>` and exits 2 again. The old approval form
   `{"approved": true, "by": "<who>"}` still works. The consumed answer is kept as
-  `steps/NN-<step>.answerM.json` with the time it was read (`answered_at`); `status` names who
+  `steps/NN-<step>.answerM.json` with the time it was read (`answered_at`), and the question it
+  answered as `steps/NN-<step>.roundK.json`, so a step that stops twice keeps both; `status` names who
   answered on the step's line and the report has a section "Who answered".
 - `uv run python -m factory waiting [--runs-root <folder>] [--json]` lists every run that waits for
   a person, one line each: ticket, step, kind, who, since when, the question's start and its path.

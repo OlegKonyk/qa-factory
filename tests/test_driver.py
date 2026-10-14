@@ -189,7 +189,7 @@ def test_the_archived_answer_carries_answered_at_and_status_names_the_answerer(t
     original = {"approved": True, "by": "Dana", "note": "fine"}
     (run_dir / "answer.json").write_text(json.dumps(original))
     assert go(ticket_path, tmp_path, make_steps([]))[0] == 0
-    archived = json.loads((run_dir / "steps" / "04-verify.answer1.json").read_text())
+    archived = json.loads((run_dir / "steps" / "04-verify.answer2.json").read_text())
     assert {k: archived[k] for k in original} == original
     assert archived["answered_at"].startswith("20")
     out = io.StringIO()
@@ -305,7 +305,8 @@ def test_run_dir_is_absolute_and_an_answer_is_consumed_once(tmp_path, ticket_pat
         assert driver.run(ticket_path, runs_root="runs-rel", steps=steps) == 0
         assert calls[0][1]["artifacts"]["answer"].endswith("answer.json")
         assert not (run_dir / "answer.json").exists(), "the answer must not answer a later gate"
-        assert (run_dir / "steps" / "04-verify.answer1.json").exists()
+        assert (run_dir / "steps" / "04-verify.answer2.json").exists()
+        assert (run_dir / "steps" / "04-verify.round1.json").exists(), "the question it answered is kept"
     finally:
         shutil.rmtree(run_dir.parent, ignore_errors=True)
 
