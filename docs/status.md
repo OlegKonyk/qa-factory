@@ -25,6 +25,12 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
 ## Where things stand, 2026-10-14
 
+- **Each roadmap item has a state, and a command reads it** (his fifth input of the day:
+  "yes, add the state and the roadmap command"). `python -m factory roadmap` prints the ten
+  items with `planned`, `in progress`, `done` or `dropped` and the note (date, pull request,
+  measured cost against the estimate); `just check` fails on an item without one. All ten are
+  planned. The finishing session updates the line in its own pull request (`CLAUDE.md`,
+  commands). 244 factory tests.
 - **His four answers** (his fourth input of the day): adoptable first; a public third
   application; tickets at work will not state the contract, so the readiness check is now the
   Frame gate of item 4; Restate stays. Research continues as a standing part of the roadmap; the
@@ -57,7 +63,7 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
   languages). The kickoffs for the first three are in `docs/next-session.md`.
 - **Restate stays behind `--engine restate`**, decided by delegation (`docs/decisions.md`).
 - **Housekeeping:** the stale remote branches are gone; GitHub holds only `main`.
-- `just check` green: 231 passed, 1 skipped (output in the pull request).
+- `just check` green: 244 passed, 1 skipped, roadmap 10 items (output in the pull request).
 
 ## Where things stand, 2026-10-13
 

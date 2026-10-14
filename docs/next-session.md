@@ -41,7 +41,8 @@ their output, or says plainly what did not run and why.
 - A test for every factory change.
 - A branch per change, with `just check` green.
 - A squash PR with the output in the body.
-- A `docs/log.md` entry, and `docs/status.md` updated last.
+- A `docs/log.md` entry, the item's `State:` line in `docs/roadmap.md`, and `docs/status.md`
+  updated last.
 
 Report to Oleg in plain English: what ran, what it showed, and what is his to decide. Never ask him
 to approve passing work. What is truly his goes at the end as a short numbered list.
@@ -79,7 +80,8 @@ by following docs/adopt.md and nothing else, through all eight items of its chec
 with the model calls billed through `scripts/with-console-key.sh` on this laptop (elsewhere,
 `ANTHROPIC_API_KEY`). Cap: one ticket, about 6 USD (estimate). Fold every place the guide was wrong
 or silent back into docs/adopt.md in the same pull request. A branch per change, `just check`
-green, a squash PR with the output in the body, a docs/log.md entry, docs/status.md updated last.
+green, a squash PR with the output in the body, a docs/log.md entry, the item's State line in
+docs/roadmap.md, docs/status.md updated last.
 
 Pointing the factory at a work repository is Oleg's call (CLAUDE.md, boundary). If the application
 is his, he says so in this prompt; otherwise pick a public one with the shape of roadmap item 3:

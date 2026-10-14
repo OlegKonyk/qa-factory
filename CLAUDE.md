@@ -105,4 +105,6 @@ piece now. Never resume its plans, its experiments or its vocabulary.
 
 ## Commands
 
-`just setup` wires the hooks. `just check` runs the checks.
+`just setup` wires the hooks. `just check` runs the checks. `python -m factory roadmap` prints the
+roadmap's items with their state; a session that finishes an item updates its `State:` line in
+`docs/roadmap.md` in the same pull request.

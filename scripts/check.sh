@@ -26,6 +26,7 @@ if [ -n "$(git ls-files .local)" ]; then bad ".local/ has tracked files"; else o
 if uv run --no-sync ruff check factory tests targets >/dev/null 2>&1; then ok "ruff check"; else bad "ruff check"; uv run --no-sync ruff check factory tests targets | tail -20; fi
 if uv run --no-sync ruff format --check factory tests targets >/dev/null 2>&1; then ok "ruff format"; else bad "ruff format"; fi
 if out=$(uv run --no-sync pytest 2>&1); then ok "pytest: $(echo "$out" | tail -1)"; else bad "pytest"; echo "$out" | tail -30; fi
+if out=$(uv run --no-sync python -m factory roadmap 2>&1); then ok "roadmap: $(echo "$out" | tail -1)"; else bad "roadmap"; echo "$out" | tail -5; fi
 
 if [ "$fail" -eq 0 ]; then echo "check: green"; else echo "check: red"; fi
 exit "$fail"

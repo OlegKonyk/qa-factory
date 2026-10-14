@@ -1,4 +1,4 @@
-"""Command line: python -m factory run <ticket.json> | status | summary | report | restate ..."""
+"""Command line: python -m factory run <ticket.json> | status | summary | report | roadmap | restate ..."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 
-from factory import driver, report, summary
+from factory import driver, report, roadmap, summary
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -35,6 +35,9 @@ def main(argv: list[str] | None = None) -> int:
     report_p.add_argument("--out", default=None, help="write the page here (default <run_dir>/report.md)")
     dev_p = sub.add_parser("devtests", help="the revert check on the developers' own tests of a finished run")
     dev_p.add_argument("run_dir", help="path to a run folder")
+    roadmap_p = sub.add_parser("roadmap", help="show the state of each item in docs/roadmap.md")
+    roadmap_p.add_argument("--path", default=None, help="the roadmap file (default docs/roadmap.md)")
+    roadmap_p.add_argument("--json", action="store_true", help="print JSON instead of a table")
     restate_p = sub.add_parser("restate", help="the factory as a Restate workflow")
     restate_sub = restate_p.add_subparsers(dest="action", required=True)
     serve_p = restate_sub.add_parser("serve", help="serve the workflow for the Restate server")
@@ -67,6 +70,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "summary":
         return summary.main(args.run_dirs, args.json)
+    if args.command == "roadmap":
+        return roadmap.main(args.path, args.json)
     if args.command == "devtests":
         from factory.checks import devtests
 
