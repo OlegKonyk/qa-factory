@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import TextIO
 
-from factory import summary
+from factory import gates, summary
 from factory.summary import STEP_NAMES, _cell, _load, _result, _rounds, _table
 
 VERDICT_WORDS = {
@@ -228,6 +228,29 @@ def _stage_lines(s: dict) -> list[str]:
     ]
 
 
+def _answer_lines(run: Path) -> list[str]:
+    """Every archived answer, `steps/NN-<step>.answerM.json`: the round M of the step it answered."""
+    rows = []
+    for path in sorted((run / "steps").glob("[0-9][0-9]-*.answer*.json")):
+        step, _, rest = path.name[3:].partition(".answer")
+        answer = _load(path)
+        if not isinstance(answer, dict):
+            continue
+        rows.append(
+            [
+                step,
+                rest.removesuffix(".json"),
+                _md(answer.get("by") or "-"),
+                _md(gates.decision_of(answer) or "-"),
+                _md(answer.get("note") or answer.get("guidance") or "-"),
+                answer.get("answered_at") or "-",
+            ]
+        )
+    if not rows:
+        return ["Nobody answered a question in this run."]
+    return _table(["step", "round", "by", "decision", "note", "answered at"], rows)
+
+
 def render(run_dir, out_dir=None) -> str:
     """The Markdown page of one run folder; links are relative to `out_dir` (the run folder by default)."""
     run = Path(run_dir)
@@ -262,6 +285,10 @@ def render(run_dir, out_dir=None) -> str:
         "## Rounds",
         "",
         *_round_lines(s),
+        "",
+        "## Who answered",
+        "",
+        *_answer_lines(run),
         "",
         "## Time and spend",
         "",

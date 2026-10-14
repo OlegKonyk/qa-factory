@@ -20,18 +20,31 @@ def _check_status(status: str) -> None:
 
 @dataclass
 class Gate:
-    """A question for a person: who should answer, what is asked, and the facts they need."""
+    """A question for a person: who should answer, what is asked, and the facts they need.
+
+    `kind` names the gate in one word (`approval`, `escalation`, ...). `answers` lists the accepted
+    answers, each `{"decision": "<word>", "means": "<one sentence>", "carries": "<optional field>"}`;
+    an empty list (every record written before gates had one) accepts any decision.
+    """
 
     who: str
     question: str
     context: dict = field(default_factory=dict)
+    kind: str = "approval"
+    answers: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, data: dict) -> Gate:
-        return cls(who=data["who"], question=data["question"], context=data.get("context") or {})
+        return cls(
+            who=data["who"],
+            question=data["question"],
+            context=data.get("context") or {},
+            kind=data.get("kind") or "approval",
+            answers=list(data.get("answers") or []),
+        )
 
 
 @dataclass

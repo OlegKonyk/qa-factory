@@ -128,7 +128,8 @@ def test_a_gate_parks_on_a_promise_and_the_answer_resumes_the_step(ticket, tmp_p
 
 def test_a_declined_answer_fails_the_run_at_that_step(ticket):
     result = drive(
-        FakeContext(promises={"verify-1": {"approved": False, "note": "no"}}), ticket(gate="person")
+        FakeContext(promises={"verify-1": {"approved": False, "by": "Oleg", "note": "no"}}),
+        ticket(gate="person"),
     )
     assert result["status"] == "fail"
     assert result["step"] == "verify"

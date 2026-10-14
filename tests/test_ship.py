@@ -106,3 +106,41 @@ def test_ship_without_browser_keys_makes_one_suite_invocation(world):
     assert out["status"] == "pass", out["reason"]
     report = json.load(open(out["artifacts"]["ship_report"]))
     assert len(report["suite"]["runs"]) == 1
+
+
+def qa_branches(head):
+    return git(head, "branch", "--list", "qa/*").strip()
+
+
+def test_ship_under_person_stops_before_any_commit(world):
+    world["inp"]["ticket"]["gates"] = {"ship": "person"}
+    out = ship.run(world["inp"])
+    assert out["status"] == "needs_person" and out["gate"]["kind"] == "ship"
+    context = out["gate"]["context"]
+    assert context["branch"] == "qa/demo-x" and context["suite"] == [["tests"]]
+    assert sorted(context["files"]) == ["testcases/demo/TC-demo-001.md", "tests/test_new.py"]
+    assert [a["decision"] for a in out["gate"]["answers"]] == ["approve", "decline"]
+    assert qa_branches(world["head"]) == ""
+    assert not (world["head"] / "testcases").exists()
+
+
+def answered(world, tmp_path, data):
+    path = tmp_path / "answer.json"
+    path.write_text(json.dumps(data))
+    world["inp"]["ticket"]["gates"] = {"ship": "person"}
+    world["inp"]["artifacts"]["answer"] = str(path)
+    return ship.run(world["inp"])
+
+
+def test_ship_approve_commits_and_runs_the_suite(world, tmp_path):
+    out = answered(world, tmp_path, {"decision": "approve", "by": "Oleg"})
+    assert out["status"] == "pass", out["reason"]
+    assert git(world["head"], "branch", "--show-current").strip() == "qa/demo-x"
+    committed = git(world["head"], "show", "--name-only", "--format=", "HEAD").split()
+    assert sorted(committed) == ["testcases/demo/TC-demo-001.md", "tests/test_new.py"]
+
+
+def test_ship_decline_fails_without_a_commit(world, tmp_path):
+    out = answered(world, tmp_path, {"decision": "decline", "by": "Oleg", "note": "not these"})
+    assert out["status"] == "fail" and out["reason"] == "ship declined by Oleg: not these"
+    assert qa_branches(world["head"]) == ""

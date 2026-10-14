@@ -205,6 +205,21 @@ def test_hand_built_run(tmp_path):
     assert "Ledger: -" in page and "Stronger model's decisions: -" in page
 
 
+def test_who_answered_lists_every_archived_answer(tmp_path):
+    run = make_run(tmp_path)
+    assert "Nobody answered a question in this run." in _section(report.render(run), "## Who answered")
+    _w(
+        run / "steps/04-verify.answer2.json",
+        {"approved": True, "by": "Dana", "note": "fine | ok", "answered_at": "2026-10-14T10:00:00+00:00"},
+    )
+    _w(run / "steps/05-review.answer1.json", {"decision": "retry", "guidance": "two bookmarks", "by": "Oleg"})
+    rows = _rows(_section(report.render(run), "## Who answered"))
+    assert rows == [
+        "| verify | 2 | Dana | approve | fine \\| ok | 2026-10-14T10:00:00+00:00 |",
+        "| review | 1 | Oleg | retry | two bookmarks | - |",
+    ]
+
+
 def test_more_than_thirty_survivors_lists_changed_lines_first(tmp_path):
     page = report.render(make_run(tmp_path))
     survivors = _rows(_section(page, "#### generated: 35 survived"))

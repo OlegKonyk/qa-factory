@@ -56,7 +56,8 @@ def prepare(ticket_path: str, runs_root: str) -> dict:
 
 def answer_hint(key: str) -> str:
     return (
-        f"\nUnder Restate, answer over HTTP instead of writing the file:\n\n"
+        f"\nUnder Restate, answer over HTTP instead of writing the file, with the same JSON "
+        f"(`by` is required):\n\n"
         f"    curl -X POST {INGRESS}/{WORKFLOW}/{key}/answer -H 'content-type: application/json' "
         f'-d \'{{"approved": true, "by": "Oleg", "note": ""}}\'\n'
     )

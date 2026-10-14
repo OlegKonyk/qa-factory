@@ -4,6 +4,9 @@ In the head worktree a branch `qa/<ticket id>` is created from the change, the g
 their readable cases are committed, and the application's suite runs once more with the new tests
 in place. No pull request is opened yet: the application is not forked under Oleg's account
 (docs/decisions.md). The commit in the worktree is the deliverable; its id is recorded.
+
+Under the `person` mode it stops before anything is written to the worktree (gate `ship`): the
+files, the branch and the suite that will run; `approve` commits and runs the suite, `decline` fails.
 """
 
 import json
@@ -12,7 +15,13 @@ import shutil
 import subprocess
 import time
 
+from factory import gates
 from factory.checks import suite
+
+SHIP_ANSWERS = [
+    {"decision": "approve", "means": "commit the tests and their cases on the branch and run the suite"},
+    {"decision": "decline", "means": "nothing is committed; the step fails with the note as its reason"},
+]
 
 
 def _git(cwd, *args, check=True):
@@ -47,30 +56,72 @@ def restore_tests(head_tree: str, manifest_files: list[str], tests_dir: str | No
     return restored
 
 
-def run(inp):
-    repo, ticket, artifacts, run_dir = (_field(inp, k) for k in ("repo", "ticket", "artifacts", "run_dir"))
-    app, head_tree = repo["app"], repo["head_tree"]
-    out_dir = os.path.join(run_dir, "ship")
-    os.makedirs(out_dir, exist_ok=True)
-
-    with open(artifacts["tests_manifest"]) as f:
-        manifest = json.load(f)
-    files = list(manifest["files"])
-    restored = restore_tests(head_tree, files, artifacts.get("tests_dir"))
-
-    # The readable cases travel with the tests, under testcases/ at the application's root.
-    cases_dir = artifacts.get("test_cases")
+def _cases(cases_dir) -> list[tuple[str, str]]:
+    """(source, path under the application's root) for each readable case: they go under testcases/."""
+    found = []
     if cases_dir and os.path.isdir(cases_dir):
-        dest = os.path.join(head_tree, "testcases")
         for area in os.listdir(cases_dir):
             src = os.path.join(cases_dir, area)
             if os.path.isdir(src):
-                os.makedirs(os.path.join(dest, area), exist_ok=True)
                 for name in os.listdir(src):
-                    shutil.copy2(os.path.join(src, name), os.path.join(dest, area, name))
-                    files.append(os.path.join("testcases", area, name))
+                    found.append((os.path.join(src, name), os.path.join("testcases", area, name)))
+    return found
 
+
+def _invocations(app, manifest_files):
+    """The suite with the new tests in place: the recipe's first invocation (the API and unit tests),
+    then the new browser files alone, when the recipe has a browser folder."""
+    browser_dir = app.get("browser_tests_dir") or None
+    browser_files = [p for p in manifest_files if browser_dir and p.startswith(browser_dir + "/")]
+    invocations = [list(app["suite"][0])]
+    if browser_files:
+        invocations.append(["-o", f"python_files={app['browser_test_files']}", *browser_files])
+    return invocations
+
+
+def _ask(ticket, app, files, branch, invocations):
+    return {
+        "status": "needs_person",
+        "artifacts": {},
+        "reason": "ship mode is person: the commit waits for approval",
+        "gate": {
+            "kind": "ship",
+            "who": gates.approver(app),
+            "question": f"Commit {len(files)} files for '{ticket.get('title', ticket['id'])}' on {branch} "
+            "and run the suite?",
+            "context": {"files": files, "branch": branch, "suite": invocations},
+            "answers": SHIP_ANSWERS,
+        },
+        "metrics": {},
+    }
+
+
+def run(inp):
+    repo, ticket, artifacts, run_dir = (_field(inp, k) for k in ("repo", "ticket", "artifacts", "run_dir"))
+    app, head_tree = repo["app"], repo["head_tree"]
+
+    with open(artifacts["tests_manifest"]) as f:
+        manifest = json.load(f)
+    cases = _cases(artifacts.get("test_cases"))
+    files = list(manifest["files"]) + [rel for _, rel in cases]
     branch = f"qa/{ticket['id']}"
+    invocations = _invocations(app, manifest["files"])
+
+    if "answer" in artifacts:
+        answer = gates.read_answer(artifacts["answer"])  # the driver checked it against the gate
+        if answer["decision"] != "approve":
+            reason = f"ship declined by {answer['by']}: {answer.get('note', '')}".strip()
+            return {"status": "fail", "artifacts": {}, "reason": reason, "gate": None, "metrics": {}}
+    elif gates.mode_for("ship", ticket, app) == "person":
+        return _ask(ticket, app, files, branch, invocations)
+
+    out_dir = os.path.join(run_dir, "ship")
+    os.makedirs(out_dir, exist_ok=True)
+    restored = restore_tests(head_tree, list(manifest["files"]), artifacts.get("tests_dir"))
+    for src, rel in cases:
+        os.makedirs(os.path.dirname(os.path.join(head_tree, rel)), exist_ok=True)
+        shutil.copy2(src, os.path.join(head_tree, rel))
+
     existing = _git(head_tree, "branch", "--list", branch).strip()
     if existing:
         _git(head_tree, "checkout", "--quiet", branch)
@@ -91,13 +142,6 @@ def run(inp):
     )
     sha = _git(head_tree, "rev-parse", "HEAD").strip()
 
-    # The suite with the new tests in place: the recipe's first invocation (the API and unit tests),
-    # then the new browser files alone, when the recipe has a browser folder.
-    browser_dir = app.get("browser_tests_dir") or None
-    browser_files = [p for p in manifest["files"] if browser_dir and p.startswith(browser_dir + "/")]
-    invocations = [list(app["suite"][0])]
-    if browser_files:
-        invocations.append(["-o", f"python_files={app['browser_test_files']}", *browser_files])
     t0 = time.time()
     result = suite.run(head_tree, app["python"], invocations, app["pytest_args"])
     report = {

@@ -1,5 +1,6 @@
 """Tests for the driver: resume, gate, failure rounds and the command line."""
 
+import hashlib
 import io
 import json
 import shutil
@@ -123,6 +124,80 @@ def test_rerun_with_answer_resumes_at_gate(ticket_path, tmp_path):
     assert "skip  1 frame" in text
 
 
+def approval_gate_output(_):
+    out = gate_output(_)
+    out["gate"].update(
+        kind="approval",
+        answers=[
+            {"decision": "approve", "means": "the tests join the suite"},
+            {"decision": "decline", "means": "the step fails"},
+        ],
+    )
+    return out
+
+
+def test_question_lists_kind_accepted_answers_and_an_example_with_by(ticket_path, tmp_path):
+    go(ticket_path, tmp_path, make_steps([], {"verify": approval_gate_output}))
+    question = (tmp_path / "runs" / "t-1" / "question.md").read_text()
+    assert "Kind: approval" in question and "Who: Oleg" in question
+    assert "- `approve`: the tests join the suite" in question
+    assert '{"decision": "approve", "by": "Oleg", "note": ""}' in question
+
+
+def test_an_answer_without_by_is_refused_and_left_in_place(ticket_path, tmp_path):
+    go(ticket_path, tmp_path, make_steps([], {"verify": approval_gate_output}))
+    run_dir = tmp_path / "runs" / "t-1"
+    answer = run_dir / "answer.json"
+    answer.write_text(json.dumps({"decision": "approve", "note": "fine"}))
+    calls = []
+    code, text = go(ticket_path, tmp_path, make_steps(calls))
+    assert code == 2
+    assert calls == [], "the step must not run on a refused answer"
+    assert 'answer: missing field "by"' in text
+    assert f"question: {run_dir / 'question.md'}" in text
+    assert answer.exists() and not list((run_dir / "steps").glob("*.answer*.json"))
+
+
+def test_an_unknown_decision_is_refused(ticket_path, tmp_path):
+    go(ticket_path, tmp_path, make_steps([], {"verify": approval_gate_output}))
+    (tmp_path / "runs" / "t-1" / "answer.json").write_text(json.dumps({"decision": "maybe", "by": "Oleg"}))
+    code, text = go(ticket_path, tmp_path, make_steps([]))
+    assert code == 2 and "answer: unknown decision 'maybe'" in text
+
+
+def test_a_gate_calls_the_notifier_once_and_its_failure_does_not_fail_the_run(
+    ticket_path, tmp_path, monkeypatch
+):
+    seen = []
+
+    def notifier(run_dir, step, gate, ticket, app):
+        seen.append((run_dir, step, gate.kind, ticket["id"], app["name"]))
+        raise RuntimeError("no network")
+
+    monkeypatch.setattr(driver, "NOTIFY", notifier)
+    code, text = go(ticket_path, tmp_path, make_steps([], {"verify": approval_gate_output}))
+    assert code == 2
+    assert seen == [(tmp_path / "runs" / "t-1", "verify", "approval", "t-1", "tiny")]
+    assert "notify: RuntimeError: no network" in text
+    go(ticket_path, tmp_path, make_steps([], {"verify": approval_gate_output}))
+    assert len(seen) == 1, "a re-run that only reprints the question does not tell again"
+
+
+def test_the_archived_answer_carries_answered_at_and_status_names_the_answerer(ticket_path, tmp_path):
+    go(ticket_path, tmp_path, make_steps([], {"verify": approval_gate_output}))
+    run_dir = tmp_path / "runs" / "t-1"
+    original = {"approved": True, "by": "Dana", "note": "fine"}
+    (run_dir / "answer.json").write_text(json.dumps(original))
+    assert go(ticket_path, tmp_path, make_steps([]))[0] == 0
+    archived = json.loads((run_dir / "steps" / "04-verify.answer1.json").read_text())
+    assert {k: archived[k] for k in original} == original
+    assert archived["answered_at"].startswith("20")
+    out = io.StringIO()
+    driver.status(run_dir, out)
+    verify_line = [line for line in out.getvalue().splitlines() if line.startswith("4 verify")][0]
+    assert "answered by Dana (approve)" in verify_line
+
+
 def test_failure_stops_then_rerun_is_round_two_and_keeps_round_one(ticket_path, tmp_path):
     calls = []
 
@@ -224,7 +299,7 @@ def test_run_dir_is_absolute_and_an_answer_is_consumed_once(tmp_path, ticket_pat
     try:
         assert run_dir.is_dir()
         assert Path(calls[0][1]["run_dir"]).is_absolute()
-        (run_dir / "answer.json").write_text(json.dumps({"approved": True}))
+        (run_dir / "answer.json").write_text(json.dumps({"approved": True, "by": "Oleg"}))
         calls.clear()
         steps = make_steps(calls)  # verify now passes with the answer
         assert driver.run(ticket_path, runs_root="runs-rel", steps=steps) == 0
@@ -245,3 +320,124 @@ def test_until_stops_at_a_step_that_already_passed(tmp_path, ticket_path):
     assert code == 0
     assert calls == []
     assert "skip  2 plan" in out.getvalue()
+
+
+# The clarified ticket
+
+
+def with_caps(ticket_path, caps):
+    ticket = json.loads(ticket_path.read_text())
+    ticket.update(caps=caps, description="old", contract=["old"])
+    ticket_path.write_text(json.dumps(ticket))
+
+
+def test_the_clarified_ticket_merges_and_the_ticket_files_caps_win(ticket_path, tmp_path):
+    with_caps(ticket_path, {"usd": 2.0})
+    run_dir = tmp_path / "runs" / "t-1"
+    run_dir.mkdir(parents=True)
+    clarified = {"contract": ["GET /x returns 200"], "acceptance_criteria": ["x is listed"]}
+    (run_dir / "ticket.clarified.json").write_text(json.dumps(clarified))
+    calls = []
+    assert go(ticket_path, tmp_path, make_steps(calls))[0] == 0
+    for _, step_input in calls:
+        ticket = step_input["ticket"]
+        assert ticket["contract"] == ["GET /x returns 200"] and ticket["acceptance_criteria"] == [
+            "x is listed"
+        ]
+        assert ticket["description"] == "old" and ticket["caps"] == {"usd": 2.0}
+    assert json.loads((run_dir / "ticket.json").read_text())["contract"] == ["GET /x returns 200"]
+
+
+def test_a_clarified_ticket_with_a_foreign_key_is_rejected(ticket_path, tmp_path):
+    run_dir = tmp_path / "runs" / "t-1"
+    run_dir.mkdir(parents=True)
+    (run_dir / "ticket.clarified.json").write_text(json.dumps({"contract": ["c"], "caps": {"usd": 99}}))
+    with pytest.raises(ValueError, match="found caps"):
+        driver.prepare(ticket_path, tmp_path / "runs")
+
+
+# redo
+
+
+def redo(run_dir, step, *flags):
+    out = io.StringIO()
+    rerun = "--rerun" in flags
+    code = driver.redo(run_dir, step, "Oleg", note="tightened AC2", rerun=rerun, out=out)
+    return code, out.getvalue()
+
+
+def test_redo_archives_later_records_and_writes_its_record(ticket_path, tmp_path):
+    plan_file = tmp_path / "plan.json"
+    plan_file.write_text('{"structured": {"tests": []}}')
+
+    def plan_step(_):
+        return {"status": "pass", "artifacts": {"plan": str(plan_file), "gone": "/no/such"}, "reason": ""}
+
+    go(ticket_path, tmp_path, make_steps([], {"plan": plan_step}))
+    run_dir = tmp_path / "runs" / "t-1"
+    steps = run_dir / "steps"
+    code, text = redo(run_dir, "plan")
+    assert code == 0
+    for name in ("03-implement", "04-verify", "05-review", "06-ship"):
+        assert (steps / f"{name}.round1.json").exists() and not (steps / f"{name}.json").exists()
+        assert f"archived {name}.round1.json" in text
+    assert (steps / "02-plan.json").exists() and "the next run starts at implement" in text
+    record = json.loads((steps / "02-plan.redo1.json").read_text())
+    assert record["by"] == "Oleg" and record["note"] == "tightened AC2" and record["at"].startswith("20")
+    digest = hashlib.sha256(plan_file.read_bytes()).hexdigest()
+    assert record["sha256_before"] == {"plan": digest, "gone": "unknown"}
+    assert record["sha256_after"]["plan"] == digest
+    calls = []
+    out = io.StringIO()
+    assert driver.run(ticket_path, runs_root=tmp_path / "runs", steps=make_steps(calls), out=out) == 0
+    assert [c[0] for c in calls] == ["implement", "verify", "review", "ship"]
+    assert "skip  2 plan" in out.getvalue()
+    status = io.StringIO()
+    driver.status(run_dir, status)  # the redo record is not a step record
+    assert "3 implement pass (earlier round)" in status.getvalue()
+
+
+def test_redo_rerun_archives_the_step_itself_and_the_next_round_number_is_free(ticket_path, tmp_path):
+    go(ticket_path, tmp_path, make_steps([]))
+    run_dir = tmp_path / "runs" / "t-1"
+    assert redo(run_dir, "verify")[0] == 0
+    go(ticket_path, tmp_path, make_steps([]))
+    code, text = redo(run_dir, "verify", "--rerun")
+    assert code == 0 and "the next run starts at verify" in text
+    steps = run_dir / "steps"
+    assert (steps / "04-verify.round1.json").exists() and not (steps / "04-verify.json").exists()
+    assert (steps / "05-review.round2.json").exists() and (steps / "04-verify.redo2.json").exists()
+    calls = []
+    go(ticket_path, tmp_path, make_steps(calls))
+    assert [c[0] for c in calls] == ["verify", "review", "ship"]
+
+
+def test_redo_refuses_a_step_not_passed_and_a_run_at_a_gate(ticket_path, tmp_path):
+    def failing(_):
+        return {"status": "fail", "artifacts": {}, "reason": "boom"}
+
+    go(ticket_path, tmp_path, make_steps([], {"implement": failing}))
+    run_dir = tmp_path / "runs" / "t-1"
+    code, text = redo(run_dir, "implement")
+    assert code == 1 and "has not passed (status fail)" in text
+    assert redo(run_dir, "verify")[0] == 1  # no record
+    go(ticket_path, tmp_path, make_steps([], {"verify": gate_output}))
+    code, text = redo(run_dir, "plan")
+    assert code == 1 and "waits at a gate (04-verify.json); answer it first" in text
+    assert (run_dir / "steps" / "03-implement.json").exists(), "a refused redo archives nothing"
+    assert not list((run_dir / "steps").glob("*.redo*.json"))
+
+
+def test_command_line_redo(ticket_path, tmp_path):
+    go(ticket_path, tmp_path, make_steps([]))
+    run_dir = tmp_path / "runs" / "t-1"
+    result = subprocess.run(
+        [sys.executable, "-m", "factory", "redo", str(run_dir), "review", "--by", "Oleg", "--note", "n"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "archived 06-ship.round1.json" in result.stdout
+    assert json.loads((run_dir / "steps" / "05-review.redo1.json").read_text())["by"] == "Oleg"

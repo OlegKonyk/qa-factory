@@ -191,6 +191,15 @@ def test_cannot_decide_stops_for_a_person(tmp_path, monkeypatch):
     assert out["status"] == "needs_person"
     assert out["gate"]["context"]["failure"]["check"] == "suite"
     assert "suite broke" in out["gate"]["question"]
+    assert out["gate"]["kind"] == "escalation" and out["gate"]["who"] == "Oleg"
+    answers = {a["decision"]: a.get("carries") for a in out["gate"]["answers"]}
+    assert answers == {
+        "retry": "guidance",
+        "recheck": "round",
+        "change_is_wrong": None,
+        "environment": None,
+        "fail": None,
+    }
     report = _report(tmp_path)
     assert report["gate_kind"] == "escalation" and report["last_failure"]["check"] == "suite"
 
