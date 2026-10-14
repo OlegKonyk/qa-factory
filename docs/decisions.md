@@ -3,6 +3,57 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-14 · Building the "Now" items, by delegation
+
+Made by the session while building roadmap items 1, 2 and 4 (`docs/log.md`); his to overturn.
+
+- **Order.** Items 1, 2 and 4 in one session, three branches in parallel; item 3 after them,
+  because it is the next test of `docs/adopt.md`, which 2 and 4 change. Merge order 2, 4, 1.
+- **Mutation of decorated functions: rewrite the copy, keep the tool.** mutmut 3.8.0 ignores every
+  decorated function except `@staticmethod` and `@classmethod` by design (its
+  `file_mutation.py`), with no setting to change it. The factory rewrites the copy mutmut
+  mutates: decorator lines become comments and `f = dec(f)` (or `Cls.m = dec(Cls.m)`) is appended
+  at the end of the module, so every line number stays and the changed-line mapping holds.
+  Methods whose decorator names something bound in the class body, and decorators a metaclass
+  reads (`abstractmethod`, pydantic and SQLAlchemy validators, descriptor-makers), are left
+  decorated; when the rewritten copy still fails to import, the run falls back to the plain copy
+  and says so. A decorator that defines an inner function (isso's `no_cache_headers`) stays a
+  known limit: mutmut skips the nested decorated `wrapper` too, and nothing is left to mutate.
+  Replacing mutmut was not needed (rule 2).
+- **`__init__.py` is mutated** like any module; mutmut keys its mutants by the package name
+  (`isso.utils.x_f__mutmut_*`), measured.
+- **A spend cap after the checks is resumable; a cap inside a model round is not.** Verify records
+  where it stopped; a re-run after raising `caps.usd` in the ticket resumes at the readable cases
+  with the passing tests of the last round. A cap hit inside a writer or stronger-model round still
+  starts a fresh round, as before.
+- **Gate modes and defaults.** `gates.<step>` is `auto` (the step stops only by its own rule),
+  `model` (a stronger model decides first; built for Verify, the same as `auto` elsewhere until a
+  step grows that call) or `person` (always stop at the step's end). Defaults: Verify `model`,
+  every other step `auto`; ticket over recipe over default; the old `gate: person` means
+  `gates.verify: person`.
+- **What stops Frame:** a criterion that cannot be made checkable, or a non-empty
+  `missing_contract` (what a test writer must know and neither the ticket nor the code before the
+  change states). Ambiguities alone never stop a run: the five shipped tickets had 7 to 11 each
+  and are the regression fixtures. **Plan** stops on `risk: high` or an unknown pattern;
+  **Review** stops instead of failing when the fix round did not satisfy it; **Ship** stops only
+  when configured.
+- **Answers are strict.** `by` is required and the decision must be one the gate lists; anything
+  else is refused with the list, the file left in place, and the run keeps waiting. A refusal is
+  visible in `python -m factory waiting`. Better a second answer than a run failed by a typo.
+- **Correct, not only approve:** a clarified ticket (`ticket.clarified.json`, merged for the rest of
+  the run, `caps` untouched), an edited plan, a sign-off note; `python -m factory redo` reopens a
+  passed step after a hand edit, with the artifact hashes before and after recorded.
+- **Told:** a macOS notification through `osascript` and a `notify_url` webhook, both best effort,
+  off with `QA_FACTORY_NO_NOTIFY=1`.
+- **The deployed suite lives beside the recipe** (`targets/linkding/deployed/`), on
+  pytest-playwright in a `deployed` dependency group, one test per readable case, and is a
+  session's work for now, not a factory step. Its "other user" precondition is dropped rather than
+  reached through the container's shell.
+- **The architecture page is republished** at a new link (the old one could not be read from this
+  session) and its builder reads a frozen copy of the first run's numbers, because the run
+  folder's summary was regenerated in another shape on 2026-10-10 and the build had been broken
+  since.
+
 ## 2026-10-14 · The roadmap's four questions, answered
 
 **Decided, his words:** "adopt, public, no, keep."

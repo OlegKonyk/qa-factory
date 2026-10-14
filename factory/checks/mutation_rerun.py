@@ -87,6 +87,10 @@ def main(run_dir: str, out=None) -> int:
     else:
         for glob in first.get("unmutated") or []:
             out.write(f"skipped: mutmut made no mutant for {glob}\n")
+        for kept in first.get("left_decorated") or []:
+            out.write(f"skipped: {kept['function']} left decorated: {kept['reason']}\n")
+    if first.get("undecorate"):
+        out.write(f"undecorate: {first['undecorate']}\n")
     if entry["status"] != "pass":
         out.write(f"{entry['status']}: {entry['reason']}\n")
     return 1 if entry["status"] == "error" else 0

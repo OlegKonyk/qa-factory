@@ -284,7 +284,10 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
 - **Mutation not applicable**: when mutmut makes no mutant for any changed function (the shapes
   in section 5), the report says so under `skipped` and the run goes on; the revert check is then
   the only proof the tests exercise the change. This is not a test failure; do not retry. A
-  changed function that alone got no mutant is listed in each run's `unmutated`. On a finished
+  changed function that alone got no mutant is listed in each run's `unmutated`; a decorated
+  function the rewrite left alone, with its reason, in `left_decorated`; and when the rewritten
+  copy broke mutmut's run and the plain copy was used instead, the run says so under
+  `undecorate`. On a finished
   run, `python -m factory mutation <run folder>` runs the mutation check again with no model call
   (it puts the shipped tests back from `verify/tests/` if they are missing) and writes
   `verify/mutation-rerun.json`; exit 0 when mutmut ran or was skipped, 1 on an error.

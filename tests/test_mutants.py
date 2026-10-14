@@ -337,3 +337,112 @@ def test_run_mutates_an_undecorated_copy_and_names_globs_without_a_mutant(tmp_pa
     assert seen["copy"] == mutants.undecorate(src) != src
     assert (head / "pkg" / "mod.py").read_text() == src  # the worktree keeps its decorators
     assert result["killed"] == 1 and result["unmutated"] == ["pkg.mod.x_dec__mutmut_*"]
+
+
+def test_undecorate_leaves_a_method_whose_decorator_names_a_class_attribute():
+    src = (
+        "class Store:\n"
+        "    _lock = Lock()\n"
+        "\n"
+        "    @synchronized(_lock)\n"
+        "    def put(self, k):\n"
+        "        return k\n"
+        "\n"
+        "    @requires(str)\n"
+        "    def get(self, k):\n"
+        "        return k\n"
+    )
+    out, kept = mutants.undecorate_with_reasons(src)
+    assert out.splitlines()[3] == "    @synchronized(_lock)"
+    assert out.splitlines()[-1] == "Store.get = requires(str)(Store.get)"
+    assert kept == [("Store.put", "its decorator names _lock from the class body")]
+
+
+def test_undecorate_leaves_abstractmethod_and_lists_why():
+    src = "class A(ABC):\n    @abc.abstractmethod\n    def f(self):\n        return 1\n"
+    out, kept = mutants.undecorate_with_reasons(src)
+    assert out == src == mutants.undecorate(src)
+    assert kept == [("A.f", "@abstractmethod is read while the class is created")]
+
+
+def test_undecorate_does_not_list_a_lone_staticmethod():
+    src = "class C:\n    @staticmethod\n    def s():\n        return 1\n"
+    assert mutants.undecorate_with_reasons(src) == (src, [])
+
+
+REWRITE_NOTE = "# Decorators moved here by qa-factory"
+
+
+def _write_meta(cwd: Path, codes: dict) -> None:
+    (cwd / "mutants" / "pkg").mkdir(parents=True, exist_ok=True)
+    (cwd / "mutants" / "pkg" / "mod.py").write_text("")
+    (cwd / "mutants" / "pkg" / "mod.py.meta").write_text(json.dumps({"exit_code_by_key": codes}))
+
+
+def _decorated_head(tmp_path: Path) -> Path:
+    head = tmp_path / "head"
+    (head / "pkg").mkdir(parents=True)
+    src = (
+        "class C:\n"
+        "    _lock = 1\n"
+        "\n"
+        "    @synchronized(_lock)\n"
+        "    def put(self):\n"
+        "        return 1\n"
+        "\n"
+        "\n"
+        "@dec\n"
+        "def f(a):\n"
+        "    return a\n"
+    )
+    (head / "pkg" / "mod.py").write_text(src)
+    return head
+
+
+GLOBS = ["pkg.mod.x_f__mutmut_*", "pkg.mod.xǁCǁput__mutmut_*"]
+
+
+def test_run_falls_back_to_the_plain_copy_when_the_rewrite_breaks_the_import(tmp_path, monkeypatch):
+    head = _decorated_head(tmp_path)
+    copies = []
+
+    def fake_mutmut(cmd, cwd, **kwargs):
+        cwd = Path(cwd)
+        copies.append((cwd / "pkg" / "mod.py").read_text())
+        if REWRITE_NOTE in copies[-1]:  # as measured: .meta written, every code null, exit 1
+            _write_meta(cwd, {"pkg.mod.x_f__mutmut_1": None})
+            return subprocess.CompletedProcess(
+                cmd, 1, "NameError\nfailed to collect stats. runner returned 2\n", ""
+            )
+        _write_meta(cwd, {"pkg.mod.x_g__mutmut_1": 1})
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    result = mutants.run(head, "py", "pkg", ["pkg/mod.py"], [], GLOBS, tmp_path / "w", [], [], [], {})
+    assert len(copies) == 2 and REWRITE_NOTE in copies[0]
+    assert copies[1] == (head / "pkg" / "mod.py").read_text()
+    assert result["undecorate"] == (
+        "fallen back: mutmut exited with code 1 and checked no mutant "
+        "(failed to collect stats. runner returned 2)"
+    )
+    assert result["status"] == "pass" and result["killed"] == 1 and result["left_decorated"] == []
+
+
+def test_run_lists_what_it_left_decorated_and_does_not_fall_back_after_checking_a_mutant(
+    tmp_path, monkeypatch
+):
+    head = _decorated_head(tmp_path)
+    copies = []
+
+    def fake_mutmut(cmd, cwd, **kwargs):
+        copies.append((Path(cwd) / "pkg" / "mod.py").read_text())
+        _write_meta(Path(cwd), {"pkg.mod.x_f__mutmut_1": 0, "pkg.mod.x_f__mutmut_2": None})
+        return subprocess.CompletedProcess(cmd, 1, "a worker crashed\n", "")
+
+    monkeypatch.setattr(mutants.subprocess, "run", fake_mutmut)
+    result = mutants.run(head, "py", "pkg", ["pkg/mod.py"], [], GLOBS, tmp_path / "w", [], [], [], {})
+    assert len(copies) == 1 and REWRITE_NOTE in copies[0]
+    assert "undecorate" not in result and result["checked"] == 1
+    assert result["left_decorated"] == [
+        {"file": "pkg/mod.py", "function": "C.put", "reason": "its decorator names _lock from the class body"}
+    ]

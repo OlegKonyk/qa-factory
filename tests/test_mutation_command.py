@@ -104,6 +104,23 @@ def test_reruns_the_check_from_the_record_and_writes_beside_verifys_file(tmp_pat
     assert json.loads((run / "verify" / "mutation.json").read_text())["result"] == "verify's own"
 
 
+def test_prints_what_was_left_decorated_and_a_fallback(tmp_path, monkeypatch):
+    run, _ = _run_folder(tmp_path)
+    kept = {
+        "file": "pkg/mod.py",
+        "function": "C.put",
+        "reason": "its decorator names _lock from the class body",
+    }
+    ran = {**RAN, "unmutated": [], "left_decorated": [kept], "undecorate": "fallen back: boom"}
+    monkeypatch.setattr(verify.mutants, "run", _fake(ran, []))
+    out = io.StringIO()
+    assert mutation_rerun.main(str(run), out) == 0
+    assert out.getvalue().splitlines()[2:] == [
+        "skipped: C.put left decorated: its decorator names _lock from the class body",
+        "undecorate: fallen back: boom",
+    ]
+
+
 def test_no_mutant_at_all_is_skipped_with_exit_zero(tmp_path, monkeypatch):
     run, _ = _run_folder(tmp_path)
     reason = "mutmut made no mutant for any changed function (it skips some shapes)"
