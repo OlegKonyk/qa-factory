@@ -1,0 +1,45 @@
+{
+  "name": "gafaelfawr",
+  "repo": "~/Library/Caches/qa-factory/gafaelfawr/repo",
+  "worktrees": "~/Library/Caches/qa-factory/gafaelfawr/wt",
+  "python": "~/Library/Caches/qa-factory/gafaelfawr/repo/.venv/bin/python",
+  "source_package": "src/gafaelfawr",
+  "pytest_args": [
+    "-p",
+    "no:cacheprovider",
+    "-o",
+    "pythonpath=src client/src"
+  ],
+  "api_tests_dir": "tests/handlers",
+  "test_helpers": "tests/support/tokens.py",
+  "test_support": [
+    "tests/support/tokens.py",
+    "tests/support/cookies.py"
+  ],
+  "exclude_copy": [
+    ".git",
+    "node_modules",
+    ".venv",
+    "mutants",
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache"
+  ],
+  "mutmut": {
+    "pytest_add_cli_args": [
+      "-p",
+      "no:cacheprovider"
+    ],
+    "pre_create_dirs": [],
+    "also_copy": [
+      "alembic",
+      "alembic.ini"
+    ]
+  },
+  "suite": [
+    [
+      "tests"
+    ]
+  ],
+  "strategy": "targets/gafaelfawr/strategy.md"
+}

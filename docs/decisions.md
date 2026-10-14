@@ -3,6 +3,54 @@
 Oleg's decisions, dated, newest first. An entry is never edited afterwards; a later entry
 supersedes it. Each entry says what was decided, the reasoning given, and what it changes.
 
+## 2026-10-14 · The third application, by delegation
+
+Made by the session that onboards roadmap item 3, under his answer of 2026-10-14 that the third
+application is a public one chosen by that session; his to overturn.
+
+- **The application: gafaelfawr** (github.com/lsst-sqre/gafaelfawr, the Rubin Observatory's
+  authentication and authorization service). It has every point of the shape: FastAPI, the package
+  under `src/gafaelfawr`, Postgres 18 and Redis 8 started in Docker by its own test fixtures
+  (testcontainers), and outside HTTP services (GitHub, an OIDC provider, a Slack webhook) mocked at
+  the transport with respx. Its suite is 219 tests green in about a minute at head (measured here
+  by the scout, 2026-10-14), ruff clean, and it has 2026 bug fixes whose tests sit in one folder.
+  Against it: ten stars and a Kubernetes-only deployment story. Found by a four-angle search
+  (GitHub search, the mocking libraries, a list of known services, curated lists; eleven
+  candidates, thirty-four dead ends) and three clone-and-run checks. The runners-up: openfun/ralph
+  (FastAPI, `src/`, mocks at the transport) needs three database containers, is red on macOS for
+  platform reasons (fourteen tests) and needs a click override for mutmut; litestar-fullstack is a
+  reference application with no transport-level mock and a bun build step.
+- **The ticket: the fix of OIDC client updates** (upstream d7c2fbf, 2026-08-25; its parent is the
+  base). A PATCH on a REST route that recorded the wrong author and time of the update. Three
+  undecorated methods changed, the tests in `tests/handlers/`, fails on the old code on a
+  behavioural assertion (measured by the scout). Written blind, as a bug report.
+- **Two generic factory gaps are fixed before the run, not folded into the recipe:** the
+  application environment's bin folder goes first on PATH in every check (tests that spawn
+  `alembic`), and mutmut's children get `no_proxy='*'` when no proxy variable is set (the macOS
+  fork crash in `_scproxy`). Both are measured on gafaelfawr; neither is specific to it.
+- **A recipe gap ends Verify at once.** When pytest cannot run inside mutmut's working copy
+  (the first gafaelfawr run: `alembic.ini` and `alembic/` were not in it), the check names the
+  recipe fields (`mutmut.also_copy`, new, mapped to mutmut 3.8.0's own setting), the other mutmut
+  sets are not run, and the step ends with that reason: no repair round, no stronger-model call,
+  no person. The remedy is a recipe edit and a re-run, which starts Verify afresh (one writer
+  round). Before this the factory read it as tests that reach nothing and spent a writer round
+  (2.19 USD) on it (pull request #32).
+- **The run is finished, not left stopped, and its cap is raised to 12 USD.** The fix round's
+  tests passed every check and only the readable cases were cut off by the 8 USD cap (8.0054
+  spent). Finishing them costs about 1 USD (a cases call and a review, estimated from this run's
+  calls) once the factory can resume there, against about 6 USD for the fresh Verify the guide
+  offered. So the factory learns to resume after a budget-ended call (pull request #33), the
+  ticket's `caps.usd` goes to 12, and the same command runs again (measured: the cases 0.71 USD, the review 0.26 USD, 173 s;
+  then a hand move of the cases after the area fix, one more review 0.23 USD, and Ship). The
+  kickoff's estimate was
+  about 6 USD for the ticket; the measured total is higher because two factory defects (the
+  mutmut copy, the cap inside the fix round) each cost a writer round.
+- **Environment variables stay out of the recipe.** The Colima socket override testcontainers
+  needs on this machine is exported before the run and named in the guide as this machine only.
+- **The mock verification point** (the outside service mocked in the suite, real or faked in a
+  deployed run) stays with the suite's own respx mocks for this ticket; no mock machinery is built
+  (rule 3). A deployed run of this service would need its Kubernetes setup and is not attempted.
+
 ## 2026-10-14 · Building the "Now" items, by delegation
 
 Made by the session while building roadmap items 1, 2 and 4 (`docs/log.md`); his to overturn.

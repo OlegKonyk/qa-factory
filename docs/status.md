@@ -4,8 +4,10 @@ Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg
 
-Nothing. Items 1, 2 and 4 of the roadmap are done (2026-10-14, pull requests 26 to 28); item 3
-is next and needs no answer from him. Earlier: he answered the roadmap's four questions on 2026-10-14 ("adopt, public, no, keep";
+Nothing. Items 1 to 4 of the roadmap are done (2026-10-14, pull requests 26 to 35); item 5 is
+next and needs no answer from him. One thing he may want to say: whether Schemathesis (property-based
+API checks from an OpenAPI document; gafaelfawr serves one at `/auth/openapi.json`) should join
+the checks; it was not run (`docs/research/2026-10-14-agent-friendly-repositories.md`). Earlier: he answered the roadmap's four questions on 2026-10-14 ("adopt, public, no, keep";
 `docs/decisions.md`). The page is https://claude.ai/artifact/DS1jXmWm67BPXzL1ma7cCy
 (republished 2026-10-14; the earlier link could not be read from this machine's session). The
 questions as they stood, for the record:
@@ -23,6 +25,30 @@ questions as they stood, for the record:
 
 A check, not a decision: does the Console show the factory's spend (about 5.44 USD on 2026-10-12
 and 5.4 USD on 2026-10-13) against the Max plan's API credits?
+
+## Where things stand, 2026-10-14, evening
+
+- **Roadmap item 3 done (pull request #35).** The third application is gafaelfawr, the Rubin
+  Observatory's authentication service: FastAPI under `src/`, Postgres and Redis started in Docker
+  by its own suite, GitHub, OIDC and Slack mocked with respx. Chosen by a four-angle search and
+  three clone-and-run scouts (`docs/decisions.md`). Two Opus agents onboarded it from
+  `docs/adopt.md` alone (`targets/gafaelfawr/`), and one bug-fix ticket, written blind from the
+  application's own history, shipped: commit 625da5c on `qa/gafaelfawr-oidc-client-updates`, 6
+  tests of which 5 fail on the old code on an assertion, 71 mutants checked on the three changed
+  functions with 64 killed by the generated tests and 24 of 24 on the changed lines, the suite 226
+  passed in 56 s, six readable cases (`docs/runs/2026-10-14-gafaelfawr-oidc-client-updates/`).
+  Recorded spend 9.30 USD plus one stopped writer round no record holds (at most about 2 USD,
+  estimated); the kickoff's estimate was about 6 USD. Gate answers were the onboarding agent's
+  and the session's, standing in for Oleg.
+- **Five factory defects the run found, fixed on the way (pull requests #30 to #34):** module
+  names on a `src/` layout as mutmut keys them; the application environment's bin folder on PATH
+  for every check and the writer's session, and `no_proxy` for mutmut's children (the macOS fork
+  crash); `mutmut.also_copy` and a recipe gap that ends Verify with no model call; a budget-ended
+  model call as a resumable cap hit, the recipe's pytest arguments in the writer prompts, the
+  developers' parametrized tests judged, a truthful report; the readable cases' default area on a
+  `src/` layout. 405 factory tests. The guide gained thirteen passages from the onboarding agents
+  and the fixes' own (`docs/log.md`).
+- **Next:** items 5 and 6, kickoffs in `docs/next-session.md`.
 
 ## Where things stand, 2026-10-14, afternoon
 
@@ -251,6 +277,11 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
 ## What lives only on this machine
 
+- Docker runs through Colima; a suite that starts containers with testcontainers needs
+  `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock` exported before the run
+  (`docs/adopt.md`, section 2). The gafaelfawr clone, environment and worktree pair live under
+  `~/Library/Caches/qa-factory/gafaelfawr/`.
+
 - `.artifacts/runs/<ticket id>/`, the run folders: what a resume needs. Gitignored, so
   `git clean -fdx` deletes them; the evidence is copied to `docs/runs/`.
   - Finished: `linkding-sort-by-modified`, `linkding-sort-by-modified-blind` and
@@ -273,8 +304,7 @@ and 5.4 USD on 2026-10-13) against the Max plan's API credits?
 
 `docs/roadmap.md` is the ordered list; `docs/next-session.md` has the kickoffs.
 
-1. A third application shaped like a small team service, with a bug-fix ticket (item 3,
-   kickoff C in `docs/next-session.md`): the next test of `docs/adopt.md`, which items 2 and 4
-   changed (`gates`, the Frame readiness check, `python -m factory mutation`).
-2. Then the Next group: the factory writes the change itself (item 5), Ship as a pull request
-   (item 6).
+1. The factory writes the change itself (item 5, the first kickoff in `docs/next-session.md`):
+   Implement as an agent step, the Implement gate, the check with a known answer on the four
+   shipped tickets (gafaelfawr's included).
+2. Ship as a pull request, approve on it (item 6, the second kickoff).

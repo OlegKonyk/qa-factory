@@ -1,0 +1,45 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "pass",
+  "runs": [
+   {
+    "args": [
+     "/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv/bin/python",
+     "-m",
+     "pytest",
+     "-p",
+     "no:cacheprovider",
+     "-o",
+     "pythonpath=src client/src",
+     "tests"
+    ],
+    "returncode": 0,
+    "summary": "======================= 225 passed, 10 skipped in 53.02s =======================",
+    "wall_s": 55.58,
+    "tail": [
+     "tests/handlers/logout_test.py ......                                     [ 65%]",
+     "tests/handlers/oidc_test.py .............                                [ 71%]",
+     "tests/handlers/quota_test.py ......                                      [ 73%]",
+     "tests/handlers/test_oidc_client_updates_api.py .....                     [ 75%]",
+     "tests/keypair_test.py ..                                                 [ 76%]",
+     "tests/main_test.py .                                                     [ 77%]",
+     "tests/models/kubernetes_test.py ......                                   [ 79%]",
+     "tests/models/oidc_test.py .                                              [ 80%]",
+     "tests/models/token_test.py ...                                           [ 81%]",
+     "tests/models/userinfo_test.py .                                          [ 81%]",
+     "tests/operator/ingress_test.py sssss                                     [ 83%]",
+     "tests/operator/tokens_test.py sssss                                      [ 85%]",
+     "tests/providers/oidc_verifier_test.py ....                               [ 87%]",
+     "tests/schema_test.py .                                                   [ 88%]",
+     "tests/services/oidc_test.py ....                                         [ 89%]",
+     "tests/services/token_cache_test.py ...                                   [ 91%]",
+     "tests/services/token_test.py .................                           [ 98%]",
+     "tests/util_test.py ....                                                  [100%]",
+     "",
+     "======================= 225 passed, 10 skipped in 53.02s ======================="
+    ]
+   }
+  ]
+ }
+}

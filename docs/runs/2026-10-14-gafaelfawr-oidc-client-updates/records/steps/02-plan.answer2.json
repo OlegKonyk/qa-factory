@@ -1,0 +1,6 @@
+{
+  "decision": "approve",
+  "by": "the onboarding agent",
+  "note": "All three patterns are in the application's own tests at base: tests/handlers/api_oidc_test.py test_unauthorized makes two tokens with create_session_token, test_auth_required creates a client through a session cookie; the no-fraction check is contract line 5 (whole-second timestamps), checked on both commits by a probe. Answered by the onboarding agent under the brief's instruction to answer gates itself.",
+  "answered_at": "2026-10-14T15:47:31+00:00"
+}

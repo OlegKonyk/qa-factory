@@ -1,0 +1,31 @@
+{
+  "id": "gafaelfawr-oidc-client-updates",
+  "app": "targets/gafaelfawr/app.json",
+  "base": "9b61018d6fcbb9cf5fefec4ec88e8c4f34c9d9ef",
+  "head": "d7c2fbfb509ca14be417933cc9ca73de1b223182",
+  "qa_mode": "blind",
+  "caps": {
+    "usd": 12.0
+  },
+  "source": "gafaelfawr upstream commit d7c2fbf (2026-08-25, 'Fix OpenID Connect client updates'); base is its parent 9b61018. Ticket written as a bug report from the observed behaviour; the contract was probed through the test client on both commits on 2026-10-14.",
+  "title": "Updating an OpenID Connect client does not record who changed it or when",
+  "description": "Administrators manage OpenID Connect clients through the admin API. When one administrator registers a client and a second administrator later updates it with PATCH, the update itself is applied (the new return URI, description and notes are returned and stored), but the client's audit fields are not: `last_modified_by` still names the administrator who created the client and `last_modified` still holds the creation time, in the PATCH response, in GET of the client and in the client list. An update must record the administrator who made it and the time it was made. Creating, reading, listing and deleting clients, and who may call these routes, do not change.",
+  "contract": [
+    "`PATCH /auth/api/v1/oidc-clients/{client_id}` with a JSON body `{\"return_uri\": <string, required>, \"description\": <string, required>, \"notes\": <string or null, optional>}` replaces those three fields (a body without `notes` clears it) and returns 200 with the client as JSON: `client_id`, `return_uri`, `description`, `notes` (present, `null` when cleared), `created`, `last_modified`, `last_modified_by`, `url`. No `client_secret`. The two GET routes leave `notes` out of a client's JSON when it is null.",
+    "After a successful PATCH, `last_modified_by` is the username of the caller who made the PATCH (the user the bearer token or session cookie belongs to), not the creator's. If the creator patches, it stays the creator's username.",
+    "After a successful PATCH, `last_modified` is the time of that update: at or after the moment the PATCH was sent, truncated to the whole second, and never before `created`. It may equal `created` when the client was created in the same second.",
+    "`created` is set once by `POST /auth/api/v1/oidc-clients` and a PATCH never changes it. On creation `last_modified` equals `created` and `last_modified_by` is the creator's username.",
+    "`created` and `last_modified` are UTC timestamps in whole seconds, serialised without a fractional part, for example `2026-10-14T15:44:22Z`.",
+    "`GET /auth/api/v1/oidc-clients/{client_id}` and `GET /auth/api/v1/oidc-clients` return the same `last_modified` and `last_modified_by` as the PATCH response, for the patched client.",
+    "Who may call: a token with the scope `admin:oidc`, sent as `Authorization: Bearer <token>`, or a session cookie together with its `X-CSRF-Token` header for PATCH, POST and DELETE. Unchanged by this ticket: no credentials gives 401, a token without `admin:oidc` gives 403, a cookie without the CSRF header gives 403, an unknown `client_id` gives 404, a body without `return_uri` or `description` gives 422; after a refused PATCH (401, 403, 422) a GET of the client shows it unchanged, `last_modified_by` and `last_modified` included.",
+    "These routes exist when the OpenID Connect server is enabled in the configuration."
+  ],
+  "acceptance_criteria": [
+    "Administrator A creates a client; administrator B (another user with admin:oidc) patches it; the PATCH response has last_modified_by equal to B's username",
+    "After B's PATCH, GET /auth/api/v1/oidc-clients/{client_id} and the client's entry in GET /auth/api/v1/oidc-clients both show last_modified_by equal to B's username and the new return_uri, description and notes",
+    "After a PATCH, last_modified is at or after the start of the PATCH truncated to the whole second, and at or after created",
+    "created and last_modified in POST, PATCH and GET responses carry no fractional seconds",
+    "created is the same before and after a PATCH",
+    "A PATCH by the creator keeps last_modified_by equal to the creator's username"
+  ]
+}

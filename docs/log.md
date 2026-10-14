@@ -8,6 +8,89 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · The third application: gafaelfawr onboarded by the guide alone, one bug-fix ticket shipped, five factory defects fixed on the way
+
+**Asked.** Oleg: check progress and continue. The next item was roadmap item 3: a public application
+with the shape of a small team service (an API service, a `src/` layout, a database in Docker, an
+outside HTTP service it calls), onboarded by `docs/adopt.md` alone, one bug-fix ticket shipped,
+every gap in the guide folded back (`docs/inputs.md`).
+
+**The application.** Found by a Workflow of four searchers (GitHub search, the mocking libraries,
+a list of known services, curated lists; eleven candidates, thirty-four dead ends) and three
+clone-and-run scouts on Opus: gafaelfawr (github.com/lsst-sqre/gafaelfawr), the Rubin Observatory's
+authentication service. FastAPI, `src/gafaelfawr` plus a client package under `client/src`,
+Python 3.14, uv; Postgres 18 and Redis 8 started by its own fixtures through testcontainers;
+GitHub, an OIDC provider and a Slack webhook mocked with respx; 219 tests green in 53 s at head.
+Runners-up and why not: `docs/decisions.md`. The ticket: upstream commit d7c2fbf ("Fix OpenID
+Connect client updates", 2026-08-25), written blind as a bug report (a PATCH that did not record
+who changed a client or when; `targets/gafaelfawr/tickets/oidc-client-updates.json`).
+
+**The scouts found two factory gaps before the run** and the run found three more; each became
+its own pull request, merged before the next step, so the guide was right by the time the
+onboarding agent met it:
+
+- #30: mutmut 3.8.0 strips a leading `src.` from its keys; the factory built module names
+  without it (no glob would match, the mocks-own-code rule never fired). Read in mutmut's source,
+  then measured on gafaelfawr: 71 mutants checked.
+- #31: the environment's bin folder first on PATH for every check and the writer's session
+  (three tests spawn `alembic`); `no_proxy='*'` for mutmut's children (on macOS 62 of 62 mutants
+  crashed with SIGSEGV in the proxy lookup after fork, 62 of 62 ran with it). The scouts' trial put
+  a dozen crash dialogs on Oleg's screen before this was known.
+- #32: mutmut copies only the package and the tests into `mutants/`; gafaelfawr's database fixture
+  reads `alembic.ini` and `alembic/` from the root; the factory read "pytest could not run" as
+  "the tests reach nothing" and spent a writer round (2.19 USD) on it. Now `mutmut.also_copy`,
+  and a recipe gap ends Verify with no model call.
+- #33: Review's fix round passed every check, then the readable-case call ended on the ticket's
+  budget (`error_max_budget_usd`), recorded as a generic error with empty text, nothing resumable,
+  the only way on a fresh Verify (about 6 USD). A budget-ended call is now a cap hit; after the
+  checks it is resumable, and Review takes it up at the cases. Also: the writer prompts carry the
+  recipe's `pytest_args` (the blind writer's one-file command imported the clone, which held the
+  fix: `5 passed` on the old code without the override, `3 failed, 2 passed` with it); the
+  developers' tests check matches parametrized tests; the report reads the cases record first.
+- #34: the readable cases' default area was the whole `source_package`, so on a `src/` layout
+  the cases went to `testcases/src/gafaelfawr/TC-src/`, the linter checked none of them and Ship
+  failed on the folder. Default is now the package's own name; cases outside the area fail.
+
+**The run** (`docs/runs/2026-10-14-gafaelfawr-oidc-client-updates/`, all measured). Two Opus
+agents onboarded it from the guide alone (the first was stopped during the wasted repair round;
+the second continued from its recipe). Frame 0.04 USD, Plan stopped on three patterns outside the
+strategy and was approved by the onboarding agent (0.06 USD), Implement the developers' commit.
+Verify: round 1 failed mutation on the `also_copy` gap (2.19 USD); round 3 after the fix: 5 tests,
+3 prove the change, every check passed (2.00 + 0.73 USD, 718 s). Review requested changes (one
+high finding: POST and PATCH in the same second, so the update time could not be told from the
+creation time); the fix round (2.08 USD) wrote 6 tests, 5 prove the change on an assertion, then
+hit the 8 USD cap in the cases call (0.70 USD). Cap raised to 12 by delegation; the resumed run
+wrote the cases (0.71 USD) and the review approved with three low findings (0.26 USD); Ship
+failed on the area folder; the cases were moved by hand and the move recorded with `redo`; one
+more review (0.23 USD) and Ship: commit 625da5c on `qa/gafaelfawr-oidc-client-updates`, suite 226
+passed, 10 skipped in 56 s. Mutation on the three changed functions: 71 checked, the generated
+tests kill 64 (0.90), 24 of 24 on the changed lines; with the developers' 65; the developers'
+alone 64 (23 of 24). The developers' own modified test proves the behaviour (1 of 1, after #33).
+Spend recorded: 9.30 USD (`rounds.json` 9.21 plus Frame and Plan); the stopped round-2 writer
+call is in no record, at most about 2 USD (estimated). Wall time of the factory commands: about
+25 min for the main run, 3 min resumed, 2 min to ship, plus the first agent's part (not timed).
+
+**The guide.** Thirteen gaps folded back by the onboarding agents (a pre-run check for files the
+tests read from the root, lint of `targets/` by `just check`, the Python version as an example,
+the cap guidance, what a stopped run leaves, `question.md` after an answer, the summary total,
+`python -m factory mutation` and a recipe edited after Implement, parametrized developers'
+tests, scores moving by a mutant, `area` on a `src/` layout, the intro and section 9), and the
+fixes' own passages (#30 to #34). The readiness checklist score and the agent file text are in
+the run's README: the application lacks a one-command start with seeded data and per-environment
+accounts, and has no agent file (one was written into the clone, git-excluded).
+
+**Not done, by design.** The Playwright CLI trial does not apply (an API-only application).
+Schemathesis was not run; the application serves OpenAPI at `/auth/openapi.json` (read in
+`src/gafaelfawr/main.py`, not fetched). No deployed run: the service's deployment is Kubernetes.
+The gate answers were the onboarding agent's and the session's, standing in for Oleg, and the
+records say so.
+
+**Leftovers.** The fix round's tests backdate a client with one raw SQL `UPDATE` through the
+suite's session (the review called it low); the strategy's public-surface rule and the writer
+prompt could say "setup through the public surface too". `verify.resume_after_cap` approves a
+resumed fix round under the fix-round rule, so a second review always follows (0.23 USD). The
+first agent's part of the run was not timed. The plan page (`docs/pages/`) was not rebuilt.
+
 ## 2026-10-14 · The readable cases' area on a `src/` layout
 
 **Found (measured on the gafaelfawr run).** With no `area` in the ticket the cases writer was told

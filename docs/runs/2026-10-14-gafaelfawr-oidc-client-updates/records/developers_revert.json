@@ -1,0 +1,40 @@
+{
+ "status": "pass",
+ "result": {
+  "status": "ran",
+  "reason": "1 of 1 tests by the developers (0 new, 1 modified) fail on the old code on an assertion; 0 fail only for a missing name",
+  "files": [
+   "tests/handlers/api_oidc_test.py"
+  ],
+  "new_test_ids": {},
+  "kinds": {
+   "tests/handlers/api_oidc_test.py::test_lifecycle": "modified"
+  },
+  "tests": {
+   "tests/handlers/api_oidc_test.py::test_lifecycle": {
+    "at_head": "pass",
+    "reverted": "behaviour",
+    "verdict": "proves-behaviour",
+    "message": "assert {'return_uri'...ple.com', ...} == {'client_id':...ewlines', ...}\n  \n  Omitting 7 identical items, use -vv to show\n  Differing items:\n  {'last_modified_by': 'some-user'} != {'last_modified_by': 'other'}\n  Use -v to get more diff",
+    "params": {
+     "tests/handlers/api_oidc_test.py::test_lifecycle[github-oidc-server]": "proves-behaviour"
+    }
+   }
+  },
+  "counts": {
+   "new_tests": 0,
+   "modified_tests": 1,
+   "ran": 1,
+   "proves-behaviour": 1,
+   "passes-without-change": 0,
+   "missing-name": 0,
+   "crash": 0,
+   "head-fails": 0,
+   "skip": 0
+  },
+  "wall_s": {
+   "head": 7.16,
+   "reverted": 6.24
+  }
+ }
+}

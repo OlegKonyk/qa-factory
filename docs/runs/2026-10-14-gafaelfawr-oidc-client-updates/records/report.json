@@ -1,0 +1,1641 @@
+{
+ "checks": {
+  "write_tests": {
+   "status": "pass",
+   "result": {
+    "files": [
+     "tests/handlers/test_oidc_client_updates_api.py"
+    ],
+    "api_files": [
+     "tests/handlers/test_oidc_client_updates_api.py"
+    ],
+    "notes": "All six findings are fixed. The file now has 6 tests and they all pass on the change. On the pre-fix code 5 fail on assertions about behaviour. The sixth, the refused-PATCH test, is a regression guard and passes there on purpose.\n\n**Changes**\n- **Same-second blind spot (high, plus the medium on `created`).** A new helper, `backdate_client`, sets a client's `created` and `last_modified` to 2020-01-01T12:00:00 with literal SQL (`UPDATE oidc_client ...`) through `factory.session`. It only sets up data: it imports no application names, and it checks through a GET that both fields read back as `2020-01-01T12:00:00Z`. I used it because POST and PATCH usually land in the same second and sleeps aren't allowed. `tests/handlers/internal_test.py` and `tests/handlers/api_history_test.py` already write to the database through `factory.session` for setup. Every test that PATCHes now backdates the client first. They then assert that `created` is still 2020 and that `last_modified` moved.\n- **No upper bound on `last_modified` (medium).** Each test now records `after = datetime.now(tz=UTC)` after the PATCH and asserts `before <= last_modified <= after`. The time-of-update test also asserts `last_modified > PAST`.\n- **Regex allowed `+00:00` (low).** It now only accepts the `Z` form.\n- **Format checks.** These moved into a new test, `test_timestamps_in_whole_seconds` (POST, PATCH, GET and list). Before, `test_patch_last_modified_not_before_send_time` failed on the pre-fix code at the format regex before reaching the timestamp check. It is renamed `test_patch_last_modified_is_time_of_update` and now fails there on `before <= last_modified`.\n- **Cookie without CSRF (low).** The refused-PATCH test now sends a session-cookie PATCH without `X-CSRF-Token` and expects 403. It clears the cookie and then checks that a GET returns exactly the original client, audit fields included. Because the client is backdated, a refused PATCH that still changed `last_modified` would be caught.\n- **Tests passing on the pre-fix code (low).** The refused-PATCH test passes there by design, because the ticket says refusals don't change. Its docstring says so. The creator test now fails on the pre-fix code at `before <= last_modified`, and its docstring explains that only its username check is a regression guard.\n\n**Results**\n- On the change: `.venv/bin/python -m pytest -p no:cacheprovider -o \"pythonpath=src client/src\" tests/handlers/test_oidc_client_updates_api.py` gave `6 passed in 4.36s`.\n- On the pre-fix code: I couldn't make a worktree because that command was denied. Instead I extracted HEAD~1's `src` into a temp dir with `git archive` and passed it as `pythonpath`. Result: `5 failed, 1 passed`.\n  - Other-admin and cookie tests: `assert 'admin-a' == 'admin-b'`.\n  - Time-of-update test (line 188) and creator test (line 306): `assert datetime(2026,10,14,...) <= datetime(2020,1,1,12,0)`.\n  - Whole-seconds test: `created is not in whole seconds: 2026-10-14T16:35:37.587909Z`.\n  - The refused-PATCH test passed.\n- Mutants of the fixed `storage/oidc.py`, run from temp copies:\n  - Dropping the `last_modified` assignment: 4 failed.\n  - Also setting `created = now` in `update()`: 4 failed.\n  - Recording `last_modified` 2 hours in the future: 3 failed (time-of-update, creator, cookie).\n- `ruff format`: \"1 file left unchanged\". `ruff check`: \"All checks passed!\""
+   }
+  },
+  "lint": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "findings": []
+   }
+  },
+  "revert": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "reason": "5 of 6 tests fail on an assertion without the change",
+    "tests": {
+     "tests/handlers/test_oidc_client_updates_api.py::test_patch_by_other_admin_records_modifier[github-oidc-server]": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "assert 'admin-a' == 'admin-b'\n  \n  - admin-b\n  ?       ^\n  + admin-a\n  ?       ^"
+     },
+     "tests/handlers/test_oidc_client_updates_api.py::test_patch_last_modified_is_time_of_update[github-oidc-server]": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "assert datetime.datetime(2026, 10, 14, 16, 37, 19, tzinfo=datetime.timezone.utc) <= datetime.datetime(2020, 1, 1, 12, 0, tzinfo=datetime.timezone.utc)"
+     },
+     "tests/handlers/test_oidc_client_updates_api.py::test_timestamps_in_whole_seconds[github-oidc-server]": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "created is not in whole seconds: 2026-10-14T16:37:19.864817Z\nassert None\n +  where None = <built-in method match of re.Pattern object at 0x113ab0580>('2026-10-14T16:37:19.864817Z')\n +    where <built-in method match of re.Pattern object at 0x113ab0580> = re.compile('^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{"
+     },
+     "tests/handlers/test_oidc_client_updates_api.py::test_patch_by_creator_keeps_creator_as_modifier[github-oidc-server]": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "assert datetime.datetime(2026, 10, 14, 16, 37, 20, tzinfo=datetime.timezone.utc) <= datetime.datetime(2020, 1, 1, 12, 0, tzinfo=datetime.timezone.utc)"
+     },
+     "tests/handlers/test_oidc_client_updates_api.py::test_patch_by_other_admin_via_session_cookie[github-oidc-server]": {
+      "at_head": "pass",
+      "reverted": "behaviour",
+      "verdict": "proves-behaviour",
+      "message": "assert 'admin-a' == 'admin-b'\n  \n  - admin-b\n  ?       ^\n  + admin-a\n  ?       ^"
+     },
+     "tests/handlers/test_oidc_client_updates_api.py::test_refused_patch_leaves_client_unchanged[github-oidc-server]": {
+      "at_head": "pass",
+      "reverted": "pass",
+      "verdict": "passes-without-change",
+      "message": ""
+     }
+    },
+    "wall_s": {
+     "head": 6.13,
+     "reverted": 6.8
+    },
+    "reverted_tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/revert/reverted"
+   }
+  },
+  "developers_revert": {
+   "status": "pass",
+   "result": {
+    "status": "error",
+    "reason": "1 of 4 tests fail on an assertion without the change",
+    "files": [
+     "tests/handlers/api_oidc_test.py"
+    ],
+    "new_test_ids": {},
+    "kinds": {
+     "tests/handlers/api_oidc_test.py::test_lifecycle": "modified"
+    },
+    "tests": {},
+    "counts": {
+     "new_tests": 0,
+     "modified_tests": 1,
+     "ran": 0,
+     "proves-behaviour": 0,
+     "passes-without-change": 0,
+     "missing-name": 0,
+     "crash": 0,
+     "head-fails": 0,
+     "skip": 0
+    },
+    "wall_s": {
+     "head": 5.26,
+     "reverted": 5.41
+    }
+   }
+  },
+  "mutation": {
+   "status": "pass",
+   "result": {
+    "globs": [
+     "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_*",
+     "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_*",
+     "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_*"
+    ],
+    "only_mutate": [
+     "src/gafaelfawr/services/oidc.py",
+     "src/gafaelfawr/storage/oidc.py"
+    ],
+    "changed_lines": {
+     "src/gafaelfawr/services/oidc.py": [
+      524,
+      525,
+      526
+     ],
+     "src/gafaelfawr/storage/oidc.py": [
+      249,
+      256,
+      257,
+      269,
+      279,
+      280,
+      293,
+      300,
+      301
+     ]
+    },
+    "runs": {
+     "generated": {
+      "status": "pass",
+      "reason": "mutmut ran",
+      "no_mutants": false,
+      "recipe_gap": false,
+      "wall_s": 60.18,
+      "returncode": 0,
+      "generated": 534,
+      "checked": 71,
+      "killed": 64,
+      "survived": 7,
+      "no_tests": 0,
+      "timeout": 0,
+      "other": 0,
+      "score": 0.9014084507042254,
+      "on_changed_lines": {
+       "checked": 24,
+       "killed": 24,
+       "survived": 0,
+       "score": 1.0
+      },
+      "mutants": {
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_1": {
+        "status": "killed",
+        "line": 522,
+        "changed_line": false
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_2": {
+        "status": "killed",
+        "line": 524,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_3": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_4": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_5": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_6": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_7": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_8": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_9": {
+        "status": "killed",
+        "line": 527,
+        "changed_line": false
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_10": {
+        "status": "survived",
+        "line": 528,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_1": {
+        "status": "killed",
+        "line": 247,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_2": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_3": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_4": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_5": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_6": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_7": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_8": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_9": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_10": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_11": {
+        "status": "killed",
+        "line": 250,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_12": {
+        "status": "killed",
+        "line": 251,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_13": {
+        "status": "killed",
+        "line": 252,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_14": {
+        "status": "killed",
+        "line": 253,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_15": {
+        "status": "killed",
+        "line": 254,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_16": {
+        "status": "survived",
+        "line": 255,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_17": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_18": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_19": {
+        "status": "killed",
+        "line": 258,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_20": {
+        "status": "killed",
+        "line": 251,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_21": {
+        "status": "killed",
+        "line": 252,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_22": {
+        "status": "killed",
+        "line": 253,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_23": {
+        "status": "killed",
+        "line": 254,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_24": {
+        "status": "survived",
+        "line": 255,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_25": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_26": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_27": {
+        "status": "killed",
+        "line": 258,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_28": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_29": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_30": {
+        "status": "killed",
+        "line": 260,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_31": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_32": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_33": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_34": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_35": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_36": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_37": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_38": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_39": {
+        "status": "killed",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_40": {
+        "status": "survived",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_41": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_42": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_43": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_1": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_2": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_3": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_4": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_5": {
+        "status": "killed",
+        "line": 294,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_6": {
+        "status": "killed",
+        "line": 294,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_7": {
+        "status": "killed",
+        "line": 295,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_8": {
+        "status": "killed",
+        "line": 297,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_9": {
+        "status": "killed",
+        "line": 298,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_10": {
+        "status": "killed",
+        "line": 299,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_11": {
+        "status": "killed",
+        "line": 300,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_12": {
+        "status": "killed",
+        "line": 300,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_13": {
+        "status": "killed",
+        "line": 301,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_14": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_15": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_16": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_17": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_18": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       }
+      },
+      "unmutated": [],
+      "left_decorated": [],
+      "stdout_tail": [
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_39",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_4",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_40",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_41",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_42",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_43",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_5",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_6",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_7",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_8",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_9",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_1",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_10",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_11",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_12",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_13",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_14",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_15",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_16",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_17",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_18",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_2",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_3",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_4",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_5",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_6",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_7",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_8",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_9",
+       ""
+      ],
+      "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/mutation/generated/mutation",
+      "test_files": [
+       "tests/handlers/test_oidc_client_updates_api.py"
+      ]
+     },
+     "generated_and_developers": {
+      "status": "pass",
+      "reason": "mutmut ran",
+      "no_mutants": false,
+      "recipe_gap": false,
+      "wall_s": 66.9,
+      "returncode": 0,
+      "generated": 534,
+      "checked": 71,
+      "killed": 65,
+      "survived": 6,
+      "no_tests": 0,
+      "timeout": 0,
+      "other": 0,
+      "score": 0.9154929577464789,
+      "on_changed_lines": {
+       "checked": 24,
+       "killed": 24,
+       "survived": 0,
+       "score": 1.0
+      },
+      "mutants": {
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_1": {
+        "status": "killed",
+        "line": 522,
+        "changed_line": false
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_2": {
+        "status": "killed",
+        "line": 524,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_3": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_4": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_5": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_6": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_7": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_8": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_9": {
+        "status": "killed",
+        "line": 527,
+        "changed_line": false
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_10": {
+        "status": "survived",
+        "line": 528,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_1": {
+        "status": "killed",
+        "line": 247,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_2": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_3": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_4": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_5": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_6": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_7": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_8": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_9": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_10": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_11": {
+        "status": "killed",
+        "line": 250,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_12": {
+        "status": "killed",
+        "line": 251,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_13": {
+        "status": "killed",
+        "line": 252,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_14": {
+        "status": "killed",
+        "line": 253,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_15": {
+        "status": "killed",
+        "line": 254,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_16": {
+        "status": "survived",
+        "line": 255,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_17": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_18": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_19": {
+        "status": "killed",
+        "line": 258,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_20": {
+        "status": "killed",
+        "line": 251,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_21": {
+        "status": "killed",
+        "line": 252,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_22": {
+        "status": "killed",
+        "line": 253,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_23": {
+        "status": "killed",
+        "line": 254,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_24": {
+        "status": "survived",
+        "line": 255,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_25": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_26": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_27": {
+        "status": "killed",
+        "line": 258,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_28": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_29": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_30": {
+        "status": "killed",
+        "line": 260,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_31": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_32": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_33": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_34": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_35": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_36": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_37": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_38": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_39": {
+        "status": "killed",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_40": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_41": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_42": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_43": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_1": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_2": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_3": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_4": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_5": {
+        "status": "killed",
+        "line": 294,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_6": {
+        "status": "killed",
+        "line": 294,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_7": {
+        "status": "killed",
+        "line": 295,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_8": {
+        "status": "killed",
+        "line": 297,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_9": {
+        "status": "killed",
+        "line": 298,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_10": {
+        "status": "killed",
+        "line": 299,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_11": {
+        "status": "killed",
+        "line": 300,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_12": {
+        "status": "killed",
+        "line": 300,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_13": {
+        "status": "killed",
+        "line": 301,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_14": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_15": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_16": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_17": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_18": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       }
+      },
+      "unmutated": [],
+      "left_decorated": [],
+      "stdout_tail": [
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_39",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_4",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_40",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_41",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_42",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_43",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_5",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_6",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_7",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_8",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_9",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_1",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_10",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_11",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_12",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_13",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_14",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_15",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_16",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_17",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_18",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_2",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_3",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_4",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_5",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_6",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_7",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_8",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_9",
+       ""
+      ],
+      "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/mutation/generated_and_developers/mutation",
+      "test_files": [
+       "tests/handlers/test_oidc_client_updates_api.py",
+       "tests/handlers/api_oidc_test.py"
+      ]
+     },
+     "developers": {
+      "status": "pass",
+      "reason": "mutmut ran",
+      "no_mutants": false,
+      "recipe_gap": false,
+      "wall_s": 57.4,
+      "returncode": 0,
+      "generated": 534,
+      "checked": 71,
+      "killed": 63,
+      "survived": 8,
+      "no_tests": 0,
+      "timeout": 0,
+      "other": 0,
+      "score": 0.8873239436619719,
+      "on_changed_lines": {
+       "checked": 24,
+       "killed": 22,
+       "survived": 2,
+       "score": 0.9166666666666666
+      },
+      "mutants": {
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_1": {
+        "status": "killed",
+        "line": 522,
+        "changed_line": false
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_2": {
+        "status": "killed",
+        "line": 524,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_3": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_4": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_5": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_6": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_7": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_8": {
+        "status": "killed",
+        "line": 525,
+        "changed_line": true
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_9": {
+        "status": "killed",
+        "line": 527,
+        "changed_line": false
+       },
+       "gafaelfawr.services.oidc.x\u01c1OIDCService\u01c1update_client__mutmut_10": {
+        "status": "survived",
+        "line": 528,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_1": {
+        "status": "killed",
+        "line": 247,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_2": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_3": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_4": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_5": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_6": {
+        "status": "killed",
+        "line": 248,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_7": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_8": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_9": {
+        "status": "killed",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_10": {
+        "status": "survived",
+        "line": 249,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_11": {
+        "status": "killed",
+        "line": 250,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_12": {
+        "status": "killed",
+        "line": 251,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_13": {
+        "status": "killed",
+        "line": 252,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_14": {
+        "status": "killed",
+        "line": 253,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_15": {
+        "status": "killed",
+        "line": 254,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_16": {
+        "status": "survived",
+        "line": 255,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_17": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_18": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_19": {
+        "status": "killed",
+        "line": 258,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_20": {
+        "status": "killed",
+        "line": 251,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_21": {
+        "status": "killed",
+        "line": 252,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_22": {
+        "status": "killed",
+        "line": 253,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_23": {
+        "status": "killed",
+        "line": 254,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_24": {
+        "status": "survived",
+        "line": 255,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_25": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_26": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_27": {
+        "status": "killed",
+        "line": 258,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_28": {
+        "status": "killed",
+        "line": 256,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_29": {
+        "status": "killed",
+        "line": 257,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_30": {
+        "status": "killed",
+        "line": 260,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_31": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_32": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_33": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_34": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_35": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_36": {
+        "status": "killed",
+        "line": 262,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_37": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_38": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_39": {
+        "status": "killed",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_40": {
+        "status": "killed",
+        "line": 264,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_41": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_42": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_43": {
+        "status": "survived",
+        "line": 265,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_1": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_2": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_3": {
+        "status": "killed",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_4": {
+        "status": "survived",
+        "line": 293,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_5": {
+        "status": "killed",
+        "line": 294,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_6": {
+        "status": "killed",
+        "line": 294,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_7": {
+        "status": "killed",
+        "line": 295,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_8": {
+        "status": "killed",
+        "line": 297,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_9": {
+        "status": "killed",
+        "line": 298,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_10": {
+        "status": "killed",
+        "line": 299,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_11": {
+        "status": "killed",
+        "line": 300,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_12": {
+        "status": "killed",
+        "line": 300,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_13": {
+        "status": "killed",
+        "line": 301,
+        "changed_line": true
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_14": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_15": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_16": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_17": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       },
+       "gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_18": {
+        "status": "killed",
+        "line": 302,
+        "changed_line": false
+       }
+      },
+      "unmutated": [],
+      "left_decorated": [],
+      "stdout_tail": [
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_39",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_4",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_40",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_41",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_42",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_43",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_5",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_6",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_7",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_8",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1register__mutmut_9",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_1",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_10",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_11",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_12",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_13",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_14",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_15",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_16",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_17",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_18",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_2",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_3",
+       "\ud83d\ude41 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_4",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_5",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_6",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_7",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_8",
+       "\ud83c\udf89 gafaelfawr.storage.oidc.x\u01c1OIDCClientStore\u01c1update__mutmut_9",
+       ""
+      ],
+      "tree": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/mutation/developers/mutation",
+      "test_files": [
+       "tests/handlers/api_oidc_test.py"
+      ]
+     }
+    }
+   }
+  },
+  "suite": {
+   "status": "pass",
+   "result": {
+    "status": "pass",
+    "runs": [
+     {
+      "args": [
+       "/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv/bin/python",
+       "-m",
+       "pytest",
+       "-p",
+       "no:cacheprovider",
+       "-o",
+       "pythonpath=src client/src",
+       "tests"
+      ],
+      "returncode": 0,
+      "summary": "======================= 226 passed, 10 skipped in 53.24s =======================",
+      "wall_s": 55.55,
+      "tail": [
+       "tests/handlers/logout_test.py ......                                     [ 65%]",
+       "tests/handlers/oidc_test.py .............                                [ 70%]",
+       "tests/handlers/quota_test.py ......                                      [ 73%]",
+       "tests/handlers/test_oidc_client_updates_api.py ......                    [ 75%]",
+       "tests/keypair_test.py ..                                                 [ 76%]",
+       "tests/main_test.py .                                                     [ 77%]",
+       "tests/models/kubernetes_test.py ......                                   [ 79%]",
+       "tests/models/oidc_test.py .                                              [ 80%]",
+       "tests/models/token_test.py ...                                           [ 81%]",
+       "tests/models/userinfo_test.py .                                          [ 81%]",
+       "tests/operator/ingress_test.py sssss                                     [ 83%]",
+       "tests/operator/tokens_test.py sssss                                      [ 86%]",
+       "tests/providers/oidc_verifier_test.py ....                               [ 87%]",
+       "tests/schema_test.py .                                                   [ 88%]",
+       "tests/services/oidc_test.py ....                                         [ 89%]",
+       "tests/services/token_cache_test.py ...                                   [ 91%]",
+       "tests/services/token_test.py .................                           [ 98%]",
+       "tests/util_test.py ....                                                  [100%]",
+       "",
+       "======================= 226 passed, 10 skipped in 53.24s ======================="
+      ]
+     }
+    ]
+   }
+  },
+  "test_cases": {
+   "status": "fail",
+   "reason": "test case writer ended with an error: "
+  }
+ },
+ "timings": {
+  "write_tests.r4": 338.0,
+  "lint.r4": 0.1,
+  "revert.r4": 13.0,
+  "developers_revert.r4": 10.7,
+  "mutation.generated": 62.3,
+  "mutation.generated_and_developers": 69.1,
+  "mutation.developers": 59.5,
+  "mutation.r4": 190.9,
+  "suite.r4": 55.6,
+  "test_cases": 114.4
+ },
+ "costs": {
+  "review_fix.r4": {
+   "cost_usd": 2.0806096,
+   "model": "claude-opus-5-5",
+   "turns": 22,
+   "duration_ms": 337059,
+   "input_tokens": 38,
+   "output_tokens": 19303
+  },
+  "test_cases": {
+   "cost_usd": 0.70458,
+   "model": "claude-opus-5-5",
+   "turns": 8,
+   "duration_ms": 113442,
+   "input_tokens": 4,
+   "output_tokens": 504
+  }
+ },
+ "artifacts": {
+  "tests_manifest": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/tests_manifest.json",
+  "tests_dir": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/tests",
+  "verify_report": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/report.json",
+  "test_cases": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/testcases",
+  "approval": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/approval.json"
+ },
+ "metrics": {
+  "cost_usd": 2.7852,
+  "time_s": {
+   "write_tests.r4": 338.0,
+   "lint.r4": 0.1,
+   "revert.r4": 13.0,
+   "developers_revert.r4": 10.7,
+   "mutation.generated": 62.3,
+   "mutation.generated_and_developers": 69.1,
+   "mutation.developers": 59.5,
+   "mutation.r4": 190.9,
+   "suite.r4": 55.6,
+   "test_cases": 114.4
+  },
+  "costs": {
+   "review_fix.r4": {
+    "cost_usd": 2.0806096,
+    "model": "claude-opus-5-5",
+    "turns": 22,
+    "duration_ms": 337059,
+    "input_tokens": 38,
+    "output_tokens": 19303
+   },
+   "test_cases": {
+    "cost_usd": 0.70458,
+    "model": "claude-opus-5-5",
+    "turns": 8,
+    "duration_ms": 113442,
+    "input_tokens": 4,
+    "output_tokens": 504
+   }
+  },
+  "rounds": 1,
+  "ticket_spent_usd": 8.0054,
+  "mutation_score.generated": 0.9014084507042254,
+  "mutation_score_changed_lines.generated": 1.0,
+  "mutation_score.generated_and_developers": 0.9154929577464789,
+  "mutation_score_changed_lines.generated_and_developers": 1.0,
+  "mutation_score.developers": 0.8873239436619719,
+  "mutation_score_changed_lines.developers": 0.9166666666666666
+ },
+ "rounds": [
+  {
+   "round": 3,
+   "kind": "write",
+   "checks": {
+    "write_tests": {
+     "status": "pass",
+     "s": 331.0
+    },
+    "lint": {
+     "status": "pass",
+     "s": 0.2
+    },
+    "revert": {
+     "status": "pass",
+     "s": 13.3
+    },
+    "developers_revert": {
+     "status": "pass",
+     "s": 10.8
+    },
+    "mutation": {
+     "status": "pass",
+     "s": 189.2
+    },
+    "suite": {
+     "status": "pass",
+     "s": 55.6
+    }
+   },
+   "failure": null
+  },
+  {
+   "round": 4,
+   "kind": "review_fix",
+   "checks": {
+    "write_tests": {
+     "status": "pass",
+     "s": 338.0
+    },
+    "lint": {
+     "status": "pass",
+     "s": 0.1
+    },
+    "revert": {
+     "status": "pass",
+     "s": 13.0
+    },
+    "developers_revert": {
+     "status": "pass",
+     "s": 10.7
+    },
+    "mutation": {
+     "status": "pass",
+     "s": 190.9
+    },
+    "suite": {
+     "status": "pass",
+     "s": 55.6
+    }
+   },
+   "failure": null
+  }
+ ],
+ "history": [
+  {
+   "round": 3,
+   "kind": "write",
+   "failure": null
+  },
+  {
+   "round": 4,
+   "kind": "review_fix",
+   "failure": null
+  }
+ ],
+ "advice": [],
+ "ledger": {
+  "caps": {
+   "writer_rounds": 3,
+   "advice": 2,
+   "usd": 8.0
+  },
+  "spent_usd": 8.0054,
+  "writer_rounds_used": 1,
+  "advice_used": 0,
+  "calls": 6
+ },
+ "blind": true,
+ "blind_audit": {
+  "tool_calls": 25,
+  "flagged": [
+   {
+    "tool": "Bash",
+    "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; $V/bin/python -c \\\"import safir.database, safir.pydantic, inspect; print(inspect.getsource(safir.database.datetime_to_db)); print(safir.pydantic.__file__)\\\"; grep -rn \\\"UtcDatetime\\\\b\\\" $($V/bin/python -c \\\"import safir.pyda"
+   },
+   {
+    "tool": "Bash",
+    "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; cat src/gafaelfawr/schema/_oidc_client.py; sed -n 30,80p $V/lib/python3.14/site-packages/safir/pydantic/_validators.py; grep -rn \\\"oidc_client\\\\|oidc-client\\\" src/gafaelfawr/handlers/api.py | head -20; ls alembic/versions | "
+   },
+   {
+    "tool": "Bash",
+    "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; PATH=\\\"$V/bin:$PATH\\\" $V/bin/python -m pytest -p no:cacheprovider -o \\\"pythonpath=src client/src\\\" tests/handlers/test_oidc_client_updates_api.py 2>&1 | tail -80\", \"description\": \"Run the new OIDC client update tests\", \"time"
+   },
+   {
+    "tool": "Bash",
+    "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; PATH=\\\"$V/bin:$PATH\\\" $V/bin/python -m pytest -p no:cacheprovider -o \\\"pythonpath=src client/src\\\" tests/handlers/test_oidc_client_updates_api.py 2>&1 | grep -E \\\"^E   |^tests/.*Error|passed|failed\\\" | head -40\", \"descriptio"
+   },
+   {
+    "tool": "Bash",
+    "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; F=tests/handlers/test_oidc_client_updates_api.py; $V/bin/python -m ruff format $F && $V/bin/python -m ruff check $F\", \"description\": \"Format and lint the new test file\"}"
+   },
+   {
+    "tool": "Bash",
+    "input": "{\"command\": \"V=/Users/oleg/Library/Caches/qa-factory/gafaelfawr/repo/.venv; F=tests/handlers/test_oidc_client_updates_api.py; $V/bin/python -m ruff format $F && $V/bin/python -m ruff check $F && PATH=\\\"$V/bin:$PATH\\\" $V/bin/python -m pytest -p no:cacheprovider -o \\\"pythonpath=src client/src\\\" $F 2>&"
+   }
+  ],
+  "clean": false,
+  "transcript": "/Users/oleg/dev/qa-factory/.artifacts/runs/gafaelfawr-oidc-client-updates/verify/rounds/1/writer.jsonl"
+ },
+ "gate_kind": null,
+ "last_failure": null,
+ "status": "fail",
+ "stopped_at": null,
+ "resumable": false
+}

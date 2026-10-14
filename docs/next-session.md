@@ -1,38 +1,45 @@
 # The next session
 
-Paste this as the first message of the next session. Items 1, 2 and 4 of `docs/roadmap.md` were
-done on 2026-10-14 (`docs/log.md`); item 3 is next. Kickoffs for items 5 and 6 are written when
-item 3 is done.
+Paste one of these as the first message of the next session. Items 1 to 4 of `docs/roadmap.md`
+were done on 2026-10-14 (`docs/log.md`); item 5 is next, item 6 after it. Each kickoff stands on
+its own.
 
-## Kickoff: a third application shaped like a small team service (roadmap item 3)
+## Kickoff: the factory writes the change itself (roadmap item 5)
 
-Start in ~/dev/qa-factory. Read CLAUDE.md, then docs/adopt.md. That guide is the whole procedure
-(its section 3 now starts with the checklist score and the application's agent file);
-docs/status.md says what exists and docs/trust.md what the factory claims. Onboard <application>
-by following docs/adopt.md and nothing else, through all eight items of its checklist (section 8),
-with the model calls billed through `scripts/with-console-key.sh` on this laptop (elsewhere,
-`ANTHROPIC_API_KEY`). Cap: one ticket, about 6 USD (estimate). Fold every place the guide was wrong
-or silent back into docs/adopt.md in the same pull request. A branch per change, `just check`
-green, a squash PR with the output in the body, a docs/log.md entry, the item's State line in
-docs/roadmap.md, docs/status.md updated last.
+Start in ~/dev/qa-factory. Read CLAUDE.md, docs/roadmap.md item 5, docs/status.md and
+docs/architecture.md, then `factory/steps/implement.py` and `factory/steps/verify.py` (the writer
+loop, the caps, the stronger model, the gates of item 4). Build Implement as an agent step: a
+fresh headless session (the same runner as the test writer, `factory/headless.py`) writes the
+change test-first on a branch in the head worktree from the Frame and Plan artifacts, with the
+ticket's `base` as the starting tree and no sight of the developers' commit or tests. Verify's
+blind lane stays as it is and meets the agent's change on the deterministic checks (revert,
+mutation, lint, suite, cases); a failing check goes back to Implement for a capped repair round,
+then the stronger model, then a person through the Implement gate (`gates.implement`, the same
+contract as the others). The check with a known answer: run it on the shipped tickets (linkding
+sort and bundles, isso no-cache, gafaelfawr oidc-client-update), holding the developers' commit
+and tests back from every session, and after the join run the developers' own tests against the
+agent's change; record pass or fail per ticket as a deterministic check, not a score. Model calls
+bill through `scripts/with-console-key.sh`; cap about 10 USD per ticket (estimated, nothing
+measured yet), so run one ticket first and report its cost before the rest. Specs under
+`docs/specs/`, Opus implementers in a workflow from written specs, an Opus reviewer per slice,
+the session merges. Update `docs/adopt.md` in the same pull request (a ticket without `head`, the
+new gate, the new caps), the item's State line, `docs/log.md`, `docs/decisions.md`,
+`docs/status.md` last. Decisions that are Oleg's go to him as a numbered list at the end;
+everything swappable is decided by delegation and recorded.
 
-Pointing the factory at a work repository is Oleg's call (CLAUDE.md, boundary). If the application
-is his, he says so in this prompt; otherwise pick a public one with the shape of roadmap item 3:
-a web API service (FastAPI or similar), a `src/` layout, a database run in Docker, and at least
-one outside HTTP service it calls. Its ticket is a bug fix from the application's own history,
-written blind. The outside service is mocked inside the application's suite; build mock machinery
-only if this run needs it, and record what keeping the mock reliable took. If the application
-has browser tests, give the writer's session the Playwright CLI (`@playwright/cli`) for exploring
-the running app and record the writer's tokens and cost against the bundles run (3.62 USD),
-as `docs/research/2026-10-14-agent-friendly-repositories.md` asks; adopt or drop on that number.
-Oleg's answers of 2026-10-14 apply: a public application, chosen here.
+## Kickoff: ship as a pull request, approve on it (roadmap item 6)
 
-What changed in the factory on 2026-10-14 that an onboarding agent meets (all in `docs/adopt.md`):
-`gates.<step>` in the recipe or the ticket (`auto`, `model`, `person`); Frame stops the run when a
-criterion cannot be made checkable or the ticket leaves out the public contract, and the answer
-may carry the clarified ticket; a stopped run is listed by `python -m factory waiting`; the
-answer file needs `by`; decorated functions and `__init__.py` get mutants now, and
-`python -m factory mutation <run folder>` re-runs that check with no model call; a spend cap hit
-after the checks resumes at the readable cases once `caps.usd` is raised. The deployed-instance
-suite (`targets/linkding/deployed/`, section 10 of the guide) is the shape to copy if the third
-application is to be run against its container too; that is optional for this kickoff.
+Start in ~/dev/qa-factory. Read CLAUDE.md, docs/roadmap.md item 6, `factory/steps/ship.py`,
+`factory/gates.py` and the Ship gate's section of `docs/adopt.md`. Build: Ship pushes the
+`qa/<ticket id>` branch to a fork of the application on Oleg's GitHub account (the fork's remote
+named in the recipe, `fork` in `app.json`, created by him or by `gh repo fork` under his login
+with his say-so) and opens a pull request whose body holds the readable cases and the run report;
+under `gates.ship: person` the pull request's approval (a review with "approve" by a named person)
+is the answer, polled by the driver, and the answer file stays the fallback; the notification of
+item 4 carries the pull request's link. Nothing is pushed anywhere unless the recipe names the
+fork. Prove it on one shipped run (the gafaelfawr or linkding run folder, no model call needed:
+`python -m factory redo <run> ship --rerun`), with the pull request opened on the fork and
+approved by Oleg or by the session standing in, and say which. Update `docs/adopt.md` (the fork
+field, the approval on the pull request, what the token needs: `gh auth status`), the State line,
+`docs/log.md`, `docs/decisions.md`, `docs/status.md` last. The boundary stands: a fork of a public
+application only; nothing of the employer's.
