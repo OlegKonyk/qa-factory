@@ -8,6 +8,43 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · The roadmap gets a state per item and a command that reads it
+
+**Asked.** Oleg, after asking how the work is organized across sessions: "yes, add the state and
+the roadmap command". The gap named to him: roadmap items had no state, so "done" was only
+visible by reading the status entries and the log.
+
+**Done.** Every item in `docs/roadmap.md` carries a `State:` line (`planned`, `in progress`,
+`done`, `dropped`, with a note: date, pull request, measured cost against the estimate); the
+four Later items became headings like the others so one parser reads all ten.
+`factory/roadmap.py` parses the file and `python -m factory roadmap` prints the table (or
+`--json`); it refuses a roadmap with an item that has no state, an unknown state, an item outside
+a group, or numbers that are not 1..N in order. `scripts/check.sh` runs it, so `just check` is
+red when a session forgets the line. Built by the supervisor plugin's implementer agent (Sonnet)
+from a written spec; the diff was read here against the spec before merging; one deviation
+accepted (the output stream is resolved at call time so pytest can capture it). 13 new tests.
+`CLAUDE.md` and the kickoffs say the finishing session updates the item's line in the same pull
+request.
+
+```
+$ uv run python -m factory roadmap
+#   group  state    title                                                 note
+1   now    planned  Run the tests against a running application
+2   now    planned  Three factory fixes the last runs found
+3   now    planned  A third application shaped like a small team service
+4   now    planned  Every person point exposed
+5   next   planned  The factory writes the change itself
+6   next   planned  Ship as a pull request, approve on it
+7   later  planned  Tickets from an issue tracker
+8   later  planned  The Learn step
+9   later  planned  Scale
+10  later  planned  Applications not in Python
+10 items: 10 planned
+```
+
+**Left open.** Nothing. Measured costs enter the state line as items finish; the first will be
+item 1.
+
 ## 2026-10-14 · The roadmap reviewed: person points, Restate, the research
 
 **Asked.** Oleg (`docs/inputs.md`, second entry of 2026-10-14): review the roadmap; every point

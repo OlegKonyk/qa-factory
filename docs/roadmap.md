@@ -6,6 +6,12 @@ choose (question 1 below); everything else is a recommendation he can overturn. 
 is built from `docs/pages/roadmap/index.html`; its current link is in `docs/status.md`. Every
 cost here is **estimated** from the runs so far, not measured.
 
+Each item carries a `State:` line: `planned`, `in progress` (with the date), `done` (with the
+date, the pull request and the measured cost against the estimate) or `dropped` (with the date and
+the reason). `python -m factory roadmap` prints the items with their state, and `just check`
+refuses a roadmap where an item has none. The session that finishes an item updates its line in
+the same pull request.
+
 ## Where the factory is
 
 The QA part runs end to end on two real applications. A ticket goes through Frame, Plan,
@@ -64,6 +70,8 @@ What his microservice and the meetings at work need first (his input of 2026-10-
 
 ### 1. Run the tests against a running application
 
+State: planned
+
 The second verification point of his scheme: develop on mocks, then the same cases run against
 the deployed application. Already approved on 2026-10-10; kickoff A in `docs/next-session.md`.
 
@@ -76,6 +84,8 @@ the deployed application. Already approved on 2026-10-10; kickoff A in `docs/nex
 - **Cost:** one session, about 5 USD (estimated).
 
 ### 2. Three factory fixes the last runs found
+
+State: planned
 
 Code only, no model calls, so it fits a cloud session paid by the one-time credit (250 USD, until
 2026-11-05). Kickoff B.
@@ -95,6 +105,8 @@ Code only, no model calls, so it fits a cloud session paid by the one-time credi
 
 ### 3. A third application shaped like a small team service
 
+State: planned
+
 Kickoff C.
 
 - **The shape:** a web API service (FastAPI or similar), a `src/` layout, a database run in
@@ -111,6 +123,8 @@ Kickoff C.
 - **Cost:** one session, about 6 USD (estimated).
 
 ### 4. Every person point exposed
+
+State: planned
 
 Added 2026-10-14 from his review. Built on the step envelope (status `needs_person` with a gate),
 so both engines get it; the plain driver keeps exiting with the question, Restate keeps parking
@@ -155,6 +169,8 @@ the run. Kickoff D. Code with factory tests and one cheap proof run.
 
 ### 5. The factory writes the change itself
 
+State: planned
+
 - **Build:** Implement becomes an agent that writes the change test-first from Frame and Plan.
   In parallel, a fresh session writes the acceptance tests blind (already built). They meet on
   the deterministic checks; failures go back to Implement, capped, with the stronger model before
@@ -168,6 +184,8 @@ the run. Kickoff D. Code with factory tests and one cheap proof run.
 
 ### 6. Ship as a pull request, approve on it
 
+State: planned
+
 The merge gate, which the published practice treats as the one fixed human gate besides the
 specification (`docs/research/2026-10-14-factory-landscape.md`, points 1 and 4).
 
@@ -179,18 +197,36 @@ specification (`docs/research/2026-10-14-factory-landscape.md`, points 1 and 4).
 
 ## Later: when a run shows the need
 
-7. **Tickets from an issue tracker.** The readiness check that sends a ticket back for its
-   missing contract is in item 4 now (his answer of 2026-10-14); what stays here is reading the
-   ticket from a tracker and writing the answer back to it. The Ticket person point of the brief
-   is this.
-8. **The Learn step**: each run's escalations, review findings, answers at the gates and repairs
-   proposed as edits to the strategy rule and the prompts, by pull request. The brief's knowledge
-   base starts here. A repair round guided by surviving mutants (the adversarial loop of the
-   research, point 5) is a candidate here.
-9. **Scale**: more than one ticket at once, a durable engine as the default (Restate, kept on
-   2026-10-14; replaced only when a run shows a need it cannot meet or work settles on
-   Temporal), test selection when a suite gets slow, quarantine for flaky tests.
-10. **Applications not in Python.** The checks read pytest output and run mutmut.
+### 7. Tickets from an issue tracker
+
+State: planned
+
+The readiness check that sends a ticket back for its missing contract is in item 4 now (his
+answer of 2026-10-14); what stays here is reading the ticket from a tracker and writing the
+answer back to it. The Ticket person point of the brief is this.
+
+### 8. The Learn step
+
+State: planned
+
+Each run's escalations, review findings, answers at the gates and repairs proposed as edits to
+the strategy rule and the prompts, by pull request. The brief's knowledge base starts here. A
+repair round guided by surviving mutants (the adversarial loop of the research, point 5) is a
+candidate here.
+
+### 9. Scale
+
+State: planned
+
+More than one ticket at once, a durable engine as the default (Restate, kept on 2026-10-14;
+replaced only when a run shows a need it cannot meet or work settles on Temporal), test selection
+when a suite gets slow, quarantine for flaky tests.
+
+### 10. Applications not in Python
+
+State: planned
+
+The checks read pytest output and run mutmut.
 
 ## Restate: what it is and whether it is needed
 

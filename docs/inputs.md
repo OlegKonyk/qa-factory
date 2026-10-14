@@ -3,6 +3,19 @@
 Oleg's direction, newest first, quoted as given (dictated, so expect transcription slips), each
 with how it was read and what it changed. File an input here before working on it.
 
+## 2026-10-14 · A persisted plan to track across sessions; add the state and the roadmap command
+
+> Before we kick off the work, do we have a persisted strategic plan and roadmap that we can hold
+> and track from session to session, or how do you organize the work overall?
+
+> yes, add the state and the roadmap command
+
+How it was read: the plan exists (`docs/brief.md`, `docs/roadmap.md`, `docs/next-session.md`,
+`docs/status.md`, `docs/log.md`, `docs/decisions.md`), and the gap named to him was that items
+had no state. He chose the smallest fix: a `State:` line per item and `python -m factory roadmap`
+to print them, checked by `just check`. Issues or a board wait until the item or people count
+grows.
+
 ## 2026-10-14 · The four answers; keep Restate unless something better turns up; continue the research on factory-friendly repositories and tools
 
 > adopt, public, no, keep. Yeah, I definitely want to keep the state, or if there is a better
