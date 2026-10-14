@@ -7,6 +7,7 @@ lookup), so the tests run them with fakes and nothing is shown or sent.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -24,6 +25,8 @@ DEFAULT_APPROVER = "Oleg"
 QUESTION_CHARS = 100
 NOTIFY_CHARS = 200
 POST_TIMEOUT_S = 5
+# Set to 1 on a headless machine or in a CI job: `notify` then tells nobody.
+NO_NOTIFY_ENV = "QA_FACTORY_NO_NOTIFY"
 
 
 class AnswerError(ValueError):
@@ -112,7 +115,10 @@ def notify(
     """Tell that a run waits: a macOS notification, and a POST to `notify_url` when one is set.
 
     Both are best effort: nothing raises; the problems come back as lines for the caller to print.
+    With `QA_FACTORY_NO_NOTIFY=1` in the environment it returns at once.
     """
+    if os.environ.get(NO_NOTIFY_ENV) == "1":
+        return []
     gate = gate or Gate(who="", question="", kind="")
     run_dir = Path(run_dir)
     ticket_id = (ticket or {}).get("id") or run_dir.name
@@ -189,6 +195,13 @@ def waiting(runs_root) -> list[dict]:
                 continue
             gate = rec.output.gate
             question = gate.question if gate else rec.output.reason
+            answer_path = run / "answer.json"
+            refused = None
+            if answer_path.exists():
+                try:
+                    read_answer(answer_path, gate.answers if gate else None)
+                except AnswerError as err:
+                    refused = str(err)
             found.append(
                 {
                     "ticket": ticket_id,
@@ -199,7 +212,8 @@ def waiting(runs_root) -> list[dict]:
                     "question": " ".join(str(question).split())[:QUESTION_CHARS],
                     "question_path": str(run / "question.md"),
                     "run_dir": str(run),
-                    "answer_pending": (run / "answer.json").exists(),
+                    "answer_pending": answer_path.exists(),
+                    "answer_refused": refused,
                 }
             )
     return found
@@ -222,6 +236,8 @@ def main(runs_root: str = ".artifacts/runs", as_json: bool = False, out: TextIO 
         return 0
     for r in rows:
         pending = "  answer pending" if r["answer_pending"] else ""
+        if r.get("answer_refused"):
+            pending = f"  answer refused: {r['answer_refused']}"
         out.write(
             f"{r['ticket']}  {r['step']}  {r['kind']}  who {r['who']}  since {r['since']}  "
             f"{r['question']}  {r['question_path']}{pending}\n"

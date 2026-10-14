@@ -39,8 +39,9 @@ PLAN_ANSWERS = [
     {"decision": "approve", "means": "the plan stands as written"},
     {
         "decision": "edit",
-        "means": "the edited plan (a path to a JSON file in the plan's structured shape, or the object "
-        "inline) replaces the plan; the old one is kept as plan.before-edit.json",
+        "means": "the edited plan replaces the plan: a path to a JSON file in the plan's structured "
+        "shape, or to plan/plan.json itself edited in place, or the object inline; the file replaced "
+        "is kept as plan.before-edit.json",
         "carries": "plan",
     },
     {"decision": "decline", "means": "the step fails with the note as its reason"},
@@ -86,7 +87,11 @@ def _gate(inp: dict, out: dict) -> dict:
 
 
 def _edited(value, run_dir: str) -> tuple[dict | None, str]:
-    """The edited plan from the answer's `plan` (a path or the object); (None, problem) when unusable."""
+    """The edited plan from the answer's `plan` (a path or the object); (None, problem) when unusable.
+
+    A file may hold the structured plan itself or the plan file's own shape (`plan/plan.json`, edited
+    in place), whose `structured` is the plan.
+    """
     if isinstance(value, str) and value.strip():
         path = Path(value).expanduser()
         if not path.is_absolute() and (Path(run_dir) / path).is_file():
@@ -95,8 +100,13 @@ def _edited(value, run_dir: str) -> tuple[dict | None, str]:
             value = json.loads(path.read_text())
         except (OSError, json.JSONDecodeError) as err:
             return None, f"plan file {path} is not readable JSON: {err}"
+        if isinstance(value, dict) and "tests" not in value and isinstance(value.get("structured"), dict):
+            value = value["structured"]
     if not isinstance(value, dict) or not isinstance(value.get("tests"), list):
-        return None, '"plan" must be a path or an object with a "tests" list, in the plan\'s structured shape'
+        return None, (
+            '"plan" must be the structured plan (an object with a "tests" list, inline or in a file) or '
+            'a path to the plan file itself (plan/plan.json, with that object under "structured")'
+        )
     return value, ""
 
 

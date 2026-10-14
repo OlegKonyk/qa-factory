@@ -252,7 +252,12 @@ def run_step(
         finished=now_iso(),
         duration_s=duration,
     )
-    _write_json(record_path, record.to_dict())
+    data = record.to_dict()
+    if output.status == "pass":  # what each artifact file held when the step passed, for `redo`
+        data["artifact_sha256"] = {
+            k: _sha256(v) for k, v in output.artifacts.items() if isinstance(v, str) and Path(v).is_file()
+        }
+    _write_json(record_path, data)
     if "answer" in step_artifacts and answer_path.exists():
         _archive_answer(answer_path, steps_dir / f"{index:02d}-{name}.answer{round_no}.json")
 
@@ -350,7 +355,8 @@ def redo(run_dir, step: str, by: str, note: str = "", rerun: bool = False, out: 
     """After a person edited a passed step's artifact by hand: the next `run` resumes after that step.
 
     Every later step's record becomes an earlier round; with `rerun` the step's own too, so it runs
-    again. `steps/NN-<step>.redoK.json` keeps who, when, the note and the artifact files' sha256.
+    again. `steps/NN-<step>.redoK.json` keeps who, when, the note and the artifact files' sha256: before
+    (from the step's record) and after (the files as they are now).
     Returns 1, saying what to do instead, for a step that has not passed or a run waiting at a gate.
     """
     if step not in STEP_NAMES:
@@ -376,7 +382,8 @@ def redo(run_dir, step: str, by: str, note: str = "", rerun: bool = False, out: 
     if not record_path.exists():
         print(f"redo: {step} has no record in {steps_dir}; run the ticket instead", file=out)
         return 1
-    record = StepRecord.from_dict(json.loads(record_path.read_text()))
+    raw = json.loads(record_path.read_text())
+    record = StepRecord.from_dict(raw)
     if record.status != "pass":
         print(
             f"redo: {step} has not passed (status {record.status}); run the ticket again instead, "
@@ -386,8 +393,10 @@ def redo(run_dir, step: str, by: str, note: str = "", rerun: bool = False, out: 
         return 1
 
     files = {k: v for k, v in record.output.artifacts.items() if isinstance(v, str)}
-    # The record keeps paths, not hashes: "before" is what is at those paths when redo runs.
-    before = {k: _sha256(v) for k, v in files.items()}
+    # "before" is what the step's record saw when it passed; a record without hashes (an older run,
+    # or a directory or missing artifact) says "unknown".
+    recorded = raw.get("artifact_sha256") or {}
+    before = {k: recorded.get(k, "unknown") for k in files}
     archived = []
     later = [(i, n) for i, n in enumerate(STEP_NAMES, start=1) if i > index]
     for i, name in ([(index, step)] if rerun else []) + later:

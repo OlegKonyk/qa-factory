@@ -339,6 +339,31 @@ def test_plan_edit_replaces_the_plan_and_keeps_the_old_one(inp, tmp_path, how):
     assert json.loads(path.with_name("plan.before-edit.json").read_text())["structured"]["risk"] == "high"
 
 
+def test_plan_edit_may_point_at_the_plan_file_edited_in_place(inp):
+    asked = step_run(planned(risk="high"), inp, 2, "plan")
+    path = Path(asked["artifacts"]["plan"])
+    wrapper = json.loads(path.read_text())
+    edited = {**wrapper["structured"], "tests": [], "risk": "low"}
+    path.write_text(json.dumps({**wrapper, "structured": edited}))
+    answer(inp, {"decision": "edit", "plan": "plan/plan.json", "by": "Oleg"})
+    out = step_run(planned(), inp, 2, "plan")
+    assert out["status"] == "pass" and out["reason"] == "plan edited by Oleg"
+    written = json.loads(path.read_text())
+    assert written["structured"] == edited and written["edited_by"] == "Oleg"
+    assert "structured" not in written["structured"]
+
+
+def test_plan_edit_with_an_unusable_plan_asks_again_naming_both_forms(inp):
+    step_run(planned(risk="high"), inp, 2, "plan")
+    (Path(inp["run_dir"]) / "not-a-plan.json").write_text(json.dumps({"steps": []}))
+    answer(inp, {"decision": "edit", "plan": "not-a-plan.json", "by": "Oleg"})
+    out = step_run(planned(), inp, 2, "plan")
+    assert out["status"] == "needs_person" and out["gate"]["kind"] == "plan"
+    assert out["reason"].startswith("answer by Oleg not used: ")
+    assert 'an object with a "tests" list' in out["reason"]
+    assert 'the plan file itself (plan/plan.json, with that object under "structured")' in out["reason"]
+
+
 def test_plan_decline_fails(inp):
     step_run(planned(risk="high"), inp, 2, "plan")
     answer(inp, {"decision": "decline", "by": "Oleg", "note": "wrong folder"})

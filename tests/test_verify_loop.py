@@ -204,6 +204,17 @@ def test_cannot_decide_stops_for_a_person(tmp_path, monkeypatch):
     assert report["gate_kind"] == "escalation" and report["last_failure"]["check"] == "suite"
 
 
+def test_the_escalation_question_names_the_recipes_approver(tmp_path, monkeypatch):
+    Fakes(monkeypatch, tmp_path, suite=["fail"])
+    Advisor(monkeypatch, "cannot_decide")
+    inp = _inp(tmp_path)
+    inp["repo"]["app"]["approver"] = "Dana"
+    out = verify.run(inp)
+    assert out["status"] == "needs_person" and out["gate"]["who"] == "Dana"
+    question = out["gate"]["question"]
+    assert question.count('"by": "Dana"') == 2 and "Oleg" not in question
+
+
 def test_a_failure_after_the_guided_round_goes_back_without_retry(tmp_path, monkeypatch):
     fakes = Fakes(monkeypatch, tmp_path, suite=["fail"])
     advisor = Advisor(monkeypatch, "retry", "environment")

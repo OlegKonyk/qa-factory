@@ -376,6 +376,10 @@ def test_redo_archives_later_records_and_writes_its_record(ticket_path, tmp_path
     go(ticket_path, tmp_path, make_steps([], {"plan": plan_step}))
     run_dir = tmp_path / "runs" / "t-1"
     steps = run_dir / "steps"
+    # A record written before records kept hashes: "before" is unknown.
+    older = json.loads((steps / "02-plan.json").read_text())
+    del older["artifact_sha256"]
+    (steps / "02-plan.json").write_text(json.dumps(older))
     code, text = redo(run_dir, "plan")
     assert code == 0
     for name in ("03-implement", "04-verify", "05-review", "06-ship"):
@@ -385,8 +389,8 @@ def test_redo_archives_later_records_and_writes_its_record(ticket_path, tmp_path
     record = json.loads((steps / "02-plan.redo1.json").read_text())
     assert record["by"] == "Oleg" and record["note"] == "tightened AC2" and record["at"].startswith("20")
     digest = hashlib.sha256(plan_file.read_bytes()).hexdigest()
-    assert record["sha256_before"] == {"plan": digest, "gone": "unknown"}
-    assert record["sha256_after"]["plan"] == digest
+    assert record["sha256_before"] == {"plan": "unknown", "gone": "unknown"}
+    assert record["sha256_after"] == {"plan": digest, "gone": "unknown"}
     calls = []
     out = io.StringIO()
     assert driver.run(ticket_path, runs_root=tmp_path / "runs", steps=make_steps(calls), out=out) == 0
@@ -395,6 +399,39 @@ def test_redo_archives_later_records_and_writes_its_record(ticket_path, tmp_path
     status = io.StringIO()
     driver.status(run_dir, status)  # the redo record is not a step record
     assert "3 implement pass (earlier round)" in status.getvalue()
+
+
+def test_redo_takes_before_from_the_passed_record_and_after_from_the_files_now(ticket_path, tmp_path):
+    plan_file = tmp_path / "plan.json"
+    plan_file.write_text('{"structured": {"tests": []}}')
+    folder = tmp_path / "plan-dir"
+    folder.mkdir()
+    artifacts = {"plan": str(plan_file), "dir": str(folder), "gone": "/no/such"}
+
+    def plan_step(_):
+        return {"status": "pass", "artifacts": artifacts, "reason": ""}
+
+    go(ticket_path, tmp_path, make_steps([], {"plan": plan_step}))
+    steps = tmp_path / "runs" / "t-1" / "steps"
+    passed = hashlib.sha256(plan_file.read_bytes()).hexdigest()
+    # Files only: a directory or a missing artifact gets no hash.
+    assert json.loads((steps / "02-plan.json").read_text())["artifact_sha256"] == {"plan": passed}
+    plan_file.write_text('{"structured": {"tests": [{"name": "edited by hand"}]}}')
+    edited = hashlib.sha256(plan_file.read_bytes()).hexdigest()
+    assert redo(tmp_path / "runs" / "t-1", "plan")[0] == 0
+    record = json.loads((steps / "02-plan.redo1.json").read_text())
+    assert record["sha256_before"] == {"plan": passed, "dir": "unknown", "gone": "unknown"}
+    assert record["sha256_after"] == {"plan": edited, "dir": "directory", "gone": "unknown"}
+
+
+def test_a_record_that_is_not_a_pass_keeps_no_hashes(ticket_path, tmp_path):
+    def failing(_):
+        return {"status": "fail", "artifacts": {"plan": str(ticket_path)}, "reason": "boom"}
+
+    go(ticket_path, tmp_path, make_steps([], {"plan": failing}))
+    assert "artifact_sha256" not in json.loads(
+        (tmp_path / "runs" / "t-1" / "steps" / "02-plan.json").read_text()
+    )
 
 
 def test_redo_rerun_archives_the_step_itself_and_the_next_round_number_is_free(ticket_path, tmp_path):

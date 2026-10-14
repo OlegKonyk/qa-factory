@@ -987,6 +987,7 @@ def _advise(ctx, failure, allow_retry):
 def _escalation_gate(ctx, failure, record):
     ctx["gate_kind"], ctx["last_failure"], ctx["status"] = "escalation", failure, "needs_person"
     report = _write_report(ctx)
+    who = gates.approver(ctx["app"])
     return {
         "status": "needs_person",
         "artifacts": dict(ctx["artifacts_out"]),
@@ -994,12 +995,12 @@ def _escalation_gate(ctx, failure, record):
         "gate": {
             "kind": "escalation",
             "answers": ESCALATION_ANSWERS,
-            "who": gates.approver(ctx["app"]),
+            "who": who,
             "question": f"Verify still fails for '{ctx['ticket']['title']}' ({failure['check']}: "
             f"{failure['reason'][:300]}) and the stronger model could not decide. Answer with "
-            '{"decision": "retry", "guidance": "<what the writer should do>", "by": "Oleg"} for one '
-            'more guided round; {"decision": "recheck", "round": <n>, "by": "Oleg"} to check the tests of '
-            "round n again with no writer call, after fixing the environment or the factory; or any other "
+            f'{{"decision": "retry", "guidance": "<what the writer should do>", "by": "{who}"}} for one '
+            f'more guided round; {{"decision": "recheck", "round": <n>, "by": "{who}"}} to check the tests '
+            "of round n again with no writer call, after fixing the environment or the factory; or any other "
             'decision (for example "change_is_wrong") with a "note" to fail the step.',
             "context": {
                 "kind": "escalation",

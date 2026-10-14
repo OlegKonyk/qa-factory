@@ -161,6 +161,23 @@ def test_notify_does_nothing_off_macos_and_without_a_url(tmp_path):
     assert runner.calls == [] and post.calls == []
 
 
+def test_notify_returns_at_once_when_told_not_to(tmp_path, monkeypatch):
+    monkeypatch.setenv("QA_FACTORY_NO_NOTIFY", "1")
+    runner, post = Recorder(), Recorder()
+    problems = gates.notify(
+        tmp_path,
+        "verify",
+        GATE,
+        {"id": "t-1", "notify_url": "http://hook.test/x"},
+        {},
+        runner=runner,
+        post=post,
+        which=lambda name: "/usr/bin/osascript",
+        platform="darwin",
+    )
+    assert problems == [] and runner.calls == [] and post.calls == []
+
+
 # waiting
 
 
@@ -209,6 +226,14 @@ def runs(tmp_path):
             "answer.json": {"decision": "approve", "by": "Oleg"},
         },
     )
+    _run(
+        root,
+        "b-refused",
+        {
+            "steps/04-verify.json": _record("verify", 4, "needs_person", ASK),
+            "answer.json": {"decision": "yes", "by": "Oleg"},
+        },
+    )
     _run(root, "c-finished", {"steps/06-ship.json": _record("ship", 6, "pass")})
     _run(
         root,
@@ -225,9 +250,15 @@ def runs(tmp_path):
 
 def test_waiting_lists_the_waiting_run_and_the_pending_answer_only(runs):
     found = gates.waiting(runs)
-    assert [(r["ticket"], r["step"], r["answer_pending"]) for r in found] == [
-        ("a-waiting", "verify", False),
-        ("b-pending", "verify", True),
+    assert [(r["ticket"], r["step"], r["answer_pending"], r["answer_refused"]) for r in found] == [
+        ("a-waiting", "verify", False, None),
+        ("b-pending", "verify", True, None),
+        (
+            "b-refused",
+            "verify",
+            True,
+            "unknown decision 'yes' in field \"decision\"; one of ['approve', 'decline']",
+        ),
     ]
     first = found[0]
     assert first["kind"] == "approval" and first["who"] == "Oleg"
@@ -239,14 +270,18 @@ def test_waiting_lists_the_waiting_run_and_the_pending_answer_only(runs):
 def test_waiting_command_prints_one_line_each_and_json(runs, capsys):
     assert cli.main(["waiting", "--runs-root", str(runs)]) == 0
     lines = capsys.readouterr().out.splitlines()
-    assert len(lines) == 2
+    assert len(lines) == 3
     assert lines[0].startswith(
         "a-waiting  verify  approval  who Oleg  since 2026-10-14T10:00:00+00:00  Approve? "
     )
     assert lines[0].endswith(str(runs / "a-waiting" / "question.md"))
     assert lines[1].endswith("answer pending")
+    assert lines[2].endswith(
+        str(runs / "b-refused" / "question.md")
+        + "  answer refused: unknown decision 'yes' in field \"decision\"; one of ['approve', 'decline']"
+    )
     assert cli.main(["waiting", "--runs-root", str(runs), "--json"]) == 0
-    assert len(json.loads(capsys.readouterr().out)) == 2
+    assert len(json.loads(capsys.readouterr().out)) == 3
 
 
 def test_nothing_waiting(tmp_path):

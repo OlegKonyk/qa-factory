@@ -97,6 +97,7 @@ def restate(tmp_path, monkeypatch):
                 "factory.stub_steps",
             ],
             cwd=ROOT,
+            env={**os.environ, "QA_FACTORY_NO_NOTIFY": "1"},  # no desktop notification from a test
             stdout=(tmp_path / "service.log").open("a"),
             stderr=subprocess.STDOUT,
         )

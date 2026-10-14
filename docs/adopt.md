@@ -273,12 +273,13 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   answered on the step's line and the report has a section "Who answered".
 - `uv run python -m factory waiting [--runs-root <folder>] [--json]` lists every run that waits for
   a person, one line each: ticket, step, kind, who, since when, the question's start and its path.
-  A run whose answer is written but not yet read says "answer pending"; none prints "nothing is
-  waiting".
+  A run whose answer is written but not yet read says "answer pending", or "answer refused: <what
+  is wrong>" when the run would refuse it; none prints "nothing is waiting".
 - When a run stops for a person it tells, best effort: on macOS with `osascript` on the PATH a
   desktop notification (this machine only; nothing elsewhere), and with `notify_url` set a JSON
   POST (`ticket`, `step`, `kind`, `who`, `question`, `run_dir`, `question_path`, 5 s timeout). A
-  failure to tell prints one `notify:` line and never stops the run.
+  failure to tell prints one `notify:` line and never stops the run. On a headless machine or in a
+  CI job set `QA_FACTORY_NO_NOTIFY=1` and it tells nobody.
 - Where each step stops under `auto` (the default everywhere but Verify), and the answers it
   accepts. Under `person` each stops (Ship before its commit). The answer names one `decision`;
   "carries" is the extra field that answer may hold.
@@ -286,7 +287,7 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   | Step | Stops under `auto` when | Answers (what each carries) |
   |---|---|---|
   | Frame (`clarify`) | a criterion has `testable: false`, or `missing_contract` is not empty; ambiguities alone never stop it | `proceed` (go on with the frame as read), `clarify` (carries `ticket`: any of `description`, `contract`, `acceptance_criteria`; Frame runs again on the clarified ticket and its rule applies again), `decline` |
-  | Plan (`plan`) | the plan says `risk: "high"`, or lists `unknown_patterns` (patterns the strategy does not cover) | `approve`, `edit` (carries `plan`: a path to a JSON file in the plan's structured shape, relative to the run folder or absolute, or the object inline; the old plan is kept as `plan/plan.before-edit.json`), `decline` |
+  | Plan (`plan`) | the plan says `risk: "high"`, or lists `unknown_patterns` (patterns the strategy does not cover) | `approve`, `edit` (carries `plan`: a path to a JSON file in the plan's structured shape, or to `plan/plan.json` itself after editing it in place, relative to the run folder or absolute, or the object inline; the file the answer replaces is kept as `plan/plan.before-edit.json`, which for an in-place edit is already the edited one, so copy the original first if it matters), `decline` |
   | Verify (`approval`, `escalation`) | the stronger model cannot decide a failure (mode `model`, the default) | `approve`/`decline`; `retry` (carries `guidance`), `recheck` (carries `round`), `change_is_wrong` |
   | Review (`review`) | the review still requests changes after its fix round, or no writer round is left for one | `sign_off` (carries `note`, kept in the reason), `another_round` (one more fix round when a writer round is left, else the step fails), `decline`; under `person` an approving review asks `sign_off` or `decline` |
   | Ship (`ship`) | never; under `person` it stops before the commit | `approve` (commit and run the suite), `decline` |
@@ -301,8 +302,9 @@ uv run python -m factory summary .artifacts/runs/<ticket id> > summary.md   # th
   later step's record becomes an earlier round (`steps/NN-<step>.roundK.json`), so the next `run`
   resumes after the edited step; `--rerun` archives the step's own record too, so it runs again.
   It writes `steps/NN-<step>.redoK.json` (who, when, the note, and the sha256 of the step's
-  artifact files as found when `redo` runs, or `unknown` for a missing file) and prints what it
-  archived. It refuses a step that has not passed and a run waiting at a gate, and says what to
+  artifact files before, as the step's record kept them when it passed, and after, as found when
+  `redo` runs; `unknown` for a missing file or a record from before records kept hashes) and prints
+  what it archived. It refuses a step that has not passed and a run waiting at a gate, and says what to
   do instead.
 - A re-run skips passed steps and runs failed ones again. The spend so far lives in `rounds.json`
   in the run folder and survives re-runs; the caps are read from the ticket (`caps`) on every run.
