@@ -14,6 +14,8 @@ import re
 import subprocess
 from pathlib import Path
 
+from factory.checks.appenv import app_env
+
 # ruff 0.14 prints "Would reformat: <path>";
 # ruff 0.16 prints "unformatted: ..." then " --> <path>:<row>:<col>".
 _REFORMAT_OLD = re.compile(r"^Would reformat:\s*(.+)$")
@@ -33,8 +35,10 @@ def _rel(tree, path):
 
 
 def _ruff(tree, python, files):
-    findings = []
-    probe = subprocess.run([python, "-m", "ruff", "--version"], cwd=tree, capture_output=True, text=True)
+    findings, env = [], app_env(python)
+    probe = subprocess.run(
+        [python, "-m", "ruff", "--version"], cwd=tree, env=env, capture_output=True, text=True
+    )
     if probe.returncode != 0:
         return [
             _finding(None, None, "ruff", f"ruff is not installed for {python}: {probe.stderr.strip()[-200:]}")
@@ -42,6 +46,7 @@ def _ruff(tree, python, files):
     proc = subprocess.run(
         [python, "-m", "ruff", "check", "--no-cache", "--output-format", "json", *files],
         cwd=tree,
+        env=env,
         capture_output=True,
         text=True,
     )
@@ -57,6 +62,7 @@ def _ruff(tree, python, files):
     proc = subprocess.run(
         [python, "-m", "ruff", "format", "--check", "--no-cache", *files],
         cwd=tree,
+        env=env,
         capture_output=True,
         text=True,
     )

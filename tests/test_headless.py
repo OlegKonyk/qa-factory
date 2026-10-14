@@ -82,6 +82,13 @@ def test_env_is_scrubbed_and_stdin_closed(monkeypatch):
     assert runner.kwargs["cwd"] == "/work"
 
 
+def test_a_given_env_is_used_as_it_is_and_still_scrubbed():
+    given = {"PATH": "/venv/bin:/usr/bin", "CLAUDECODE": "1", "KEEP_ME": "yes"}
+    runner = FakeRunner(PLAIN)
+    do_call(runner, env=given)
+    assert runner.kwargs["env"] == {"PATH": "/venv/bin:/usr/bin", "KEEP_ME": "yes"}
+
+
 def test_parses_real_plain_result():
     res = do_call(FakeRunner(PLAIN))
     raw = json.loads(PLAIN)

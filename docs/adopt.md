@@ -64,6 +64,26 @@ The application's own environment needs, inside its virtual environment: pytest,
 browser tests. The fetch script (section 4) installs mutmut and whatever the application's own
 dependency files do not install (ruff, for isso: its test extra has pytest only).
 
+**The environment every check gives the application.** Every subprocess that runs the recipe's
+`python`, or pytest, ruff or mutmut beside it, gets the factory's environment with the folder of
+`python` (the environment's `bin`) first on PATH, so tests that spawn a console script of their
+own environment (`alembic`, `celery`, the application's CLI) find it, as they do under nox or an
+activated environment. The test writer's Claude Code session is started with the same PATH, so
+the tests it runs while writing find them too (a login shell may rebuild PATH, so the folder is on
+it but may not be first; a console script is still found unless an earlier folder holds one of the
+same name). mutmut also gets `no_proxy='*'` when no proxy variable (`no_proxy`,
+`http_proxy`, `https_proxy`, `all_proxy`, either case) is set: on macOS every mutant child of
+mutmut 3.8.0 crashed with SIGSEGV in urllib's macOS proxy lookup otherwise (measured 2026-10-14 on
+gafaelfawr: 62 of 62 mutants crashed without it, 62 of 62 ran with it). It is harmless elsewhere.
+Both are in `factory/checks/appenv.py`.
+
+**This machine only.** Docker runs through Colima; `docker compose` (the plugin) is absent and
+`docker-compose` 5.5.0 is the binary. An application whose tests start containers through
+testcontainers needs `export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock` before
+the run, otherwise every container start fails with a mount error on
+`~/.colima/default/docker.sock` (measured 2026-10-14). A login `zsh` here moves a folder
+prepended to PATH from first to fifteenth (measured).
+
 **The application's Python version.** Use one from the application's own CI matrix and check that
 its C extensions build (isso's matrix is 3.10 to 3.14; its `misaka` extension built on 3.13 here).
 
@@ -115,6 +135,15 @@ needed.
    worktree's path, not the clone's. Run the application's code only through `python -m ...` from
    the worktree (a script's own folder goes first on the path, so a probe script run from a
    worktree can silently import the clone). isso's `fetch.py` makes this check a step.
+   **For a `src/` layout** the editable install's `.pth` points at the clone's `src`, so a worktree
+   imports the clone's code unless pytest puts the worktree's `src` first: add `"-o",
+   "pythonpath=src"` to `pytest_args`, as two list items (one item `"-o pythonpath=src"` is
+   silently ignored, measured). With several source roots, name them space-separated in one value
+   (`"pythonpath=src client/src"`). Never put it in `mutmut.pytest_add_cli_args`: pytest would put
+   the copy's unmutated `src` ahead of `mutants/src`, and mutmut puts `mutants/src` on the path
+   itself. The check for this layout: in a worktree, run a one-line test through `python -m
+   pytest` with those arguments that prints the module's `__file__`, or run `PYTHONPATH=src python
+   -c 'import pkg; print(pkg.__file__)'`; either must print the worktree's path.
 
 If the service calls other services, its suite must already run with those mocked or stubbed in
 its own way; the factory runs the suite as it is and adds nothing.
@@ -134,7 +163,7 @@ the steps index the required keys directly and fail with a `KeyError` on a missi
 | `worktrees` | folder holding `<ticket id>/base` and `<ticket id>/head` | driver, fetch |
 | `python` | the interpreter of the application's environment, absolute | every check |
 | `source_package` | the package directory, relative to the repo root: `pkg`, or `src/pkg` for a src layout; the factory derives the import name from it (`src/pkg` is imported as `pkg`) | mutation, lint (mocks of own code) |
-| `pytest_args` | arguments for every pytest call, e.g. `["-p", "no:cacheprovider"]` | revert, suite, Ship |
+| `pytest_args` | arguments for every pytest call, e.g. `["-p", "no:cacheprovider"]`; for a `src/` layout add `"-o", "pythonpath=src"` (section 3, item 7), which `mutmut.pytest_add_cli_args` must not carry | revert, suite, Ship |
 | `api_tests_dir` | the API tests folder; the writer adds `test_<slug>_api.py` there | Verify, Implement, Ship |
 | `test_helpers` (optional) | the helper file the writer reads first; default `<api_tests_dir>/helpers.py` | the writer prompt |
 | `browser_tests_dir`, `browser_test_files` (optional, together) | the browser tests folder and its file pattern (`e2e_test_*.py`); omit both for an API-only application | Verify, Implement, Ship, revert |
@@ -219,6 +248,10 @@ The model is `targets/linkding/tickets/bundle-filters-blind-2.json` (blind, with
   wrapper`) gets no mutant (measured on isso 7e91d59). A change that only adds a decorator line
   gets mutants in the function's body but none on a changed line. A change made only of
   functions without a mutant gets no mutation verdict (section 7).
+  One interpreter (the recipe's `python`, the environment of the clone's current checkout) serves
+  both `base` and `head`, so a commit older than that environment's dependency pins may not import
+  or may fail its suite there. Prefer a change from the last months (measured on gafaelfawr: a May
+  fix was red and a March fix did not import under October's environment).
 - `qa_mode`: `"blind"` writes the tests from the ticket and the code before the change, without
   seeing the change; omit it to write them after the change with the diff in view. Blind is the
   stronger proof and needs the contract stated; track 1 measured no mismatch on two tickets whose

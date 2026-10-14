@@ -19,6 +19,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from factory.checks.appenv import app_env
+
 CAUSES = ("pass", "skip", "missing-name", "behaviour", "crash")
 PLUGIN = "factory.checks.failsort_plugin"
 FACTORY_ROOT = Path(__file__).resolve().parents[2]
@@ -69,12 +71,13 @@ def classify(record, test_file, support_paths):
     return "crash"
 
 
-def _env(out):
-    env = dict(os.environ)
-    env["PYTHONPATH"] = os.pathsep.join(p for p in (str(FACTORY_ROOT), env.get("PYTHONPATH")) if p)
-    env["QA_FACTORY_FAILSORT_OUT"] = str(out)
-    env["PYTHONDONTWRITEBYTECODE"] = "1"  # leave the application's tree as it was
-    return env
+def _env(python, out):
+    return app_env(
+        python,
+        PYTHONPATH=os.pathsep.join(p for p in (str(FACTORY_ROOT), os.environ.get("PYTHONPATH")) if p),
+        QA_FACTORY_FAILSORT_OUT=str(out),
+        PYTHONDONTWRITEBYTECODE="1",  # leave the application's tree as it was
+    )
 
 
 def _read(out):
@@ -104,7 +107,7 @@ def _run_tree(tree, label, files, workdir, counter, python, pytest_args, support
         cmd.append(str(test_file))
         try:
             proc = subprocess.run(
-                cmd, cwd=tree, env=_env(out), capture_output=True, text=True, timeout=timeout
+                cmd, cwd=tree, env=_env(python, out), capture_output=True, text=True, timeout=timeout
             )
         except subprocess.TimeoutExpired:
             return (

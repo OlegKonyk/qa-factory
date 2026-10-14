@@ -8,6 +8,40 @@ can walk Oleg through it. Numbers are measured unless marked otherwise.
 Before 2026-10-08: the old lab, three days that produced no factory code
 (`docs/reference/lab.md`), then the planning session that wrote the brief and the decisions.
 
+## 2026-10-14 · The application's environment in every check: PATH, and mutmut on macOS
+
+**Asked.** Two generic facts from the scouting of roadmap item 3's application (gafaelfawr, a
+FastAPI service under `src/` with Postgres and Redis through testcontainers), measured there by an
+Opus scout. Spec: `docs/specs/2026-10-14-third-application/s1-app-env.md`.
+
+**Found (measured on gafaelfawr by the scout).**
+1. The environment's bin folder is not on PATH when the factory runs the application's interpreter
+   by its path. Three of its tests run `alembic` as a subprocess and fail with
+   `FileNotFoundError: 'alembic'` under plain pytest; its own runner, nox, puts `.venv/bin` first on
+   PATH. The factory passed its own environment through unchanged, so the revert check, the suite
+   check and Ship would fail the same way on any application whose tests spawn a console script.
+2. mutmut 3.8.0 on macOS: every mutant child crashed with exit -11 (SIGSEGV) in
+   `_scproxy.get_proxy_settings`, urllib's macOS proxy lookup, which is not safe after fork, unless
+   a `*_proxy` variable is set. `no_proxy='*'` makes urllib skip the lookup: 62 of 62 mutants
+   crashed without it; 62 of 62 ran with it (49 killed, 13 survived).
+
+**Built.** `factory/checks/appenv.py`, `app_env(python, mutmut=False, **extra)`: the factory's
+environment with the interpreter's folder first on PATH (not doubled), `extra` merged in, and for
+mutmut `no_proxy='*'` when no proxy variable is set (on every platform, one code path). Used by
+the revert check (its own variables come through `extra`), the suite check (and so Verify's suite
+run and Ship), the three ruff calls of the lint check, `mutmut run`, and the test writer's Claude
+Code session (`headless.call` gained an `env` argument; the writer's prompts run
+`{python} -m pytest`, whose tests need the same PATH). The prompts were left alone: the
+environment is set by the factory, not left for the model to remember. Not run in a real session:
+a login `zsh` here keeps a prepended folder on PATH but moves it from first to fifteenth
+(measured), which still finds a console script no other folder holds. The adoption guide gained
+the environment note, a "this machine only" paragraph for Colima and testcontainers, the
+`-o pythonpath=src` rule for a `src/` layout, and the advice to pick a recent change.
+
+**Measured.** The factory's own tests only (`just check`), including one that runs a real pytest
+through the suite check and finds a script beside the interpreter on PATH. Neither fix has run
+through the factory on gafaelfawr yet; the onboarding run measures them.
+
 ## 2026-10-14 · Module names for a `src/` layout
 
 **Asked.** Roadmap item 3 (a third application) may bring a `src/<package>/` layout, which the

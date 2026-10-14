@@ -503,6 +503,7 @@ class FakeClaude:
     def __call__(self, argv, **kwargs):
         cwd = Path(kwargs["cwd"])
         call = {"argv": argv, "cwd": str(cwd), "had_file": (cwd / "tests" / "test_x_api.py").exists()}
+        call["env"] = kwargs.get("env")
         if "--settings" in argv:
             call["settings"] = json.loads(Path(argv[argv.index("--settings") + 1]).read_text())
         self.calls.append(call)
@@ -573,6 +574,20 @@ def test_the_sequential_writer_works_in_the_head_tree_with_the_diff(trees, monke
     assert "DIFF-MARKER" in call["argv"][2] and "e2e_test_old" in call["argv"][2]
     assert "Bash(git *)" not in call["settings"]["permissions"]["deny"]
     assert ctx["files"] == ["tests/test_x_api.py"] and not (head / "tests" / "leftover.py").exists()
+
+
+def test_the_writer_session_has_the_interpreter_folder_first_on_path(trees, monkeypatch, tmp_path):
+    claude = FakeClaude()
+    monkeypatch.setattr(verify, "RUNNER", claude)
+    monkeypatch.setattr(verify, "ATTEMPT_CHECKS", [("write_tests", verify.write_tests)])
+    monkeypatch.setenv("CLAUDECODE", "1")
+    venv_bin = tmp_path / "venv" / "bin"
+    trees["repo"]["app"]["python"] = str(venv_bin / "python")
+    ctx = verify._context(trees)
+    assert verify._attempt(ctx, "write") is None
+    env = claude.calls[0]["env"]
+    assert env["PATH"].split(os.pathsep)[0] == str(venv_bin)
+    assert "CLAUDECODE" not in env
 
 
 def _ledger_kinds_of(inp):

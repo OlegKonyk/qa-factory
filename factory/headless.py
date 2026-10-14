@@ -197,7 +197,11 @@ def call(
     binary: str = "claude",
     runner: Callable[..., Any] = subprocess.run,
     transcript_path: str | Path | None = None,
+    env: dict | None = None,
 ) -> Result:
+    """One session. `env` is the environment to start it in (default os.environ), scrubbed of the
+    Claude Code markers; the test writer passes the application's (`factory/checks/appenv.py`) so
+    the tests it runs find the console scripts of the application's environment."""
     settings_file = None
     try:
         if settings:
@@ -220,7 +224,7 @@ def call(
             proc = runner(
                 argv,
                 cwd=str(cwd),
-                env=clean_env(),
+                env=clean_env(env),
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
                 text=True,

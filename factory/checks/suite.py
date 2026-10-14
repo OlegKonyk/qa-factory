@@ -4,6 +4,8 @@ import re
 import subprocess
 import time
 
+from factory.checks.appenv import app_env
+
 _SUMMARY = re.compile(r"\d+ (passed|failed|error)")
 
 
@@ -20,6 +22,7 @@ def run(tree, python, invocations, pytest_args, timeout=1800) -> dict:
             proc = subprocess.run(
                 args,
                 cwd=tree,
+                env=app_env(python),
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
                 text=True,
