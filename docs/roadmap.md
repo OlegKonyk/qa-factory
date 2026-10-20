@@ -1,5 +1,11 @@
 # Roadmap
 
+> **Closed 2026-10-20. Read-only history.** The factory continues as **agent-sdlc** in
+> `~/dev/agent-sdlc` (GitHub `OlegKonyk/agent-sdlc`, private); start there. This repository's final
+> state is tag `qa-factory-end-2026-10-20`. Nothing is deleted. Its checks, apps, onboarding guide and
+> run evidence are taken by agent-sdlc when its plan needs them, through
+> `agent-sdlc/docs/reference/qa-factory.md`. Do not resume this roadmap.
+
 Proposed 2026-10-14 in answer to Oleg's request to discuss the roadmap, and revised the same day
 after his review (`docs/inputs.md`, both entries). The order of the first two groups is his to
 choose (question 1 below); everything else is a recommendation he can overturn. The review page
@@ -169,7 +175,7 @@ the run. Kickoff D. Code with factory tests and one cheap proof run.
 
 ### 5. The factory writes the change itself
 
-State: planned
+State: dropped (2026-10-20: the factory continues as agent-sdlc, ~/dev/agent-sdlc; this item is input to its planning, not carried as is)
 
 - **Build:** Implement becomes an agent that writes the change test-first from Frame and Plan.
   In parallel, a fresh session writes the acceptance tests blind (already built). They meet on
@@ -184,7 +190,7 @@ State: planned
 
 ### 6. Ship as a pull request, approve on it
 
-State: planned
+State: dropped (2026-10-20: the factory continues as agent-sdlc, ~/dev/agent-sdlc; this item is input to its planning, not carried as is)
 
 The merge gate, which the published practice treats as the one fixed human gate besides the
 specification (`docs/research/2026-10-14-factory-landscape.md`, points 1 and 4).
@@ -199,7 +205,7 @@ specification (`docs/research/2026-10-14-factory-landscape.md`, points 1 and 4).
 
 ### 7. Tickets from an issue tracker
 
-State: planned
+State: dropped (2026-10-20: the factory continues as agent-sdlc, ~/dev/agent-sdlc; this item is input to its planning, not carried as is)
 
 The readiness check that sends a ticket back for its missing contract is in item 4 now (his
 answer of 2026-10-14); what stays here is reading the ticket from a tracker and writing the
@@ -207,7 +213,7 @@ answer back to it. The Ticket person point of the brief is this.
 
 ### 8. The Learn step
 
-State: planned
+State: dropped (2026-10-20: the factory continues as agent-sdlc, ~/dev/agent-sdlc; this item is input to its planning, not carried as is)
 
 Each run's escalations, review findings, answers at the gates and repairs proposed as edits to
 the strategy rule and the prompts, by pull request. The brief's knowledge base starts here. A
@@ -216,7 +222,7 @@ candidate here.
 
 ### 9. Scale
 
-State: planned
+State: dropped (2026-10-20: the factory continues as agent-sdlc, ~/dev/agent-sdlc; this item is input to its planning, not carried as is)
 
 More than one ticket at once, a durable engine as the default (Restate, kept on 2026-10-14;
 replaced only when a run shows a need it cannot meet or work settles on Temporal), test selection
@@ -224,7 +230,7 @@ when a suite gets slow, quarantine for flaky tests.
 
 ### 10. Applications not in Python
 
-State: planned
+State: dropped (2026-10-20: the factory continues as agent-sdlc, ~/dev/agent-sdlc; this item is input to its planning, not carried as is)
 
 The checks read pytest output and run mutmut.
 

@@ -1,5 +1,11 @@
 # qa-factory
 
+> **Closed 2026-10-20. Read-only history.** The factory continues as **agent-sdlc** in
+> `~/dev/agent-sdlc` (GitHub `OlegKonyk/agent-sdlc`, private); start there. This repository's final
+> state is tag `qa-factory-end-2026-10-20`. Nothing is deleted. Its checks, apps, onboarding guide and
+> run evidence are taken by agent-sdlc when its plan needs them, through
+> `agent-sdlc/docs/reference/qa-factory.md`. Do not resume this roadmap.
+
 This repository builds the QA part of an AI software factory as working code. A ticket goes in,
 agents frame, plan, implement, verify, review and ship the change, and people approve at set
 gates. The factory runs on this machine; Temporal is deferred until the loop runs

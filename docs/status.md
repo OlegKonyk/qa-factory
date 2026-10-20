@@ -1,5 +1,11 @@
 # Status
 
+> **Closed 2026-10-20. Read-only history.** The factory continues as **agent-sdlc** in
+> `~/dev/agent-sdlc` (GitHub `OlegKonyk/agent-sdlc`, private); start there. This repository's final
+> state is tag `qa-factory-end-2026-10-20`. Nothing is deleted. Its checks, apps, onboarding guide and
+> run evidence are taken by agent-sdlc when its plan needs them, through
+> `agent-sdlc/docs/reference/qa-factory.md`. Do not resume this roadmap.
+
 Read this first. Update it last, in the same pull request as the work.
 
 ## Waiting on Oleg

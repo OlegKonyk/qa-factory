@@ -1,5 +1,11 @@
 # The next session
 
+> **Closed 2026-10-20. Read-only history.** The factory continues as **agent-sdlc** in
+> `~/dev/agent-sdlc` (GitHub `OlegKonyk/agent-sdlc`, private); start there. This repository's final
+> state is tag `qa-factory-end-2026-10-20`. Nothing is deleted. Its checks, apps, onboarding guide and
+> run evidence are taken by agent-sdlc when its plan needs them, through
+> `agent-sdlc/docs/reference/qa-factory.md`. Do not resume this roadmap.
+
 Paste one of these as the first message of the next session. Items 1 to 4 of `docs/roadmap.md`
 were done on 2026-10-14 (`docs/log.md`); item 5 is next, item 6 after it. Each kickoff stands on
 its own.
